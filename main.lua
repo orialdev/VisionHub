@@ -1,5 +1,4 @@
-if _G.VisionHubLoaded then return end
-_G.VisionHubLoaded = true
+
 local discordInvite = "https://discord.gg/Ygcq9dpW9t"
 if setclipboard then setclipboard(discordInvite) end
 local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
