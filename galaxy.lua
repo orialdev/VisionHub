@@ -369,18 +369,22 @@ end
 
 function GalaxyUI:CreateSection(name, tooltip)
 	local f = Instance.new("Frame")
-	f.Size = UDim2.new(1, 0, 0, 35)
+	f.Size = UDim2.new(1, 0, 0, 40)
 	f.BackgroundColor3 = GalaxyUI.Themes.Default.SectionColor
 	local corner = Instance.new("UICorner", f)
 	corner.CornerRadius = UDim.new(0, 8)
+	-- Adiciona um stroke sutil para destacar a seção
+	local stroke = Instance.new("UIStroke", f)
+	stroke.Color = Color3.fromRGB(60, 60, 70)
+	stroke.Thickness = 1
 	local lbl = Instance.new("TextLabel")
-	lbl.Size = UDim2.new(1, -15, 1, 0)
+	lbl.Size = UDim2.new(1, -20, 1, 0)
 	lbl.Position = UDim2.new(0, 10, 0, 0)
 	lbl.BackgroundTransparency = 1
 	lbl.Text = name
 	lbl.Font = Enum.Font.GothamSemibold
-	lbl.TextSize = 16
-	lbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+	lbl.TextSize = 18
+	lbl.TextColor3 = GalaxyUI.Themes.Default.TextColor
 	lbl.TextXAlignment = Enum.TextXAlignment.Left
 	lbl.Parent = f
 	return {Frame = f}
@@ -724,9 +728,9 @@ function GalaxyUI:CreateDropdown(opt)
 	dropdownFrame.Visible = false
 	dropdownFrame.ZIndex = 50
 	dropdownFrame.ClipsDescendants = true
-	dropdownFrame.Parent = container
 	local dco = Instance.new("UICorner", dropdownFrame)
 	dco.CornerRadius = UDim.new(0, 8)
+	dropdownFrame.Parent = container
 	local optionsFrame = Instance.new("ScrollingFrame")
 	optionsFrame.Size = UDim2.new(1, 0, 1, 0)
 	optionsFrame.Position = UDim2.new(0, 0, 0, 0)
@@ -748,6 +752,9 @@ function GalaxyUI:CreateDropdown(opt)
 			btn.Size = UDim2.new(1, -10, 0, 30)
 			btn.Position = UDim2.new(0, 5, 0, 0)
 			btn.BackgroundColor3 = GalaxyUI.Themes.Default.Topbar
+			-- Adiciona UICorner nas opções do dropdown
+			local btnCorner = Instance.new("UICorner", btn)
+			btnCorner.CornerRadius = UDim.new(0, 8)
 			btn.TextColor3 = GalaxyUI.Themes.Default.TextColor
 			btn.Font = Enum.Font.Gotham
 			btn.TextSize = 16
