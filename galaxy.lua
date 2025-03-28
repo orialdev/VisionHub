@@ -115,6 +115,7 @@ function GalaxyUI:Notify(opt)
 	sg.ResetOnSpawn = false
 	sg.Parent = LocalPlayer:WaitForChild("PlayerGui")
 	sg.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	
 	local container = Instance.new("Frame")
 	container.Name = "NotificationContainer"
 	container.AnchorPoint = Vector2.new(1, 1)
@@ -123,8 +124,10 @@ function GalaxyUI:Notify(opt)
 	container.BackgroundTransparency = 1
 	container.ZIndex = 10
 	container.Parent = sg
+	
 	table.insert(NotificationQueue, {sg = sg, opt = opt})
 	local count = #NotificationQueue
+	
 	local frame = Instance.new("Frame")
 	frame.AnchorPoint = Vector2.new(1, 1)
 	frame.Size = UDim2.new(1, 0, 0, 80)
@@ -133,10 +136,23 @@ function GalaxyUI:Notify(opt)
 	frame.BackgroundTransparency = 1
 	frame.ZIndex = 11
 	frame.Parent = container
-	local corner = Instance.new("UICorner", frame)
-	corner.CornerRadius = UDim.new(0, 12)
+	
+	-- Adiciona UICorner ao frame da notificação
+	local frameCorner = Instance.new("UICorner", frame)
+	frameCorner.CornerRadius = UDim.new(0, 12)
+	
+	-- Adiciona uma imagem (ícone) à notificação
+	local icon = Instance.new("ImageLabel", frame)
+	icon.Size = UDim2.new(0, 30, 0, 30)
+	icon.Position = UDim2.new(0, 10, 0, 25)
+	icon.BackgroundTransparency = 1
+	-- Utiliza a imagem fornecida ou um ícone padrão
+	icon.Image = opt.Image or "rbxassetid://6031229304"
+	icon.ZIndex = 12
+	
 	local title = Instance.new("TextLabel")
 	title.Size = UDim2.new(1, -70, 0, 30)
+	title.Position = UDim2.new(0, 50, 0, 0)  -- desloca para dar espaço ao ícone
 	title.BackgroundTransparency = 1
 	title.Text = opt.Title or "Notification"
 	title.TextColor3 = GalaxyUI.Themes.Default.TextColor
@@ -144,9 +160,10 @@ function GalaxyUI:Notify(opt)
 	title.TextSize = 16
 	title.ZIndex = 12
 	title.Parent = frame
+	
 	local content = Instance.new("TextLabel")
 	content.Size = UDim2.new(1, -10, 0, 40)
-	content.Position = UDim2.new(0, 5, 0, 30)
+	content.Position = UDim2.new(0, 10, 0, 30)
 	content.BackgroundTransparency = 1
 	content.Text = opt.Content or ""
 	content.TextColor3 = Color3.fromRGB(210, 210, 210)
@@ -155,6 +172,7 @@ function GalaxyUI:Notify(opt)
 	content.TextWrapped = true
 	content.ZIndex = 12
 	content.Parent = frame
+	
 	frame.Visible = false
 	local tweenIn = TweenService:Create(frame, TweenInfo.new(0.35, Enum.EasingStyle.Back), {BackgroundTransparency = 0, Position = frame.Position - UDim2.new(0, 0, 0, 10)})
 	tweenIn:Play()
@@ -713,6 +731,7 @@ function GalaxyUI:CreateDropdown(opt)
 	container.ClipsDescendants = false
 	local co = Instance.new("UICorner", container)
 	co.CornerRadius = UDim.new(0, 8)
+	
 	local mainButton = Instance.new("TextButton")
 	mainButton.Size = UDim2.new(1, 0, 1, 0)
 	mainButton.BackgroundTransparency = 1
@@ -721,6 +740,10 @@ function GalaxyUI:CreateDropdown(opt)
 	mainButton.Font = Enum.Font.Gotham
 	mainButton.TextSize = 16
 	mainButton.Parent = container
+	-- Adiciona UICorner ao botão principal do dropdown
+	local mainButtonCorner = Instance.new("UICorner", mainButton)
+	mainButtonCorner.CornerRadius = UDim.new(0, 8)
+	
 	local dropdownFrame = Instance.new("Frame")
 	dropdownFrame.Size = UDim2.new(1, 0, 0, 120)
 	dropdownFrame.Position = UDim2.new(0, 0, 1, 2)
@@ -731,6 +754,7 @@ function GalaxyUI:CreateDropdown(opt)
 	local dco = Instance.new("UICorner", dropdownFrame)
 	dco.CornerRadius = UDim.new(0, 8)
 	dropdownFrame.Parent = container
+	
 	local optionsFrame = Instance.new("ScrollingFrame")
 	optionsFrame.Size = UDim2.new(1, 0, 1, 0)
 	optionsFrame.Position = UDim2.new(0, 0, 0, 0)
@@ -738,6 +762,7 @@ function GalaxyUI:CreateDropdown(opt)
 	optionsFrame.ScrollBarThickness = 6
 	optionsFrame.ZIndex = 51
 	optionsFrame.Parent = dropdownFrame
+	
 	local layout = Instance.new("UIListLayout", optionsFrame)
 	layout.SortOrder = Enum.SortOrder.LayoutOrder
 	layout.Padding = UDim.new(0, 5)
@@ -752,7 +777,7 @@ function GalaxyUI:CreateDropdown(opt)
 			btn.Size = UDim2.new(1, -10, 0, 30)
 			btn.Position = UDim2.new(0, 5, 0, 0)
 			btn.BackgroundColor3 = GalaxyUI.Themes.Default.Topbar
-			-- Adiciona UICorner nas opções do dropdown
+			-- Adiciona UICorner nos botões das opções do dropdown
 			local btnCorner = Instance.new("UICorner", btn)
 			btnCorner.CornerRadius = UDim.new(0, 8)
 			btn.TextColor3 = GalaxyUI.Themes.Default.TextColor
