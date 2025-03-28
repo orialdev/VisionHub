@@ -147,7 +147,7 @@ function GalaxyUI:Notify(opt)
 	icon.Position = UDim2.new(0, 10, 0, 25)
 	icon.BackgroundTransparency = 1
 	-- Utiliza a imagem fornecida ou um ícone padrão
-	icon.Image = opt.Image or "rbxassetid://6031229304"
+	icon.Image = opt.Image or "rbxassetid://4483362458"
 	icon.ZIndex = 12
 	
 	local title = Instance.new("TextLabel")
