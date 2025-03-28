@@ -4,7 +4,6 @@ local UserInputService = game:GetService("UserInputService")
 local HttpService = game:GetService("HttpService")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer or Players:GetPropertyChangedSignal("LocalPlayer"):Wait()
-
 local GalaxyUI = {}
 GalaxyUI.Version = "4.5"
 GalaxyUI.Flags = {}
@@ -314,11 +313,6 @@ function GalaxyUI:CreateWindow(opt)
 					self.LastTab.Frame.Visible = true
 				end
 			end)
-		end
-	end
-	function w:Refresh()
-		if self.ScreenGui and self.Main then
-			TweenService:Create(self.Main, TweenInfo.new(0.3), {BackgroundTransparency = 0}):Play()
 		end
 	end
 	setmetatable(w, {__index = self})
@@ -721,8 +715,6 @@ function GalaxyUI:CreateDropdown(opt)
 	container.Size = UDim2.new(1, -20, 0, 40)
 	container.BackgroundColor3 = GalaxyUI.Themes.Default.ButtonColor
 	container.ClipsDescendants = false
-	local co = Instance.new("UICorner", container)
-	co.CornerRadius = UDim.new(0, 8)
 	local mainButton = Instance.new("TextButton")
 	mainButton.Size = UDim2.new(1, 0, 1, 0)
 	mainButton.BackgroundTransparency = 1
@@ -795,6 +787,12 @@ function GalaxyUI:CreateDropdown(opt)
 		if opt.Callback then
 			opt.Callback(option)
 		end
+	end
+	function o:Refresh(list)
+		self:SetOptions(list)
+	end
+	function o:SetValue(option)
+		self:SetOption(option)
 	end
 	return o
 end
