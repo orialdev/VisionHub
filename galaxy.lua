@@ -5,21 +5,21 @@ local HttpService=game:GetService("HttpService")
 local RunService=game:GetService("RunService")
 local LocalPlayer=Players.LocalPlayer or Players:GetPropertyChangedSignal("LocalPlayer"):Wait()
 local GalaxyUI={}
-GalaxyUI.Version="4.6"
+GalaxyUI.Version="4.8"
 GalaxyUI.Flags={}
 GalaxyUI.Config={Enabled=false,FolderName=nil,FileName="GalaxyConfig",Data={}}
 GalaxyUI.Themes={
 	Default={
-		MainFrame=Color3.fromRGB(25,25,35),
-		Topbar=Color3.fromRGB(35,35,45),
-		TextColor=Color3.fromRGB(245,245,245),
-		ButtonColor=Color3.fromRGB(55,55,70),
-		AccentColor=Color3.fromRGB(0,200,255),
-		SidebarColor=Color3.fromRGB(30,30,40),
+		MainFrame=Color3.fromRGB(245,245,245),
+		Topbar=Color3.fromRGB(240,240,240),
+		TextColor=Color3.fromRGB(30,30,30),
+		ButtonColor=Color3.fromRGB(230,230,230),
+		AccentColor=Color3.fromRGB(0,120,215),
+		SidebarColor=Color3.fromRGB(250,250,250),
 		SidebarWidth=240,
-		SectionColor=Color3.fromRGB(45,45,60),
-		TooltipColor=Color3.fromRGB(20,20,20),
-		DividerColor=Color3.fromRGB(130,130,140)
+		SectionColor=Color3.fromRGB(240,240,240),
+		TooltipColor=Color3.fromRGB(255,255,255),
+		DividerColor=Color3.fromRGB(200,200,200)
 	}
 }
 GalaxyUI.Windows={}
@@ -74,15 +74,9 @@ function GalaxyUI:EnableConfig(e,f,n)
 	self.Config.FolderName=f
 	self.Config.FileName=n or "GalaxyConfig"
 end
-function GalaxyUI:LoadConfig()
-	loadConfig()
-end
-function GalaxyUI:SaveConfig()
-	saveConfig()
-end
-function GalaxyUI:ModifyTheme(t)
-	applyTheme(t)
-end
+function GalaxyUI:LoadConfig() loadConfig() end
+function GalaxyUI:SaveConfig() saveConfig() end
+function GalaxyUI:ModifyTheme(t) applyTheme(t) end
 function GalaxyUI:Destroy()
 	for _,w in pairs(self.Windows) do
 		if w.ScreenGui then
@@ -156,16 +150,11 @@ function GalaxyUI:Notify(opt)
 	frame.Visible=false
 	local tweenIn=TweenService:Create(frame,TweenInfo.new(0.35,Enum.EasingStyle.Back),{BackgroundTransparency=0,Position=frame.Position-UDim2.new(0,0,0,10)})
 	tweenIn:Play()
-	tweenIn.Completed:Connect(function()
-		frame.Visible=true
-	end)
+	tweenIn.Completed:Connect(function() frame.Visible=true end)
 	delay(opt.Duration or 3,function()
 		local tweenOut=TweenService:Create(frame,TweenInfo.new(0.35,Enum.EasingStyle.Quad),{BackgroundTransparency=1,Position=frame.Position+UDim2.new(0,0,0,20)})
 		tweenOut:Play()
-		tweenOut.Completed:Connect(function()
-			sg:Destroy()
-			table.remove(NotificationQueue,table.find(NotificationQueue,{sg=sg,opt=opt}) or 1)
-		end)
+		tweenOut.Completed:Connect(function() sg:Destroy() table.remove(NotificationQueue,table.find(NotificationQueue,{sg=sg,opt=opt}) or 1) end)
 	end)
 end
 local function Dragify(handle,target)
@@ -205,11 +194,11 @@ function GalaxyUI:CreateWindow(opt)
 	main.Size=UDim2.new(0,840,0,520)
 	main.Position=UDim2.new(0.5,-420,0.5,-260)
 	main.BackgroundColor3=GalaxyUI.Themes.Default.MainFrame
-	main.BackgroundTransparency=1
+	main.BackgroundTransparency=0
 	main.ClipsDescendants=true
 	main.Parent=scr
-	local gradientMain=Instance.new("UIGradient",main)
-	gradientMain.Color=ColorSequence.new({ColorSequenceKeypoint.new(0,GalaxyUI.Themes.Default.MainFrame),ColorSequenceKeypoint.new(1,GalaxyUI.Themes.Default.SectionColor)})
+	local gradMain=Instance.new("UIGradient",main)
+	gradMain.Color=ColorSequence.new({ColorSequenceKeypoint.new(0,GalaxyUI.Themes.Default.MainFrame),ColorSequenceKeypoint.new(1,GalaxyUI.Themes.Default.SectionColor)})
 	local stroke=Instance.new("UIStroke",main)
 	stroke.Color=GalaxyUI.Themes.Default.AccentColor
 	stroke.Thickness=2
@@ -267,15 +256,13 @@ function GalaxyUI:CreateWindow(opt)
 		w.lastToggleTime=tick()
 		w:Toggle()
 	end)
-	main.BackgroundTransparency=1
+	main.BackgroundTransparency=0
 	main.Size=UDim2.new(0,0,0,0)
 	main.Rotation=15
-	local tween1=TweenService:Create(main,TweenInfo.new(0.5,Enum.EasingStyle.Back,Enum.EasingDirection.Out),{Size=UDim2.new(0,840,0,520),Rotation=-5,BackgroundTransparency=0})
+	local tween1=TweenService:Create(main,TweenInfo.new(0.5,Enum.EasingStyle.Back,Enum.EasingDirection.Out),{Size=UDim2.new(0,840,0,520),Rotation=-5})
 	local tween2=TweenService:Create(main,TweenInfo.new(0.3,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Size=UDim2.new(0,800,0,500),Rotation=0})
 	tween1:Play()
-	tween1.Completed:Connect(function()
-		tween2:Play()
-	end)
+	tween1.Completed:Connect(function() tween2:Play() end)
 	w.Main=main
 	w.Sidebar=side
 	w.Container=container
@@ -285,24 +272,18 @@ function GalaxyUI:CreateWindow(opt)
 	w.LastTab=nil
 	function w:Toggle()
 		if self.IsOpen then
-			for _,tb in pairs(self.Tabs) do
-				tb.Frame.Visible=false
-			end
+			for _,tb in pairs(self.Tabs) do tb.Frame.Visible=false end
 			SetDescendantsVisibility(self.Main,false)
 			self.IsOpen=false
 			TweenService:Create(self.Main,TweenInfo.new(0.3,Enum.EasingStyle.Quad,Enum.EasingDirection.In),{Size=UDim2.new(0,self.OriginalSize.X.Offset*0.2,0,50),BackgroundTransparency=1}):Play()
-			delay(0.3,function()
-				self.Main.Visible=false
-			end)
+			delay(0.3,function() self.Main.Visible=false end)
 		else
 			self.Main.Visible=true
 			self.IsOpen=true
 			TweenService:Create(self.Main,TweenInfo.new(0.3,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Size=self.OriginalSize,BackgroundTransparency=0}):Play()
 			delay(0.3,function()
 				SetDescendantsVisibility(self.Main,true)
-				if self.LastTab then
-					self.LastTab.Frame.Visible=true
-				end
+				if self.LastTab then self.LastTab.Frame.Visible=true end
 			end)
 		end
 	end
@@ -333,9 +314,7 @@ function GalaxyUI:CreateWindow(opt)
 		end
 	end)
 	UserInputService.InputEnded:Connect(function(input)
-		if input.UserInputType==Enum.UserInputType.MouseButton1 then
-			draggingResize=false
-		end
+		if input.UserInputType==Enum.UserInputType.MouseButton1 then draggingResize=false end
 	end)
 	setmetatable(w,{__index=self})
 	table.insert(self.Windows,w)
@@ -361,13 +340,13 @@ function GalaxyUI:CreateTab(opt)
 	else
 		icon.Image="rbxassetid://"..t.Icon
 	end
-	icon.ImageColor3=Color3.fromRGB(230,230,230)
+	icon.ImageColor3=Color3.fromRGB(80,80,80)
 	local txt=Instance.new("TextLabel")
 	txt.Size=UDim2.new(1,-60,1,0)
 	txt.Position=UDim2.new(0,50,0,0)
 	txt.BackgroundTransparency=1
 	txt.Text=t.Name
-	txt.TextColor3=Color3.fromRGB(230,230,230)
+	txt.TextColor3=Color3.fromRGB(80,80,80)
 	txt.Font=Enum.Font.Gotham
 	txt.TextSize=18
 	txt.TextXAlignment=Enum.TextXAlignment.Left
@@ -382,9 +361,7 @@ function GalaxyUI:CreateTab(opt)
 	layout.SortOrder=Enum.SortOrder.LayoutOrder
 	layout.Padding=UDim.new(0,12)
 	btn.MouseButton1Click:Connect(function()
-		for _,tb in pairs(self.Tabs) do
-			tb.Frame.Visible=false
-		end
+		for _,tb in pairs(self.Tabs) do tb.Frame.Visible=false end
 		t.Frame.Visible=true
 		self.LastTab=t
 		TweenService:Create(t.Frame,TweenInfo.new(0.25,Enum.EasingStyle.Sine),{CanvasPosition=Vector2.new(0,0)}):Play()
@@ -399,7 +376,7 @@ function GalaxyUI:CreateSection(name,tooltip)
 	local corner=Instance.new("UICorner",f)
 	corner.CornerRadius=UDim.new(0,10)
 	local stroke=Instance.new("UIStroke",f)
-	stroke.Color=Color3.fromRGB(80,80,90)
+	stroke.Color=Color3.fromRGB(200,200,200)
 	stroke.Thickness=1
 	local lbl=Instance.new("TextLabel")
 	lbl.Size=UDim2.new(1,-20,1,0)
@@ -436,9 +413,7 @@ function GalaxyUI:CreateLabel(text,tooltip)
 	l.TextSize=18
 	l.Parent=f
 	local o={Frame=f}
-	function o:Set(t)
-		l.Text=t
-	end
+	function o:Set(t) l.Text=t end
 	return o
 end
 function GalaxyUI:CreateParagraph(opt)
@@ -467,10 +442,7 @@ function GalaxyUI:CreateParagraph(opt)
 	b.TextWrapped=true
 	b.Parent=f
 	local o={Frame=f}
-	function o:Set(x)
-		t.Text=x.Title or ""
-		b.Text=x.Content or ""
-	end
+	function o:Set(x) t.Text=x.Title or "" b.Text=x.Content or "" end
 	return o
 end
 function GalaxyUI:CreateButton(opt)
@@ -488,15 +460,9 @@ function GalaxyUI:CreateButton(opt)
 	b.TextSize=18
 	b.AutoButtonColor=false
 	b.Parent=f
-	b.MouseButton1Click:Connect(function()
-		if opt.Callback then
-			opt.Callback()
-		end
-	end)
+	b.MouseButton1Click:Connect(function() if opt.Callback then opt.Callback() end end)
 	local o={Frame=f}
-	function o:SetText(x)
-		b.Text=x
-	end
+	function o:SetText(x) b.Text=x end
 	return o
 end
 function GalaxyUI:CreateToggle(opt)
@@ -526,22 +492,14 @@ function GalaxyUI:CreateToggle(opt)
 	local val=opt.CurrentValue==true
 	local function upd(x)
 		val=x
-		if opt.Flag then
-			GalaxyUI.Flags[opt.Flag]=x
-		end
+		if opt.Flag then GalaxyUI.Flags[opt.Flag]=x end
 		t.BackgroundColor3=x and GalaxyUI.Themes.Default.AccentColor or Color3.fromRGB(140,140,140)
-		if opt.Callback then
-			opt.Callback(x)
-		end
+		if opt.Callback then opt.Callback(x) end
 	end
-	t.MouseButton1Click:Connect(function()
-		upd(not val)
-	end)
+	t.MouseButton1Click:Connect(function() upd(not val) end)
 	upd(val)
 	local o={Frame=f}
-	function o:SetValue(v)
-		upd(v)
-	end
+	function o:SetValue(v) upd(v) end
 	return o
 end
 function GalaxyUI:CreateSlider(opt)
@@ -588,15 +546,11 @@ function GalaxyUI:CreateSlider(opt)
 	local function setv(v)
 		v=math.clamp(v,mi,ma)
 		v=math.floor(v/inc+0.5)*inc
-		if opt.Flag then
-			GalaxyUI.Flags[opt.Flag]=v
-		end
+		if opt.Flag then GalaxyUI.Flags[opt.Flag]=v end
 		numLabel.Text=tostring(v)
 		local p=(v-mi)/(ma-mi)
 		fill.Size=UDim2.new(p,0,1,0)
-		if opt.Callback then
-			opt.Callback(v)
-		end
+		if opt.Callback then opt.Callback(v) end
 		cval=v
 	end
 	setv(cval)
@@ -605,7 +559,7 @@ function GalaxyUI:CreateSlider(opt)
 			local move,release
 			move=UserInputService.InputChanged:Connect(function(x)
 				if x.UserInputType==Enum.UserInputType.MouseMovement then
-					local pos=x.Position - sliderBar.AbsolutePosition.X
+					local pos=x.Position.X - sliderBar.AbsolutePosition.X
 					local ratio=pos/sliderBar.AbsoluteSize.X
 					setv(mi+ratio*(ma-mi))
 				end
@@ -619,9 +573,7 @@ function GalaxyUI:CreateSlider(opt)
 		end
 	end)
 	local o={Frame=container}
-	function o:SetValue(v)
-		setv(v)
-	end
+	function o:SetValue(v) setv(v) end
 	return o
 end
 function GalaxyUI:CreateKeybind(opt)
@@ -656,9 +608,7 @@ function GalaxyUI:CreateKeybind(opt)
 	local function setk(k)
 		c=k
 		b.Text=k
-		if opt.Flag then
-			GalaxyUI.Flags[opt.Flag]=k
-		end
+		if opt.Flag then GalaxyUI.Flags[opt.Flag]=k end
 	end
 	b.MouseButton1Click:Connect(function()
 		if cap then return end
@@ -674,24 +624,18 @@ function GalaxyUI:CreateKeybind(opt)
 			end
 		else
 			if i.KeyCode.Name==c and not opt.HoldToInteract then
-				if opt.Callback then
-					opt.Callback(false)
-				end
+				if opt.Callback then opt.Callback(false) end
 			end
 		end
 	end)
 	UserInputService.InputEnded:Connect(function(i,p)
 		if p then return end
 		if opt.HoldToInteract and i.KeyCode.Name==c then
-			if opt.Callback then
-				opt.Callback(true)
-			end
+			if opt.Callback then opt.Callback(true) end
 		end
 	end)
 	local o={Frame=f}
-	function o:SetKey(k)
-		setk(k)
-	end
+	function o:SetKey(k) setk(k) end
 	return o
 end
 function GalaxyUI:CreateTextBox(opt)
@@ -711,14 +655,10 @@ function GalaxyUI:CreateTextBox(opt)
 	box.ClearTextOnFocus=opt.ClearTextOnFocus or false
 	box.Parent=f
 	if opt.Callback then
-		box.FocusLost:Connect(function()
-			opt.Callback(box.Text)
-		end)
+		box.FocusLost:Connect(function() opt.Callback(box.Text) end)
 	end
 	local o={Frame=f,Box=box}
-	function o:SetText(t)
-		box.Text=t
-	end
+	function o:SetText(t) box.Text=t end
 	return o
 end
 function GalaxyUI:CreateDropdown(opt)
@@ -780,38 +720,22 @@ function GalaxyUI:CreateDropdown(opt)
 			btn.MouseButton1Click:Connect(function()
 				mainButton.Text=option
 				dropdownFrame.Visible=false
-				if opt.Callback then
-					opt.Callback(option)
-				end
+				if opt.Callback then opt.Callback(option) end
 			end)
 		end
 	end
 	populate(optionsList)
-	mainButton.MouseButton1Click:Connect(function()
-		dropdownFrame.Visible=not dropdownFrame.Visible
-	end)
+	mainButton.MouseButton1Click:Connect(function() dropdownFrame.Visible=not dropdownFrame.Visible end)
 	local o={Frame=container,Main=mainButton}
-	function o:SetOptions(list)
-		optionsList=list
-		populate(optionsList)
-	end
-	function o:SetOption(option)
-		mainButton.Text=option
-		if opt.Callback then
-			opt.Callback(option)
-		end
-	end
-	function o:Refresh(list)
-		self:SetOptions(list)
-	end
-	function o:SetValue(option)
-		self:SetOption(option)
-	end
+	function o:SetOptions(list) optionsList=list populate(optionsList) end
+	function o:SetOption(option) mainButton.Text=option if opt.Callback then opt.Callback(option) end end
+	function o:Refresh(list) self:SetOptions(list) end
+	function o:SetValue(option) self:SetOption(option) end
 	return o
 end
 function GalaxyUI:CreateColorPicker(opt)
 	local container=Instance.new("Frame")
-	container.Size=UDim2.new(1,-20,0,160)
+	container.Size=UDim2.new(1,-20,0,180)
 	container.BackgroundColor3=GalaxyUI.Themes.Default.ButtonColor
 	local co=Instance.new("UICorner",container)
 	co.CornerRadius=UDim.new(0,10)
@@ -850,9 +774,7 @@ function GalaxyUI:CreateColorPicker(opt)
 				preview:SetAttribute("b",b)
 				local newColor=Color3.fromRGB(r,g,b)
 				preview.BackgroundColor3=newColor
-				if opt.Callback then
-					opt.Callback(newColor)
-				end
+				if opt.Callback then opt.Callback(newColor) end
 			end
 		})
 		slider.Frame.Position=pos
@@ -900,9 +822,7 @@ function GalaxyUI:CreateMultiDropdown(opt)
 	local optionsList=opt.Options or {}
 	local selected={}
 	local function populate(list)
-		for _,child in pairs(optionsFrame:GetChildren()) do
-			if child:IsA("TextButton") then child:Destroy() end
-		end
+		for _,child in pairs(optionsFrame:GetChildren()) do if child:IsA("TextButton") then child:Destroy() end end
 		for i,option in ipairs(list) do
 			local btn=Instance.new("TextButton")
 			btn.Size=UDim2.new(1,-12,0,36)
@@ -918,9 +838,7 @@ function GalaxyUI:CreateMultiDropdown(opt)
 			btn.Parent=optionsFrame
 			btn.MouseButton1Click:Connect(function()
 				if table.find(selected,option) then
-					for i,v in ipairs(selected) do
-						if v==option then table.remove(selected,i) break end
-					end
+					for i,v in ipairs(selected) do if v==option then table.remove(selected,i) break end end
 				else
 					table.insert(selected,option)
 				end
@@ -932,9 +850,7 @@ function GalaxyUI:CreateMultiDropdown(opt)
 		end
 	end
 	populate(optionsList)
-	mainButton.MouseButton1Click:Connect(function()
-		dropdownFrame.Visible=not dropdownFrame.Visible
-	end)
+	mainButton.MouseButton1Click:Connect(function() dropdownFrame.Visible=not dropdownFrame.Visible end)
 	local o={Frame=container,Main=mainButton,GetSelected=function() return selected end}
 	return o
 end
@@ -1002,9 +918,7 @@ end
 UserInputService.InputBegan:Connect(function(input,gameProcessed)
 	if not gameProcessed and input.KeyCode==GalaxyUI.ToggleKey then
 		local allOpen=true
-		for _,w in ipairs(GalaxyUI.Windows) do
-			if not w.IsOpen then allOpen=false break end
-		end
+		for _,w in ipairs(GalaxyUI.Windows) do if not w.IsOpen then allOpen=false break end end
 		for _,w in ipairs(GalaxyUI.Windows) do
 			if allOpen then
 				if w.IsOpen then w:Toggle() end
@@ -1026,9 +940,7 @@ if UserInputService.TouchEnabled then
 	mobileToggleButton.Parent=LocalPlayer:WaitForChild("PlayerGui")
 	mobileToggleButton.ZIndex=999
 	mobileToggleButton.MouseButton1Click:Connect(function()
-		for _,w in ipairs(GalaxyUI.Windows) do
-			w:Toggle()
-		end
+		for _,w in ipairs(GalaxyUI.Windows) do w:Toggle() end
 	end)
 end
 return GalaxyUI
