@@ -736,25 +736,22 @@ function GalaxyUI:CreateColorPicker(opt)
     opt = opt or {}
     local currentColor = opt.CurrentColor or Color3.new(1, 0, 0)
     
-    -- Container principal
+    -- Container principal com altura aumentada para acomodar os sliders e o botão eyedropper
     local container = Instance.new("Frame")
     container.Name = "ColorPickerContainer"
-    container.Size = UDim2.new(1, -20, 0, 240) -- altura aumentada para acomodar os sliders
-    container.BackgroundColor3 = GalaxyUI.Themes.Default.ButtonColor or Color3.fromRGB(40, 40, 40)
-    container.BorderSizePixel = 0
-
-    local corner = Instance.new("UICorner")
+    container.Size = UDim2.new(1, -20, 0, 240)
+    container.BackgroundColor3 = GalaxyUI.Themes.Default.ButtonColor
+    local corner = Instance.new("UICorner", container)
     corner.CornerRadius = UDim.new(0, 8)
-    corner.Parent = container
 
     -- Título
     local title = Instance.new("TextLabel")
-    title.Name = "Title"
+    title.Name = "TitleLabel"
     title.Size = UDim2.new(1, -20, 0, 30)
     title.Position = UDim2.new(0, 10, 0, 0)
     title.BackgroundTransparency = 1
     title.Text = opt.Name or "Color Picker"
-    title.TextColor3 = GalaxyUI.Themes.Default.TextColor or Color3.new(1, 1, 1)
+    title.TextColor3 = GalaxyUI.Themes.Default.TextColor
     title.Font = Enum.Font.GothamSemibold
     title.TextSize = 16
     title.Parent = container
@@ -769,139 +766,83 @@ function GalaxyUI:CreateColorPicker(opt)
     preview.Parent = container
 
     local gradient = Instance.new("UIGradient")
-    gradient.Name = "ColorGradient"
+    gradient.Name = "Gradient"
     gradient.Color = ColorSequence.new({
         ColorSequenceKeypoint.new(0, currentColor),
         ColorSequenceKeypoint.new(1, Color3.new(0, 0, 0))
     })
     gradient.Parent = preview
 
-    -- Função para atualizar os atributos RGB
-    local function setColorAttributes(color)
-        preview:SetAttribute("r", math.floor(color.R * 255))
-        preview:SetAttribute("g", math.floor(color.G * 255))
-        preview:SetAttribute("b", math.floor(color.B * 255))
-    end
-    setColorAttributes(currentColor)
+    -- Armazena os valores RGB como atributos
+    preview:SetAttribute("r", math.floor(currentColor.R * 255))
+    preview:SetAttribute("g", math.floor(currentColor.G * 255))
+    preview:SetAttribute("b", math.floor(currentColor.B * 255))
 
-    -- Função auxiliar para criar um slider
-    local function createSlider(axis, position)
-        local sliderContainer = Instance.new("Frame")
-        sliderContainer.Name = axis .. "Slider"
-        sliderContainer.Size = UDim2.new(0, 200, 0, 20)
-        sliderContainer.Position = position
-        sliderContainer.BackgroundTransparency = 1
-        sliderContainer.Parent = container
-
-        local sliderLabel = Instance.new("TextLabel")
-        sliderLabel.Name = axis .. "Label"
-        sliderLabel.Size = UDim2.new(0, 50, 1, 0)
-        sliderLabel.BackgroundTransparency = 1
-        sliderLabel.Text = string.upper(axis)
-        sliderLabel.TextColor3 = GalaxyUI.Themes.Default.TextColor or Color3.new(1, 1, 1)
-        sliderLabel.Font = Enum.Font.GothamSemibold
-        sliderLabel.TextSize = 14
-        sliderLabel.Parent = sliderContainer
-
-        local sliderFrame = Instance.new("Frame")
-        sliderFrame.Name = "SliderFrame"
-        sliderFrame.Size = UDim2.new(0, 140, 0, 6)
-        sliderFrame.Position = UDim2.new(0, 60, 0.5, -3)
-        sliderFrame.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
-        sliderFrame.BorderSizePixel = 0
-        sliderFrame.Parent = sliderContainer
-
-        local sliderFill = Instance.new("Frame")
-        sliderFill.Name = "SliderFill"
-        sliderFill.Size = UDim2.new(0, 0, 1, 0)
-        sliderFill.BackgroundColor3 = GalaxyUI.Themes.Default.Accent or Color3.new(0, 122/255, 1)
-        sliderFill.BorderSizePixel = 0
-        sliderFill.Parent = sliderFrame
-
-        local sliderKnob = Instance.new("TextButton")
-        sliderKnob.Name = "SliderKnob"
-        sliderKnob.Size = UDim2.new(0, 14, 0, 14)
-        sliderKnob.Position = UDim2.new(0, -7, 0.5, -7)
-        sliderKnob.BackgroundColor3 = GalaxyUI.Themes.Default.Accent or Color3.new(0, 122/255, 1)
-        sliderKnob.BorderSizePixel = 0
-        sliderKnob.Text = ""
-        sliderKnob.AutoButtonColor = false
-        sliderKnob.Parent = sliderFrame
-
-        -- Atualiza o visual do slider conforme o valor
-        local function updateSlider(val)
-            local sliderWidth = sliderFrame.AbsoluteSize.X
-            sliderFill.Size = UDim2.new(0, (val / 255) * sliderWidth, 1, 0)
-            local knobX = (val / 255) * sliderWidth - sliderKnob.AbsoluteSize.X / 2
-            sliderKnob.Position = UDim2.new(0, knobX, 0.5, -7)
-        end
-
-        -- Valor inicial baseado no atributo armazenado
-        local currentVal = preview:GetAttribute(axis) or 255
-        updateSlider(currentVal)
-
-        local dragging = false
-
-        local function onInput(input)
-            if not dragging then return end
-            local sliderPos = sliderFrame.AbsolutePosition.X
-            local sliderWidth = sliderFrame.AbsoluteSize.X
-            local pos = input.Position.X - sliderPos
-            pos = math.clamp(pos, 0, sliderWidth)
-            local newVal = math.floor((pos / sliderWidth) * 255)
-            
-            -- Atualiza o atributo para o eixo específico
-            preview:SetAttribute(axis, newVal)
-            
-            -- Recupera os valores atuais e substitui o valor modificado
-            local r = preview:GetAttribute("r")
-            local g = preview:GetAttribute("g")
-            local b = preview:GetAttribute("b")
-            if axis == "r" then r = newVal end
-            if axis == "g" then g = newVal end
-            if axis == "b" then b = newVal end
-            
-            local newColor = Color3.fromRGB(r, g, b)
-            preview.BackgroundColor3 = newColor
-            gradient.Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, newColor),
-                ColorSequenceKeypoint.new(1, Color3.new(0, 0, 0))
-            })
-            
-            if opt.Callback then
-                opt.Callback(newColor)
+    -- Função auxiliar para criar os sliders (R, G e B)
+    local function createSlider(axis, pos)
+        local slider = self:CreateSlider({
+            Name = axis,
+            Range = {0, 255},
+            Increment = 1,
+            CurrentValue = preview:GetAttribute(axis),
+            Callback = function(val)
+                local r = preview:GetAttribute("r")
+                local g = preview:GetAttribute("g")
+                local b = preview:GetAttribute("b")
+                if axis == "r" then r = val end
+                if axis == "g" then g = val end
+                if axis == "b" then b = val end
+                preview:SetAttribute("r", r)
+                preview:SetAttribute("g", g)
+                preview:SetAttribute("b", b)
+                local newColor = Color3.fromRGB(r, g, b)
+                preview.BackgroundColor3 = newColor
+                gradient.Color = ColorSequence.new({
+                    ColorSequenceKeypoint.new(0, newColor),
+                    ColorSequenceKeypoint.new(1, Color3.new(0, 0, 0))
+                })
+                if opt.Callback then
+                    opt.Callback(newColor)
+                end
             end
-            updateSlider(newVal)
-        end
-
-        sliderKnob.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                dragging = true
-            end
-        end)
-        sliderKnob.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                dragging = false
-            end
-        end)
-        sliderFrame.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                dragging = true
-                onInput(input)
-            end
-        end)
-        sliderFrame.InputChanged:Connect(onInput)
-        game:GetService("UserInputService").InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                dragging = false
-            end
-        end)
+        })
+        slider.Frame.Position = pos
+        slider.Frame.Parent = container
     end
 
     -- Cria os sliders para R, G e B com posições ajustadas
     createSlider("r", UDim2.new(0, 80, 0, 40))
-    createSlider("g", UDim2.new(0, 80, 0, 80))
-    createSlider("b", UDim2.new(0, 80, 0, 120))
+    createSlider("g", UDim2.new(0, 80, 0, 70))
+    createSlider("b", UDim2.new(0, 80, 0, 100))
+
+    -- Botão de Eye Dropper para recurso avançado
+    local eyedropperButton = Instance.new("TextButton")
+    eyedropperButton.Name = "EyedropperButton"
+    eyedropperButton.Size = UDim2.new(0, 100, 0, 30)
+    eyedropperButton.Position = UDim2.new(1, -110, 0, 10)
+    eyedropperButton.BackgroundColor3 = GalaxyUI.Themes.Default.AccentColor
+    eyedropperButton.TextColor3 = GalaxyUI.Themes.Default.TextColor
+    eyedropperButton.Font = Enum.Font.GothamSemibold
+    eyedropperButton.TextSize = 14
+    eyedropperButton.Text = "Eyedropper"
+    eyedropperButton.Parent = container
+
+    eyedropperButton.MouseButton1Click:Connect(function()
+        -- Aqui você pode implementar a lógica real do Eye Dropper.
+        -- Nesta simulação, escolhe-se uma cor aleatória:
+        local newColor = Color3.fromRGB(math.random(0,255), math.random(0,255), math.random(0,255))
+        preview.BackgroundColor3 = newColor
+        gradient.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, newColor),
+            ColorSequenceKeypoint.new(1, Color3.new(0, 0, 0))
+        })
+        preview:SetAttribute("r", math.floor(newColor.R * 255))
+        preview:SetAttribute("g", math.floor(newColor.G * 255))
+        preview:SetAttribute("b", math.floor(newColor.B * 255))
+        if opt.Callback then
+            opt.Callback(newColor)
+        end
+    end)
 
     return {Frame = container}
 end
