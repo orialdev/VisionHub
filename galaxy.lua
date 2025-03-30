@@ -11,12 +11,12 @@ GalaxyUI.Themes={
 	Default={
 		MainFrame=Color3.fromRGB(20,20,20),
 		Topbar=Color3.fromRGB(30,30,30),
-		TextColor=Color3.fromRGB(240,240,240),
+		TextColor=Color3.fromRGB(255,255,255),
 		ButtonColor=Color3.fromRGB(40,40,40),
 		AccentColor=Color3.fromRGB(0,120,215),
 		SidebarColor=Color3.fromRGB(25,25,25),
 		SidebarWidth=220,
-		SectionColor=Color3.fromRGB(35,35,35),
+		SectionColor=Color3.fromRGB(30,30,30),
 		DividerColor=Color3.fromRGB(50,50,50)
 	}
 }
@@ -114,8 +114,8 @@ function GalaxyUI:Notify(opt)
 	frame.BackgroundTransparency=1
 	frame.ZIndex=11
 	frame.Parent=container
-	local corner=Instance.new("UICorner",frame)
-	corner.CornerRadius=UDim.new(0,12)
+	local cr=Instance.new("UICorner",frame)
+	cr.CornerRadius=UDim.new(0,12)
 	local icon=Instance.new("ImageLabel",frame)
 	icon.Size=UDim2.new(0,32,0,32)
 	icon.Position=UDim2.new(0,10,0,24)
@@ -144,13 +144,13 @@ function GalaxyUI:Notify(opt)
 	content.ZIndex=12
 	content.Parent=frame
 	frame.Visible=false
-	local tweenIn=TweenService:Create(frame,TweenInfo.new(0.35,Enum.EasingStyle.Back),{BackgroundTransparency=0,Position=frame.Position-UDim2.new(0,0,0,10)})
-	tweenIn:Play()
-	tweenIn.Completed:Connect(function() frame.Visible=true end)
+	local tin=TweenService:Create(frame,TweenInfo.new(0.35,Enum.EasingStyle.Back),{Position=frame.Position-UDim2.new(0,0,0,10)})
+	tin:Play()
+	tin.Completed:Connect(function() frame.Visible=true end)
 	delay(opt.Duration or 3,function()
-		local tweenOut=TweenService:Create(frame,TweenInfo.new(0.35,Enum.EasingStyle.Quad),{BackgroundTransparency=1,Position=frame.Position+UDim2.new(0,0,0,20)})
-		tweenOut:Play()
-		tweenOut.Completed:Connect(function() sg:Destroy() table.remove(NotificationQueue,table.find(NotificationQueue,{sg=sg,opt=opt}) or 1) end)
+		local tout=TweenService:Create(frame,TweenInfo.new(0.35,Enum.EasingStyle.Quad),{Position=frame.Position+UDim2.new(0,0,0,20),BackgroundTransparency=1})
+		tout:Play()
+		tout.Completed:Connect(function() sg:Destroy() table.remove(NotificationQueue,table.find(NotificationQueue,{sg=sg,opt=opt}) or 1) end)
 	end)
 end
 local function Dragify(handle,target)
@@ -180,11 +180,11 @@ function GalaxyUI:CreateWindow(opt)
 	w.Name=opt.Name or "Window"
 	w.Theme=opt.Theme or "Default"
 	applyTheme(w.Theme)
-	local scr=Instance.new("ScreenGui")
-	scr.Name="GalaxyUI_"..w.Name
-	scr.ResetOnSpawn=false
-	scr.Parent=LocalPlayer:WaitForChild("PlayerGui")
-	w.ScreenGui=scr
+	local sg=Instance.new("ScreenGui")
+	sg.Name="GalaxyUI_"..w.Name
+	sg.ResetOnSpawn=false
+	sg.Parent=LocalPlayer:WaitForChild("PlayerGui")
+	w.ScreenGui=sg
 	local main=Instance.new("Frame")
 	main.Name="MainFrame"
 	main.Size=UDim2.new(0,600,0,400)
@@ -192,7 +192,7 @@ function GalaxyUI:CreateWindow(opt)
 	main.BackgroundColor3=GalaxyUI.Themes.Default.MainFrame
 	main.BackgroundTransparency=0
 	main.ClipsDescendants=true
-	main.Parent=scr
+	main.Parent=sg
 	local stroke=Instance.new("UIStroke",main)
 	stroke.Color=GalaxyUI.Themes.Default.AccentColor
 	stroke.Thickness=2
@@ -203,8 +203,8 @@ function GalaxyUI:CreateWindow(opt)
 	top.Size=UDim2.new(1,0,0,40)
 	top.BackgroundColor3=GalaxyUI.Themes.Default.Topbar
 	top.Parent=main
-	local tcorner=Instance.new("UICorner",top)
-	tcorner.CornerRadius=UDim.new(0,12)
+	local tc=Instance.new("UICorner",top)
+	tc.CornerRadius=UDim.new(0,12)
 	local title=Instance.new("TextLabel")
 	title.Size=UDim2.new(1,-60,1,0)
 	title.Position=UDim2.new(0,20,0,0)
@@ -230,8 +230,8 @@ function GalaxyUI:CreateWindow(opt)
 	side.Position=UDim2.new(0,0,0,40)
 	side.BackgroundColor3=GalaxyUI.Themes.Default.SidebarColor
 	side.Parent=main
-	local scorner=Instance.new("UICorner",side)
-	scorner.CornerRadius=UDim.new(0,10)
+	local sc=Instance.new("UICorner",side)
+	sc.CornerRadius=UDim.new(0,10)
 	local container=Instance.new("Frame")
 	container.Name="Container"
 	container.Size=UDim2.new(1,-GalaxyUI.Themes.Default.SidebarWidth,1,-40)
@@ -250,10 +250,10 @@ function GalaxyUI:CreateWindow(opt)
 	end)
 	main.Size=UDim2.new(0,0,0,0)
 	main.Rotation=15
-	local tween1=TweenService:Create(main,TweenInfo.new(0.5,Enum.EasingStyle.Back,Enum.EasingDirection.Out),{Size=UDim2.new(0,600,0,400),Rotation=-5})
-	local tween2=TweenService:Create(main,TweenInfo.new(0.3,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Size=UDim2.new(0,580,0,380),Rotation=0})
-	tween1:Play()
-	tween1.Completed:Connect(function() tween2:Play() end)
+	local t1=TweenService:Create(main,TweenInfo.new(0.5,Enum.EasingStyle.Back,Enum.EasingDirection.Out),{Size=UDim2.new(0,600,0,400),Rotation=-5})
+	local t2=TweenService:Create(main,TweenInfo.new(0.3,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Size=UDim2.new(0,580,0,380),Rotation=0})
+	t1:Play()
+	t1.Completed:Connect(function() t2:Play() end)
 	w.Main=main
 	w.Sidebar=side
 	w.Container=container
@@ -284,8 +284,8 @@ function GalaxyUI:CreateWindow(opt)
 	resizeHandle.Position=UDim2.new(1,-4,1,-4)
 	resizeHandle.BackgroundColor3=GalaxyUI.Themes.Default.AccentColor
 	resizeHandle.Parent=main
-	local rsCorner=Instance.new("UICorner",resizeHandle)
-	rsCorner.CornerRadius=UDim.new(0,6)
+	local rc=Instance.new("UICorner",resizeHandle)
+	rc.CornerRadius=UDim.new(0,6)
 	local draggingResize=false
 	local resizeStart,startSize
 	resizeHandle.InputBegan:Connect(function(input)
@@ -348,9 +348,9 @@ function GalaxyUI:CreateTab(opt)
 	t.Frame.ScrollBarThickness=4
 	t.Frame.Visible=false
 	t.Frame.Parent=self.Container
-	local layout=Instance.new("UIListLayout",t.Frame)
-	layout.SortOrder=Enum.SortOrder.LayoutOrder
-	layout.Padding=UDim.new(0,8)
+	local lay=Instance.new("UIListLayout",t.Frame)
+	lay.SortOrder=Enum.SortOrder.LayoutOrder
+	lay.Padding=UDim.new(0,8)
 	btn.MouseButton1Click:Connect(function()
 		for _,tb in pairs(self.Tabs) do tb.Frame.Visible=false end
 		t.Frame.Visible=true
@@ -364,10 +364,10 @@ function GalaxyUI:CreateSection(name,tooltip)
 	local f=Instance.new("Frame")
 	f.Size=UDim2.new(1,0,0,40)
 	f.BackgroundColor3=GalaxyUI.Themes.Default.SectionColor
-	local corner=Instance.new("UICorner",f)
-	corner.CornerRadius=UDim.new(0,8)
+	local cr=Instance.new("UICorner",f)
+	cr.CornerRadius=UDim.new(0,8)
 	local lbl=Instance.new("TextLabel")
-	lbl.Size=UDim2.new(1,0,1,0)
+	lbl.Size=UDim2.new(1,-16,1,0)
 	lbl.Position=UDim2.new(0,8,0,0)
 	lbl.BackgroundTransparency=1
 	lbl.Text=name
@@ -382,16 +382,16 @@ function GalaxyUI:CreateDivider()
 	local d=Instance.new("Frame")
 	d.Size=UDim2.new(1,0,0,2)
 	d.BackgroundColor3=GalaxyUI.Themes.Default.DividerColor
-	local corner=Instance.new("UICorner",d)
-	corner.CornerRadius=UDim.new(0,4)
+	local cr=Instance.new("UICorner",d)
+	cr.CornerRadius=UDim.new(0,4)
 	return {Frame=d}
 end
 function GalaxyUI:CreateLabel(text,tooltip)
 	local f=Instance.new("Frame")
-	f.Size=UDim2.new(1,0,0,30)
+	f.Size=UDim2.new(1,-16,0,30)
 	f.BackgroundColor3=GalaxyUI.Themes.Default.ButtonColor
-	local corner=Instance.new("UICorner",f)
-	corner.CornerRadius=UDim.new(0,8)
+	local cr=Instance.new("UICorner",f)
+	cr.CornerRadius=UDim.new(0,8)
 	local l=Instance.new("TextLabel")
 	l.Size=UDim2.new(1,0,1,0)
 	l.BackgroundTransparency=1
@@ -406,12 +406,12 @@ function GalaxyUI:CreateLabel(text,tooltip)
 end
 function GalaxyUI:CreateParagraph(opt)
 	local f=Instance.new("Frame")
-	f.Size=UDim2.new(1,0,0,80)
+	f.Size=UDim2.new(1,-16,0,80)
 	f.BackgroundColor3=GalaxyUI.Themes.Default.ButtonColor
-	local corner=Instance.new("UICorner",f)
-	corner.CornerRadius=UDim.new(0,8)
+	local cr=Instance.new("UICorner",f)
+	cr.CornerRadius=UDim.new(0,8)
 	local title=Instance.new("TextLabel")
-	title.Size=UDim2.new(1,0,0,30)
+	title.Size=UDim2.new(1,-16,0,30)
 	title.Position=UDim2.new(0,8,0,0)
 	title.BackgroundTransparency=1
 	title.Text=opt.Title or ""
@@ -420,7 +420,7 @@ function GalaxyUI:CreateParagraph(opt)
 	title.TextSize=14
 	title.Parent=f
 	local content=Instance.new("TextLabel")
-	content.Size=UDim2.new(1,0,0,50)
+	content.Size=UDim2.new(1,-16,0,50)
 	content.Position=UDim2.new(0,8,0,30)
 	content.BackgroundTransparency=1
 	content.Text=opt.Content or ""
@@ -435,10 +435,10 @@ function GalaxyUI:CreateParagraph(opt)
 end
 function GalaxyUI:CreateButton(opt)
 	local f=Instance.new("Frame")
-	f.Size=UDim2.new(1,0,0, thirty)
+	f.Size=UDim2.new(1,-16,0,40)
 	f.BackgroundColor3=GalaxyUI.Themes.Default.ButtonColor
-	local corner=Instance.new("UICorner",f)
-	corner.CornerRadius=UDim.new(0,8)
+	local cr=Instance.new("UICorner",f)
+	cr.CornerRadius=UDim.new(0,8)
 	local btn=Instance.new("TextButton")
 	btn.Size=UDim2.new(1,0,1,0)
 	btn.BackgroundTransparency=1
@@ -455,10 +455,10 @@ function GalaxyUI:CreateButton(opt)
 end
 function GalaxyUI:CreateToggle(opt)
 	local f=Instance.new("Frame")
-	f.Size=UDim2.new(1,0,0,40)
+	f.Size=UDim2.new(1,-16,0,40)
 	f.BackgroundColor3=GalaxyUI.Themes.Default.ButtonColor
-	local corner=Instance.new("UICorner",f)
-	corner.CornerRadius=UDim.new(0,8)
+	local cr=Instance.new("UICorner",f)
+	cr.CornerRadius=UDim.new(0,8)
 	local l=Instance.new("TextLabel")
 	l.Size=UDim2.new(1,-70,1,0)
 	l.Position=UDim2.new(0,8,0,0)
@@ -470,8 +470,8 @@ function GalaxyUI:CreateToggle(opt)
 	l.TextXAlignment=Enum.TextXAlignment.Left
 	l.Parent=f
 	local t=Instance.new("TextButton")
-	t.Size=UDim2.new(0,50,0, twenty)
-	t.Position=UDim2.new(1,-60,0.5,-10)
+	t.Size=UDim2.new(0,50,0,24)
+	t.Position=UDim2.new(1,-60,0.5,-12)
 	t.BackgroundColor3=Color3.fromRGB(180,180,180)
 	t.Text=""
 	t.Parent=f
@@ -492,7 +492,7 @@ function GalaxyUI:CreateToggle(opt)
 end
 function GalaxyUI:CreateSlider(opt)
 	local container=Instance.new("Frame")
-	container.Size=UDim2.new(1,0,0,40)
+	container.Size=UDim2.new(1,-16,0,40)
 	container.BackgroundTransparency=1
 	local label=Instance.new("TextLabel")
 	label.Size=UDim2.new(0,80,1,0)
@@ -505,21 +505,21 @@ function GalaxyUI:CreateSlider(opt)
 	label.TextXAlignment=Enum.TextXAlignment.Left
 	label.Parent=container
 	local sliderBar=Instance.new("Frame")
-	sliderBar.Size=UDim2.new(0,container.AbsoluteSize.X-100,0,10)
-	sliderBar.Position=UDim2.new(0,90,0.5,-5)
-	sliderBar.BackgroundColor3=Color3.fromRGB(220,220,220)
-	local barCorner=Instance.new("UICorner",sliderBar)
-	barCorner.CornerRadius=UDim.new(0,5)
+	sliderBar.Size=UDim2.new(0,container.AbsoluteSize.X-100,0,8)
+	sliderBar.Position=UDim2.new(0,90,0.5,-4)
+	sliderBar.BackgroundColor3=Color3.fromRGB(50,50,50)
+	local sc=Instance.new("UICorner",sliderBar)
+	sc.CornerRadius=UDim.new(0,4)
 	sliderBar.Parent=container
 	local fill=Instance.new("Frame")
 	fill.Size=UDim2.new(0,0,1,0)
 	fill.BackgroundColor3=GalaxyUI.Themes.Default.AccentColor
-	local fillCorner=Instance.new("UICorner",fill)
-	fillCorner.CornerRadius=UDim.new(0,5)
+	local fc=Instance.new("UICorner",fill)
+	fc.CornerRadius=UDim.new(0,4)
 	fill.Parent=sliderBar
 	local numLabel=Instance.new("TextLabel")
 	numLabel.Size=UDim2.new(0,40,1,0)
-	numLabel.Position=UDim2.new(1,5,0,0)
+	numLabel.Position=UDim2.new(1,4,0,0)
 	numLabel.BackgroundTransparency=1
 	numLabel.TextColor3=GalaxyUI.Themes.Default.TextColor
 	numLabel.Font=Enum.Font.GothamBold
@@ -565,7 +565,7 @@ function GalaxyUI:CreateSlider(opt)
 end
 function GalaxyUI:CreateKeybind(opt)
 	local f=Instance.new("Frame")
-	f.Size=UDim2.new(1,0,0,40)
+	f.Size=UDim2.new(1,-16,0,40)
 	f.BackgroundColor3=GalaxyUI.Themes.Default.ButtonColor
 	local co=Instance.new("UICorner",f)
 	co.CornerRadius=UDim.new(0,8)
@@ -582,9 +582,9 @@ function GalaxyUI:CreateKeybind(opt)
 	local b=Instance.new("TextButton")
 	b.Size=UDim2.new(0,80,0,30)
 	b.Position=UDim2.new(1,-88,0.5,-15)
-	b.BackgroundColor3=Color3.fromRGB(200,200,200)
+	b.BackgroundColor3=Color3.fromRGB(60,60,60)
 	b.Text=opt.CurrentKeybind or "None"
-	b.TextColor3=Color3.fromRGB(20,20,20)
+	b.TextColor3=GalaxyUI.Themes.Default.TextColor
 	b.Font=Enum.Font.GothamBold
 	b.TextSize=14
 	b.Parent=f
@@ -627,7 +627,7 @@ function GalaxyUI:CreateKeybind(opt)
 end
 function GalaxyUI:CreateTextBox(opt)
 	local f=Instance.new("Frame")
-	f.Size=UDim2.new(1,0,0,40)
+	f.Size=UDim2.new(1,-16,0,40)
 	f.BackgroundColor3=GalaxyUI.Themes.Default.ButtonColor
 	local co=Instance.new("UICorner",f)
 	co.CornerRadius=UDim.new(0,8)
@@ -641,16 +641,14 @@ function GalaxyUI:CreateTextBox(opt)
 	box.TextSize=14
 	box.ClearTextOnFocus=opt.ClearTextOnFocus or false
 	box.Parent=f
-	if opt.Callback then
-		box.FocusLost:Connect(function() opt.Callback(box.Text) end)
-	end
+	if opt.Callback then box.FocusLost:Connect(function() opt.Callback(box.Text) end) end
 	local o={Frame=f,Box=box}
 	function o:SetText(t) box.Text=t end
 	return o
 end
 function GalaxyUI:CreateDropdown(opt)
 	local container=Instance.new("Frame")
-	container.Size=UDim2.new(1,0,0,40)
+	container.Size=UDim2.new(1,-16,0,40)
 	container.BackgroundColor3=GalaxyUI.Themes.Default.ButtonColor
 	container.ClipsDescendants=false
 	local co=Instance.new("UICorner",container)
@@ -663,8 +661,8 @@ function GalaxyUI:CreateDropdown(opt)
 	mainButton.Font=Enum.Font.Gotham
 	mainButton.TextSize=14
 	mainButton.Parent=container
-	local mainButtonCorner=Instance.new("UICorner",mainButton)
-	mainButtonCorner.CornerRadius=UDim.new(0,8)
+	local mco=Instance.new("UICorner",mainButton)
+	mco.CornerRadius=UDim.new(0,8)
 	local dropdownFrame=Instance.new("Frame")
 	dropdownFrame.Size=UDim2.new(1,0,0,120)
 	dropdownFrame.Position=UDim2.new(0,0,1,4)
@@ -682,22 +680,22 @@ function GalaxyUI:CreateDropdown(opt)
 	optionsFrame.ScrollBarThickness=4
 	optionsFrame.ZIndex=51
 	optionsFrame.Parent=dropdownFrame
-	local layout=Instance.new("UIListLayout",optionsFrame)
-	layout.SortOrder=Enum.SortOrder.LayoutOrder
-	layout.Padding=UDim.new(0,4)
+	local lay=Instance.new("UIListLayout",optionsFrame)
+	lay.SortOrder=Enum.SortOrder.LayoutOrder
+	lay.Padding=UDim.new(0,4)
 	local optionsList=opt.Options or {}
 	local function populate(list)
 		optionsFrame:ClearAllChildren()
-		local layout=Instance.new("UIListLayout",optionsFrame)
-		layout.SortOrder=Enum.SortOrder.LayoutOrder
-		layout.Padding=UDim.new(0,4)
+		local lay2=Instance.new("UIListLayout",optionsFrame)
+		lay2.SortOrder=Enum.SortOrder.LayoutOrder
+		lay2.Padding=UDim.new(0,4)
 		for i,option in ipairs(list) do
 			local btn=Instance.new("TextButton")
 			btn.Size=UDim2.new(1,-8,0,30)
 			btn.Position=UDim2.new(0,4,0,0)
 			btn.BackgroundColor3=GalaxyUI.Themes.Default.Topbar
-			local btnCorner=Instance.new("UICorner",btn)
-			btnCorner.CornerRadius=UDim.new(0,8)
+			local bco=Instance.new("UICorner",btn)
+			bco.CornerRadius=UDim.new(0,8)
 			btn.TextColor3=GalaxyUI.Themes.Default.TextColor
 			btn.Font=Enum.Font.Gotham
 			btn.TextSize=14
@@ -722,12 +720,12 @@ function GalaxyUI:CreateDropdown(opt)
 end
 function GalaxyUI:CreateColorPicker(opt)
 	local container=Instance.new("Frame")
-	container.Size=UDim2.new(1,0,0,160)
+	container.Size=UDim2.new(1,-16,0,160)
 	container.BackgroundColor3=GalaxyUI.Themes.Default.ButtonColor
 	local co=Instance.new("UICorner",container)
 	co.CornerRadius=UDim.new(0,8)
 	local title=Instance.new("TextLabel")
-	title.Size=UDim2.new(1,0,0,30)
+	title.Size=UDim2.new(1,-16,0,30)
 	title.Position=UDim2.new(0,8,0,0)
 	title.BackgroundTransparency=1
 	title.Text=opt.Name or "Color Picker"
@@ -774,7 +772,7 @@ function GalaxyUI:CreateColorPicker(opt)
 end
 function GalaxyUI:CreateMultiDropdown(opt)
 	local container=Instance.new("Frame")
-	container.Size=UDim2.new(1,0,0,80)
+	container.Size=UDim2.new(1,-16,0,80)
 	container.BackgroundColor3=GalaxyUI.Themes.Default.ButtonColor
 	local co=Instance.new("UICorner",container)
 	co.CornerRadius=UDim.new(0,8)
@@ -803,20 +801,22 @@ function GalaxyUI:CreateMultiDropdown(opt)
 	optionsFrame.ScrollBarThickness=4
 	optionsFrame.ZIndex=51
 	optionsFrame.Parent=dropdownFrame
-	local layout=Instance.new("UIListLayout",optionsFrame)
-	layout.SortOrder=Enum.SortOrder.LayoutOrder
-	layout.Padding=UDim.new(0,4)
+	local lay=Instance.new("UIListLayout",optionsFrame)
+	lay.SortOrder=Enum.SortOrder.LayoutOrder
+	lay.Padding=UDim.new(0,4)
 	local optionsList=opt.Options or {}
 	local selected={}
 	local function populate(list)
-		for _,child in pairs(optionsFrame:GetChildren()) do if child:IsA("TextButton") then child:Destroy() end end
+		for _,child in pairs(optionsFrame:GetChildren()) do
+			if child:IsA("TextButton") then child:Destroy() end
+		end
 		for i,option in ipairs(list) do
 			local btn=Instance.new("TextButton")
 			btn.Size=UDim2.new(1,-8,0,30)
 			btn.Position=UDim2.new(0,4,0,0)
 			btn.BackgroundColor3=GalaxyUI.Themes.Default.Topbar
-			local btnCorner=Instance.new("UICorner",btn)
-			btnCorner.CornerRadius=UDim.new(0,8)
+			local bco=Instance.new("UICorner",btn)
+			bco.CornerRadius=UDim.new(0,8)
 			btn.TextColor3=GalaxyUI.Themes.Default.TextColor
 			btn.Font=Enum.Font.Gotham
 			btn.TextSize=14
@@ -881,7 +881,7 @@ function GalaxyUI:ShowModal(opt)
 	local btnNo=Instance.new("TextButton")
 	btnNo.Size=UDim2.new(0,100,0,40)
 	btnNo.Position=UDim2.new(0.75,-50,1,-50)
-	btnNo.BackgroundColor3=Color3.fromRGB(200,200,200)
+	btnNo.BackgroundColor3=Color3.fromRGB(60,60,60)
 	btnNo.Text=opt.CancelText or "Cancel"
 	btnNo.TextColor3=GalaxyUI.Themes.Default.TextColor
 	btnNo.Font=Enum.Font.GothamBold
