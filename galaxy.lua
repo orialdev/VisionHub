@@ -2,7 +2,6 @@ local Players=game:GetService("Players")
 local TweenService=game:GetService("TweenService")
 local UserInputService=game:GetService("UserInputService")
 local HttpService=game:GetService("HttpService")
-local RunService=game:GetService("RunService")
 local LocalPlayer=Players.LocalPlayer or Players:GetPropertyChangedSignal("LocalPlayer"):Wait()
 local GalaxyUI={}
 GalaxyUI.Version="4.5"
@@ -10,58 +9,20 @@ GalaxyUI.Flags={}
 GalaxyUI.Config={Enabled=false,FolderName=nil,FileName="GalaxyConfig",Data={}}
 GalaxyUI.Themes={
 	Default={
-		MainFrame=Color3.fromRGB(30,30,40),
-		Topbar=Color3.fromRGB(40,40,50),
+		MainFrame=Color3.fromRGB(20,20,20),
+		Topbar=Color3.fromRGB(30,30,30),
 		TextColor=Color3.fromRGB(240,240,240),
-		ButtonColor=Color3.fromRGB(50,50,60),
+		ButtonColor=Color3.fromRGB(40,40,40),
 		AccentColor=Color3.fromRGB(0,170,255),
-		SidebarColor=Color3.fromRGB(35,35,45),
+		SidebarColor=Color3.fromRGB(35,35,35),
 		SidebarWidth=220,
-		SectionColor=Color3.fromRGB(45,45,55),
-		TooltipColor=Color3.fromRGB(20,20,20),
-		DividerColor=Color3.fromRGB(120,120,130)
+		SectionColor=Color3.fromRGB(45,45,45),
+		DividerColor=Color3.fromRGB(60,60,60)
 	}
 }
 GalaxyUI.Windows={}
 GalaxyUI.ToggleKey=Enum.KeyCode.K
 local NotificationQueue={}
-local function saveConfig()
-	if not GalaxyUI.Config.Enabled then return end
-	local data={}
-	for k,v in pairs(GalaxyUI.Flags) do
-		data[k]=v
-	end
-	local encoded=HttpService:JSONEncode(data)
-	if writefile then
-		if GalaxyUI.Config.FolderName and not isfolder(GalaxyUI.Config.FolderName) then
-			makefolder(GalaxyUI.Config.FolderName)
-		end
-		writefile((GalaxyUI.Config.FolderName and GalaxyUI.Config.FolderName.."/" or "")..GalaxyUI.Config.FileName..".json",encoded)
-	end
-end
-local function loadConfig()
-	if not GalaxyUI.Config.Enabled then return end
-	local path=GalaxyUI.Config.FolderName and (GalaxyUI.Config.FolderName.."/"..GalaxyUI.Config.FileName..".json") or (GalaxyUI.Config.FileName..".json")
-	if readfile and isfile and isfile(path) then
-		local raw=readfile(path)
-		local data=HttpService:JSONDecode(raw)
-		GalaxyUI.Config.Data=data
-		for k,v in pairs(data) do
-			GalaxyUI.Flags[k]=v
-		end
-	end
-end
-local function applyTheme(theme)
-	if type(theme)=="string" then
-		if GalaxyUI.Themes[theme] then
-			GalaxyUI.Themes.Default=GalaxyUI.Themes[theme]
-		end
-	elseif type(theme)=="table" then
-		for k,v in pairs(theme) do
-			GalaxyUI.Themes.Default[k]=v
-		end
-	end
-end
 local function SetDescendantsVisibility(obj,visible)
 	for _,v in pairs(obj:GetDescendants()) do
 		if v:IsA("GuiObject") then
@@ -74,14 +35,16 @@ function GalaxyUI:EnableConfig(e,f,n)
 	self.Config.FolderName=f
 	self.Config.FileName=n or "GalaxyConfig"
 end
-function GalaxyUI:LoadConfig()
-	loadConfig()
-end
-function GalaxyUI:SaveConfig()
-	saveConfig()
-end
 function GalaxyUI:ModifyTheme(t)
-	applyTheme(t)
+	if type(t)=="string" then
+		if GalaxyUI.Themes[t] then
+			GalaxyUI.Themes.Default=GalaxyUI.Themes[t]
+		end
+	elseif type(t)=="table" then
+		for k,v in pairs(t) do
+			GalaxyUI.Themes.Default[k]=v
+		end
+	end
 end
 function GalaxyUI:Destroy()
 	for _,w in pairs(self.Windows) do
@@ -122,8 +85,8 @@ function GalaxyUI:Notify(opt)
 	frame.BackgroundTransparency=1
 	frame.ZIndex=11
 	frame.Parent=container
-	local frameCorner=Instance.new("UICorner",frame)
-	frameCorner.CornerRadius=UDim.new(0,12)
+	local corner=Instance.new("UICorner",frame)
+	corner.CornerRadius=UDim.new(0,12)
 	local icon=Instance.new("ImageLabel",frame)
 	icon.Size=UDim2.new(0,30,0,30)
 	icon.Position=UDim2.new(0,10,0,25)
@@ -154,16 +117,11 @@ function GalaxyUI:Notify(opt)
 	frame.Visible=false
 	local tweenIn=TweenService:Create(frame,TweenInfo.new(0.35,Enum.EasingStyle.Back),{BackgroundTransparency=0,Position=frame.Position-UDim2.new(0,0,0,10)})
 	tweenIn:Play()
-	tweenIn.Completed:Connect(function()
-		frame.Visible=true
-	end)
+	tweenIn.Completed:Connect(function() frame.Visible=true end)
 	delay(opt.Duration or 3,function()
 		local tweenOut=TweenService:Create(frame,TweenInfo.new(0.35,Enum.EasingStyle.Quad),{BackgroundTransparency=1,Position=frame.Position+UDim2.new(0,0,0,20)})
 		tweenOut:Play()
-		tweenOut.Completed:Connect(function()
-			sg:Destroy()
-			table.remove(NotificationQueue,table.find(NotificationQueue,{sg=sg,opt=opt}) or 1)
-		end)
+		tweenOut.Completed:Connect(function() sg:Destroy() table.remove(NotificationQueue,table.find(NotificationQueue,{sg=sg,opt=opt}) or 1) end)
 	end)
 end
 local function Dragify(handle,target)
@@ -179,7 +137,7 @@ local function Dragify(handle,target)
 	UserInputService.InputChanged:Connect(function(input)
 		if dragging and (input.UserInputType==Enum.UserInputType.MouseMovement or input.UserInputType==Enum.UserInputType.Touch) then
 			local delta=Vector2.new(input.Position.X,input.Position.Y)-dragStart
-			target.Position=UDim2.new(startPos.X.Scale, startPos.X.Offset+delta.X, startPos.Y.Scale, startPos.Y.Offset+delta.Y)
+			target.Position=UDim2.new(startPos.X.Scale,startPos.X.Offset+delta.X,startPos.Y.Scale,startPos.Y.Offset+delta.Y)
 		end
 	end)
 	UserInputService.InputEnded:Connect(function(input)
@@ -768,7 +726,7 @@ function GalaxyUI:CreateDropdown(opt)
 end
 function GalaxyUI:CreateColorPicker(opt)
 	local container=Instance.new("Frame")
-	container.Size=UDim2.new(1,-20,0,160)
+	container.Size=UDim2.new(1,-20,0,200)
 	container.BackgroundColor3=GalaxyUI.Themes.Default.ButtonColor
 	local co=Instance.new("UICorner",container)
 	co.CornerRadius=UDim.new(0,8)
@@ -782,9 +740,11 @@ function GalaxyUI:CreateColorPicker(opt)
 	title.TextSize=16
 	title.Parent=container
 	local preview=Instance.new("Frame")
-	preview.Size=UDim2.new(0,40,0,40)
+	preview.Size=UDim2.new(0,60,0,60)
 	preview.Position=UDim2.new(0,10,0,40)
 	preview.BackgroundColor3=opt.CurrentColor or Color3.new(1,0,0)
+	local grad=Instance.new("UIGradient",preview)
+	grad.Color=ColorSequence.new({ColorSequenceKeypoint.new(0,preview.BackgroundColor3),ColorSequenceKeypoint.new(1,Color3.new(0,0,0))})
 	preview.Parent=container
 	preview:SetAttribute("r",math.floor((opt.CurrentColor and opt.CurrentColor.R or 1)*255))
 	preview:SetAttribute("g",math.floor((opt.CurrentColor and opt.CurrentColor.G or 0)*255))
@@ -807,22 +767,21 @@ function GalaxyUI:CreateColorPicker(opt)
 				preview:SetAttribute("b",b)
 				local newColor=Color3.fromRGB(r,g,b)
 				preview.BackgroundColor3=newColor
-				if opt.Callback then
-					opt.Callback(newColor)
-				end
+				grad.Color=ColorSequence.new({ColorSequenceKeypoint.new(0,newColor),ColorSequenceKeypoint.new(1,Color3.new(0,0,0))})
+				if opt.Callback then opt.Callback(newColor) end
 			end
 		})
 		slider.Frame.Position=pos
 		slider.Frame.Parent=container
 	end
-	createSlider("r",UDim2.new(0,60,0,40))
-	createSlider("g",UDim2.new(0,60,0,70))
-	createSlider("b",UDim2.new(0,60,0,100))
+	createSlider("r",UDim2.new(0,80,0,40))
+	createSlider("g",UDim2.new(0,80,0,70))
+	createSlider("b",UDim2.new(0,80,0,100))
 	return {Frame=container}
 end
 function GalaxyUI:CreateMultiDropdown(opt)
 	local container=Instance.new("Frame")
-	container.Size=UDim2.new(1,-20,0,80)
+	container.Size=UDim2.new(1,-20,0,40)
 	container.BackgroundColor3=GalaxyUI.Themes.Default.ButtonColor
 	local co=Instance.new("UICorner",container)
 	co.CornerRadius=UDim.new(0,8)
@@ -836,7 +795,7 @@ function GalaxyUI:CreateMultiDropdown(opt)
 	mainButton.Parent=container
 	local dropdownFrame=Instance.new("Frame")
 	dropdownFrame.Size=UDim2.new(1,0,0,120)
-	dropdownFrame.Position=UDim2.new(0,0,1,4)
+	dropdownFrame.Position=UDim2.new(0,0,1,2)
 	dropdownFrame.BackgroundColor3=GalaxyUI.Themes.Default.ButtonColor
 	dropdownFrame.Visible=false
 	dropdownFrame.ZIndex=50
@@ -848,22 +807,23 @@ function GalaxyUI:CreateMultiDropdown(opt)
 	optionsFrame.Size=UDim2.new(1,0,1,0)
 	optionsFrame.Position=UDim2.new(0,0,0,0)
 	optionsFrame.BackgroundTransparency=1
-	optionsFrame.ScrollBarThickness=4
+	optionsFrame.ScrollBarThickness=6
 	optionsFrame.ZIndex=51
 	optionsFrame.Parent=dropdownFrame
 	local layout=Instance.new("UIListLayout",optionsFrame)
 	layout.SortOrder=Enum.SortOrder.LayoutOrder
-	layout.Padding=UDim.new(0,4)
+	layout.Padding=UDim.new(0,5)
 	local optionsList=opt.Options or {}
 	local selected={}
 	local function populate(list)
-		for _,child in pairs(optionsFrame:GetChildren()) do
-			if child:IsA("TextButton") then child:Destroy() end
-		end
+		optionsFrame:ClearAllChildren()
+		local layout=Instance.new("UIListLayout",optionsFrame)
+		layout.SortOrder=Enum.SortOrder.LayoutOrder
+		layout.Padding=UDim.new(0,5)
 		for i,option in ipairs(list) do
 			local btn=Instance.new("TextButton")
-			btn.Size=UDim2.new(1,-8,0,30)
-			btn.Position=UDim2.new(0,4,0,0)
+			btn.Size=UDim2.new(1,-10,0,30)
+			btn.Position=UDim2.new(0,5,0,0)
 			btn.BackgroundColor3=GalaxyUI.Themes.Default.Topbar
 			local btnCorner=Instance.new("UICorner",btn)
 			btnCorner.CornerRadius=UDim.new(0,8)
@@ -898,6 +858,65 @@ function GalaxyUI:CreateMultiDropdown(opt)
 	end)
 	local o={Frame=container,Main=mainButton,GetSelected=function() return selected end}
 	return o
+end
+function GalaxyUI:ShowModal(opt)
+	local sg=Instance.new("ScreenGui")
+	sg.Name="GalaxyUIModal"
+	sg.ResetOnSpawn=false
+	sg.Parent=LocalPlayer:WaitForChild("PlayerGui")
+	local modal=Instance.new("Frame")
+	modal.Size=UDim2.new(0,400,0,200)
+	modal.Position=UDim2.new(0.5,-200,0.5,-100)
+	modal.BackgroundColor3=GalaxyUI.Themes.Default.MainFrame
+	modal.Parent=sg
+	local title=Instance.new("TextLabel")
+	title.Size=UDim2.new(1,0,0,40)
+	title.BackgroundColor3=GalaxyUI.Themes.Default.Topbar
+	title.Text=opt.Title or "Modal"
+	title.TextColor3=GalaxyUI.Themes.Default.TextColor
+	title.Font=Enum.Font.GothamSemibold
+	title.TextSize=16
+	title.Parent=modal
+	local message=Instance.new("TextLabel")
+	message.Size=UDim2.new(1,-20,0,80)
+	message.Position=UDim2.new(0,10,0,40)
+	message.BackgroundTransparency=1
+	message.Text=opt.Message or ""
+	message.TextColor3=GalaxyUI.Themes.Default.TextColor
+	message.Font=Enum.Font.Gotham
+	message.TextSize=14
+	message.TextWrapped=true
+	message.Parent=modal
+	local btnYes=Instance.new("TextButton")
+	btnYes.Size=UDim2.new(0,100,0,40)
+	btnYes.Position=UDim2.new(0.25,-50,1,-50)
+	btnYes.BackgroundColor3=GalaxyUI.Themes.Default.AccentColor
+	btnYes.Text=opt.ConfirmText or "OK"
+	btnYes.TextColor3=GalaxyUI.Themes.Default.TextColor
+	btnYes.Font=Enum.Font.GothamBold
+	btnYes.TextSize=16
+	btnYes.Parent=modal
+	local btnNo=Instance.new("TextButton")
+	btnNo.Size=UDim2.new(0,100,0,40)
+	btnNo.Position=UDim2.new(0.75,-50,1,-50)
+	btnNo.BackgroundColor3=Color3.fromRGB(130,130,130)
+	btnNo.Text=opt.CancelText or "Cancel"
+	btnNo.TextColor3=GalaxyUI.Themes.Default.TextColor
+	btnNo.Font=Enum.Font.GothamBold
+	btnNo.TextSize=16
+	btnNo.Parent=modal
+	local result
+	btnYes.MouseButton1Click:Connect(function()
+		result=true
+		sg:Destroy()
+		if opt.Callback then opt.Callback(true) end
+	end)
+	btnNo.MouseButton1Click:Connect(function()
+		result=false
+		sg:Destroy()
+		if opt.Callback then opt.Callback(false) end
+	end)
+	return result
 end
 UserInputService.InputBegan:Connect(function(input,gameProcessed)
 	if not gameProcessed and input.KeyCode==GalaxyUI.ToggleKey then
