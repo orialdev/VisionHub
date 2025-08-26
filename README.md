@@ -1,1 +1,1 @@
-#discord.gg/9mKRgWrYCN
+discord.gg/9mKRgWrYCN
