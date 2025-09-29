@@ -1,2 +1,2 @@
 Join our Discord!
-#https://discord.gg/TZHgrMUKGJ
+https://discord.gg/TZHgrMUKGJ
