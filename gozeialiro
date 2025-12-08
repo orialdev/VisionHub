@@ -10696,14 +10696,11 @@ function a.P()
 
         local ah = {}
 
-        -- Note: When called via :, first arg is self, second is data. 
-        -- renaming arguments to (self, context) to handle this clearly.
+        -- Defined as :New so 'self' is the module table, 'context' is the data
         function ah.New(self, context)
-            -- If context is nil, it might have been called with .New (dot) instead of :New (colon)
-            -- But standard WindUI calls :New, so context contains the data.
             local aj = context 
 
-            -- Fallback gap logic
+            -- Determine the correct Gap size based on Window settings
             local gap = 6
             if aj.Tab and aj.Tab.Gap then
                 gap = aj.Tab.Gap
@@ -10713,13 +10710,13 @@ function a.P()
                 gap = 5
             end
 
+            -- Multisection Structure
             local al = {
                 __type = "MultiSection",
                 Elements = {},
                 Columns = {}
             }
 
-            -- Main Container
             local am = ae(
                 "Frame",
                 {
@@ -10788,54 +10785,69 @@ function a.P()
                 }
             )
 
+            al.Container = am
+
+            -- The Section creator for MultiSection
             function al:Section(ap)
                 ap = ap or {}
 
                 local side = ap.Side
                 local target = an
-                -- Support string or numeric side index
-                if side == "Right" or side == 2 or side == "right" then
+
+                -- Normalize side input (numbers or strings)
+                if side == 2 or (type(side) == "string" and side:lower() == "right") then
                     target = ao
                 end
 
-                -- BUG FIX: Merge Parent Context + New Section Props into ONE table.
-                -- The Section module expects the 2nd argument to contain EVERYTHING (Window, Folder, Title, etc.)
+                -- Create a fresh configuration table to pass to the Section module
                 local finalConfig = {}
 
-                -- 1. Copy Window/Tab context
+                -- 1. Inherit all parent context properties (Window, WindUI, Tabs, etc.)
+                -- This fixes the missing references that caused the 'attempt to index nil' errors.
                 for k, v in pairs(aj) do
-                    finalConfig[k] = v
+                    if k ~= "Elements" and k ~= "Parent" then -- Don't copy Elements array, prevent ref cycle
+                        finalConfig[k] = v
+                    end
                 end
 
-                -- 2. Apply Section specific config (Title, Icon, etc)
+                -- 2. Apply the new specific properties passed to this specific section
                 for k, v in pairs(ap) do
                     finalConfig[k] = v
                 end
 
-                -- 3. Set correct parent for the new section
+                -- 3. Enforce the correct parent for layout
                 finalConfig.Parent = target
+                
+                -- 4. Explicitly ensure critical objects exist for internal NewRoundFrame/Icon logic
+                finalConfig.Window = aj.Window
+                finalConfig.Folder = aj.Folder or (aj.Window and aj.Window.Folder)
+                
+                -- CALL: sectionModule.New(module_self, config_data)
+                -- Passing sectionModule as the first arg fixes potential 'self' issues in P.New
+                local typeId, createdSection = sectionModule.New(sectionModule, finalConfig)
 
-                -- Call the Section module.
-                -- Argument 1: self placeholder (nil).
-                -- Argument 2: The Combined Configuration (IMPORTANT).
-                local _, createdSection = sectionModule.New(nil, finalConfig)
-
+                -- Keep track of it in our list
                 table.insert(al.Elements, createdSection)
+                
                 return createdSection
             end
 
+            -- Cleanup method
             function al:Destroy()
                 for _, elem in ipairs(al.Elements) do
                     if elem.Destroy then
                         elem:Destroy()
                     end
                 end
-                am:Destroy()
+                if am then 
+                    am:Destroy() 
+                end
             end
             
-            -- Helper for visibility toggling
-            function al:Visible(val)
-                am.Visible = val
+            function al:Visible(bool)
+                if am then
+                    am.Visible = bool
+                end
             end
 
             return al.__type, al
