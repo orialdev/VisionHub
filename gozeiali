@@ -10689,27 +10689,22 @@ function a.P()
 
         return ah
     end
-function a.MS()
+    function a.MS()
         local aa = a.load "b"
         local ae = aa.New
-
-        -- Load the Section module (a.P) to reuse its logic
         local sectionModule = a.load "P"
 
         local ah = {}
 
-        -- aj: The internal configuration context passed by the loader (Environment)
-        -- ak: The user properties
         function ah.New(aj, ak)
-            
-            -- FIX 1: Safe Gap Calculation to prevent "index nil" errors if Tab isn't ready
+            -- Determine gap based on Window config
             local gap = 6
             if aj.Tab and aj.Tab.Gap then
                 gap = aj.Tab.Gap
+            elseif aj.Window and aj.Window.ElementConfig and aj.Window.ElementConfig.UIPadding then
+                gap = aj.Window.ElementConfig.UIPadding / 2
             elseif aj.Window and aj.Window.NewElements then
                 gap = 5
-            elseif aj.Window and aj.Window.ElementConfig then
-                gap = aj.Window.ElementConfig.UIPadding and (aj.Window.ElementConfig.UIPadding / 2) or 6
             end
 
             local al = {
@@ -10718,36 +10713,39 @@ function a.MS()
                 Columns = {}
             }
 
-            -- Main Container Frame
+            -- Main Container
             local am = ae(
                 "Frame",
                 {
                     Size = UDim2.new(1, 0, 0, 0),
                     BackgroundTransparency = 1,
-                    AutomaticSize = "Y",
+                    AutomaticSize = Enum.AutomaticSize.Y,
                     Parent = aj.Parent,
-                    Name = "MultiSection"
+                    Name = "MultiSection_Container"
                 },
                 {
                     ae(
                         "UIListLayout",
                         {
-                            FillDirection = "Horizontal",
-                            SortOrder = "LayoutOrder",
+                            FillDirection = Enum.FillDirection.Horizontal,
+                            SortOrder = Enum.SortOrder.LayoutOrder,
                             Padding = UDim.new(0, gap),
-                            VerticalAlignment = "Top"
+                            VerticalAlignment = Enum.VerticalAlignment.Top
                         }
                     )
                 }
             )
 
+            -- Column Configurations
+            local colSize = UDim2.new(0.5, -(gap / 2), 0, 0)
+
             -- Left Column
-            local an = ae(
+            local leftCol = ae(
                 "Frame",
                 {
-                    Size = UDim2.new(0.5, -(gap / 2), 0, 0),
+                    Size = colSize,
                     BackgroundTransparency = 1,
-                    AutomaticSize = "Y",
+                    AutomaticSize = Enum.AutomaticSize.Y,
                     Name = "Left",
                     Parent = am
                 },
@@ -10755,22 +10753,22 @@ function a.MS()
                     ae(
                         "UIListLayout",
                         {
-                            FillDirection = "Vertical",
-                            SortOrder = "LayoutOrder",
+                            FillDirection = Enum.FillDirection.Vertical,
+                            SortOrder = Enum.SortOrder.LayoutOrder,
                             Padding = UDim.new(0, gap),
-                            VerticalAlignment = "Top"
+                            VerticalAlignment = Enum.VerticalAlignment.Top
                         }
                     )
                 }
             )
 
             -- Right Column
-            local ao = ae(
+            local rightCol = ae(
                 "Frame",
                 {
-                    Size = UDim2.new(0.5, -(gap / 2), 0, 0),
+                    Size = colSize,
                     BackgroundTransparency = 1,
-                    AutomaticSize = "Y",
+                    AutomaticSize = Enum.AutomaticSize.Y,
                     Name = "Right",
                     Parent = am
                 },
@@ -10778,49 +10776,54 @@ function a.MS()
                     ae(
                         "UIListLayout",
                         {
-                            FillDirection = "Vertical",
-                            SortOrder = "LayoutOrder",
+                            FillDirection = Enum.FillDirection.Vertical,
+                            SortOrder = Enum.SortOrder.LayoutOrder,
                             Padding = UDim.new(0, gap),
-                            VerticalAlignment = "Top"
+                            VerticalAlignment = Enum.VerticalAlignment.Top
                         }
                     )
                 }
             )
 
-            -- :Section Method
-            function al:Section(ap)
-                ap = ap or {} -- Ensure ap exists
-                
-                local side = ap.Side or "Left"
-                local target = an -- Default Left
+            al.Container = am
 
-                if side == "Right" or side == 2 then
-                    target = ao
+            -- Create a new Section inside the columns
+            function al:Section(ap)
+                ap = ap or {}
+                
+                -- Determine target column
+                local side = ap.Side
+                local target = leftCol
+
+                if side == "Right" or side == 2 or side == "right" then
+                    target = rightCol
                 end
 
-                -- Create Context/Environment Copy
+                -- Clone the parent context but point Parent to the column
                 local childContext = {}
                 for key, val in pairs(aj) do
                     childContext[key] = val
                 end
-                childContext.Parent = target -- Redirect Parent to the Column
+                
+                childContext.Parent = target
+                
+                -- Pass necessary references explicitly to be safe
+                childContext.Window = aj.Window
+                childContext.WindUI = aj.WindUI
+                childContext.Tab = aj.Tab
+                childContext.UIScale = aj.UIScale
 
-                -- FIX 2: Inject Critical System References into the Properties table (ap)
-                -- The Section module expects these to exist in the second argument to find Icons/Themes
-                ap.Window = aj.Window
-                ap.WindUI = aj.WindUI
-                ap.Tab = aj.Tab
-                ap.Parent = target
-
-                -- Create the section
+                -- Create the Section using existing "P" module
+                -- sectionModule.New returns: __type, elementObject
                 local _, createdSection = sectionModule.New(childContext, ap)
 
-                -- Track it for cleanup
+                -- Keep track for cleanup
                 table.insert(al.Elements, createdSection)
 
                 return createdSection
             end
 
+            -- Allow setting visible/destroying the multisection wrapper
             function al:Destroy()
                 for _, elem in ipairs(al.Elements) do
                     if elem.Destroy then
@@ -10828,6 +10831,10 @@ function a.MS()
                     end
                 end
                 am:Destroy()
+            end
+            
+            function al:Visible(bool)
+                am.Visible = bool
             end
 
             return al.__type, al
