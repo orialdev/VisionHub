@@ -10696,49 +10696,52 @@ function a.P()
 
         local ah = {}
 
-        -- Mapping friendly names to indices
-        local SIDE_MAP = {
-            ["left"] = 1, ["l"] = 1,
-            ["right"] = 2, ["r"] = 2,
-            ["middle"] = 2, ["center"] = 2, -- If 3 cols, middle is 2
-        }
-
+        -- [[ Advanced MultiSection Handler ]]
         function ah.New(self, context)
-            local aj = context
+            local aj = context 
             
-            -- === CONFIGURATION ===
-            -- determine gap
+            -- [1] Resolve Gap Configuration
             local gap = 6
-            if aj.Tab and aj.Tab.Gap then gap = aj.Tab.Gap
-            elseif aj.Window and aj.Window.ElementConfig and aj.Window.ElementConfig.UIPadding then gap = aj.Window.ElementConfig.UIPadding / 2
-            elseif aj.Window and aj.Window.NewElements then gap = 5
+            if aj.Tab and aj.Tab.Gap then
+                gap = aj.Tab.Gap
+            elseif aj.Window and aj.Window.ElementConfig and aj.Window.ElementConfig.UIPadding then
+                gap = aj.Window.ElementConfig.UIPadding / 2
+            elseif aj.Window and aj.Window.NewElements then
+                gap = 5
             end
 
-            -- Determine Column Config
-            -- Can be passed via aj.Columns (int) or aj.Schemes (table of ratios)
-            local targetColumns = aj.Columns or 2
-            local schemes = aj.Schemes -- Example: {0.3, 0.7} for sidebar
+            -- [2] Resolve Layout Config (Column Setup)
+            -- Logic: Checks for 'Divisions', 'Proportions', or defaults to standard 2-column
+            -- Example inputs: 
+            --   { 0.5, 0.5 } -> 2 equal columns
+            --   { 0.7, 0.3 } -> 70% / 30% split
+            --   3            -> 3 equal columns (auto-calc)
             
-            -- If schemes passed, override count
-            if schemes and type(schemes) == "table" then
-                targetColumns = #schemes
-            elseif not schemes then
-                -- Generate equal schemes
-                schemes = {}
-                local ratio = 1 / targetColumns
-                for i = 1, targetColumns do table.insert(schemes, ratio) end
+            local layouts = aj.Divisions or aj.Proportions or aj.Layout or { 0.5, 0.5 }
+            
+            -- If user passed a number (e.g. 3), convert to equal table {0.33, 0.33, 0.33}
+            if type(layouts) == "number" then
+                local count = math.max(1, math.floor(layouts))
+                layouts = {}
+                local size = 1 / count
+                for i = 1, count do table.insert(layouts, size) end
             end
-            
+
+            local colCount = #layouts
+
+            -- [3] Core Object Structure
             local al = {
                 __type = "MultiSection",
-                Elements = {}, -- Tracks children sections
-                Columns = {},  -- Tracks column frames
-                Container = nil
+                Elements = {},       -- Stores created Sections
+                Columns = {},        -- Stores UI Frames for columns
+                Map = {              -- Compatibility Aliases
+                    Left = 1,
+                    Right = (colCount > 1 and colCount or 1), -- Last column is "Right" usually
+                    Middle = (colCount > 2 and 2 or 1)
+                }
             }
 
-            -- === GUI CREATION ===
-            
-            -- Main Wrapper
+            -- [4] Main Container
             local am = ae(
                 "Frame",
                 {
@@ -10746,7 +10749,7 @@ function a.P()
                     BackgroundTransparency = 1,
                     AutomaticSize = Enum.AutomaticSize.Y,
                     Parent = aj.Parent,
-                    Name = "MultiSection"
+                    Name = "MultiSection_Advanced"
                 },
                 {
                     ae(
@@ -10760,26 +10763,27 @@ function a.P()
                     )
                 }
             )
+            al.Container = am
 
-            -- Generate Columns dynamically
-            for i = 1, targetColumns do
-                local ratio = schemes[i]
-                
-                -- Calculate exact pixel offset deduction to handle gaps without overflow
-                -- Total Gaps width = (N-1) * gap
-                -- Each column absorbs a proportional amount of that gap subtraction
-                local totalGapSpace = (targetColumns - 1) * gap
-                local offsetCorrection = -(totalGapSpace * ratio)
+            -- [5] Dynamic Column Generation
+            -- Mathematical correction to ensure Padding doesn't cause Overflow
+            -- Logic: Total Width = 1.0 scale. Total Gap Space needs to be subtracted from the scale width dynamically.
+            local totalGapSpace = gap * (colCount - 1)
+            
+            for index, scaleSize in ipairs(layouts) do
+                -- offset logic: we share the gap debt across all columns based on count to keep it even
+                local widthOffset = -(totalGapSpace / colCount)
 
-                local col = ae(
+                local colFrame = ae(
                     "Frame",
                     {
-                        Size = UDim2.new(ratio, offsetCorrection, 0, 0),
+                        -- Scale defines ratio, Offset handles gap correction
+                        Size = UDim2.new(scaleSize, widthOffset, 0, 0), 
                         BackgroundTransparency = 1,
                         AutomaticSize = Enum.AutomaticSize.Y,
-                        Name = "Col_" .. i,
+                        Name = "Col_" .. index,
                         Parent = am,
-                        LayoutOrder = i
+                        LayoutOrder = index
                     },
                     {
                         ae(
@@ -10794,100 +10798,64 @@ function a.P()
                     }
                 )
                 
-                table.insert(al.Columns, col)
+                table.insert(al.Columns, colFrame)
             end
 
-            al.Container = am
-
-            -- === METHODS ===
-
+            -- [6] Create Section Method
             function al:Section(ap)
                 ap = ap or {}
 
-                -- Determine which column to parent to
-                local sideInput = ap.Side or 1
+                -- Determine Target
+                -- Accepts: Index (1, 2), Name ("Left", "Right"), or direct frame (internal)
+                local sideKey = ap.Side or 1
                 local targetIndex = 1
 
-                if type(sideInput) == "number" then
-                    targetIndex = math.clamp(sideInput, 1, #al.Columns)
-                elseif type(sideInput) == "string" then
-                    -- Map strings to indices (left->1, right->2/last)
-                    local clean = sideInput:lower()
-                    if SIDE_MAP[clean] then
-                        targetIndex = SIDE_MAP[clean]
-                        
-                        -- Corner case: if map says 2, but we have 3 columns, "Right" should probably be 3?
-                        -- For backward compatibility: Left=1, Right=2 (or Last)
-                        if clean == "right" and #al.Columns > 2 then
-                            targetIndex = #al.Columns
+                if type(sideKey) == "string" then
+                    -- Case insensitive lookup in Map
+                    for k, v in pairs(al.Map) do
+                        if k:lower() == sideKey:lower() then
+                            targetIndex = v
+                            break
                         end
-                    else
-                         -- Fallback to last column if unknown string
-                        targetIndex = #al.Columns
                     end
+                elseif type(sideKey) == "number" then
+                    targetIndex = math.clamp(sideKey, 1, #al.Columns)
                 end
 
-                -- Safety clamp
-                if targetIndex > #al.Columns then targetIndex = #al.Columns end
+                local targetFrame = al.Columns[targetIndex] or al.Columns[1]
 
-                local targetParent = al.Columns[targetIndex]
-
-                -- == Create Context for Section Module ==
+                -- Prepare Context for Child
                 local finalConfig = {}
-                
-                -- Inherit window properties
+                -- Copy Window Environment
                 for k, v in pairs(aj) do
-                    if k ~= "Elements" and k ~= "Parent" and k ~= "Columns" and k ~= "Schemes" then
-                        finalConfig[k] = v
+                    if k ~= "Elements" and k ~= "Parent" and k ~= "Divisions" and k ~= "Proportions" then 
+                        finalConfig[k] = v 
                     end
                 end
-                
-                -- Merge section specific properties
-                for k, v in pairs(ap) do
-                    finalConfig[k] = v
-                end
+                -- Apply Section Props
+                for k, v in pairs(ap) do finalConfig[k] = v end
 
-                -- Set physical parent to the chosen column
-                finalConfig.Parent = targetParent
-                
-                -- Critical refs
+                finalConfig.Parent = targetFrame
+                -- Ensure Safety Refs
                 finalConfig.Window = aj.Window
                 finalConfig.Folder = aj.Folder or (aj.Window and aj.Window.Folder)
 
-                -- Call Core Section Module
+                -- Create
                 local _, createdSection = sectionModule.New(sectionModule, finalConfig)
                 
                 table.insert(al.Elements, createdSection)
                 return createdSection
             end
-            
-            -- Allow resizing existing columns at runtime (Advanced Feature)
-            function al:SetRatios(newSchemes)
-                 if type(newSchemes) ~= "table" or #newSchemes ~= #al.Columns then return end
-                 
-                 for i, col in ipairs(al.Columns) do
-                     local ratio = newSchemes[i]
-                     local totalGapSpace = (#al.Columns - 1) * gap
-                     local offsetCorrection = -(totalGapSpace * ratio)
-                     
-                     -- Animate changes for smooth UI
-                     aa.Tween(col, 0.3, { Size = UDim2.new(ratio, offsetCorrection, 0, 0) }, Enum.EasingStyle.Quart, Enum.EasingDirection.Out):Play()
-                 end
-            end
 
             function al:Destroy()
                 for _, elem in ipairs(al.Elements) do
-                    if elem.Destroy then
-                        elem:Destroy()
-                    end
+                    if elem.Destroy then elem:Destroy() end
                 end
-                if am then 
-                    am:Destroy() 
-                end
+                am:Destroy()
             end
 
-            function al:Visible(val)
-                if am then am.Visible = val end
+            function al:Visible(bool)
+                am.Visible = bool
             end
 
             return al.__type, al
