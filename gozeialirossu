@@ -10689,19 +10689,15 @@ function a.P()
 
         return ah
     end
-    function a.TMS()
+    function a.MS()
         local aa = a.load "b"
         local ae = aa.New
         local sectionModule = a.load "P"
-        local tweenService = game:GetService("TweenService")
 
         local ah = {}
 
-        -- [[ Tabbed Section Handler ]]
-        function ah.New(self, context)
-            local aj = context
-            
-            -- [1] Resolve Gap Configuration
+        function ah.New(aj, ak)
+            -- Determine gap based on Window config
             local gap = 6
             if aj.Tab and aj.Tab.Gap then
                 gap = aj.Tab.Gap
@@ -10711,15 +10707,169 @@ function a.P()
                 gap = 5
             end
 
-            -- [2] Object Structure
             local al = {
-                __type = "TabbedSection",
-                Tabs = {},           -- Stores Tab Button Frames
-                Elements = {},       -- Stores Section Objects
-                CurrentIndex = 0
+                __type = "MultiSection",
+                Elements = {},
+                Columns = {}
             }
 
-            -- [3] Main Container
+            -- Main Container
+            local am = ae(
+                "Frame",
+                {
+                    Size = UDim2.new(1, 0, 0, 0),
+                    BackgroundTransparency = 1,
+                    AutomaticSize = Enum.AutomaticSize.Y,
+                    Parent = aj.Parent,
+                    Name = "MultiSection_Container"
+                },
+                {
+                    ae(
+                        "UIListLayout",
+                        {
+                            FillDirection = Enum.FillDirection.Horizontal,
+                            SortOrder = Enum.SortOrder.LayoutOrder,
+                            Padding = UDim.new(0, gap),
+                            VerticalAlignment = Enum.VerticalAlignment.Top
+                        }
+                    )
+                }
+            )
+
+            -- Column Configurations
+            local colSize = UDim2.new(0.5, -(gap / 2), 0, 0)
+
+            -- Left Column
+            local leftCol = ae(
+                "Frame",
+                {
+                    Size = colSize,
+                    BackgroundTransparency = 1,
+                    AutomaticSize = Enum.AutomaticSize.Y,
+                    Name = "Left",
+                    Parent = am
+                },
+                {
+                    ae(
+                        "UIListLayout",
+                        {
+                            FillDirection = Enum.FillDirection.Vertical,
+                            SortOrder = Enum.SortOrder.LayoutOrder,
+                            Padding = UDim.new(0, gap),
+                            VerticalAlignment = Enum.VerticalAlignment.Top
+                        }
+                    )
+                }
+            )
+
+            -- Right Column
+            local rightCol = ae(
+                "Frame",
+                {
+                    Size = colSize,
+                    BackgroundTransparency = 1,
+                    AutomaticSize = Enum.AutomaticSize.Y,
+                    Name = "Right",
+                    Parent = am
+                },
+                {
+                    ae(
+                        "UIListLayout",
+                        {
+                            FillDirection = Enum.FillDirection.Vertical,
+                            SortOrder = Enum.SortOrder.LayoutOrder,
+                            Padding = UDim.new(0, gap),
+                            VerticalAlignment = Enum.VerticalAlignment.Top
+                        }
+                    )
+                }
+            )
+
+            al.Container = am
+
+            -- Create a new Section inside the columns
+            function al:Section(ap)
+                ap = ap or {}
+                
+                -- Determine target column
+                local side = ap.Side
+                local target = leftCol
+
+                if side == "Right" or side == 2 or side == "right" then
+                    target = rightCol
+                end
+
+                -- Clone the parent context but point Parent to the column
+                local childContext = {}
+                for key, val in pairs(aj) do
+                    childContext[key] = val
+                end
+                
+                childContext.Parent = target
+                
+                -- Pass necessary references explicitly to be safe
+                childContext.Window = aj.Window
+                childContext.WindUI = aj.WindUI
+                childContext.Tab = aj.Tab
+                childContext.UIScale = aj.UIScale
+
+                -- Create the Section using existing "P" module
+                -- sectionModule.New returns: __type, elementObject
+                local _, createdSection = sectionModule.New(childContext, ap)
+
+                -- Keep track for cleanup
+                table.insert(al.Elements, createdSection)
+
+                return createdSection
+            end
+
+            -- Allow setting visible/destroying the multisection wrapper
+            function al:Destroy()
+                for _, elem in ipairs(al.Elements) do
+                    if elem.Destroy then
+                        elem:Destroy()
+                    end
+                end
+                am:Destroy()
+            end
+            
+            function al:Visible(bool)
+                am.Visible = bool
+            end
+
+            return al.__type, al
+        end
+
+        return ah
+    end
+    function a.ST()
+        local aa = a.load "b"
+        local ae = aa.New
+        local af = aa.Tween
+        local sectionModule = a.load "P"
+
+        local ah = {}
+
+        -- [[ SectionTab Component ]]
+        function ah.New(self, context)
+            local aj = context 
+            
+            -- [1] Resolve Layout Styling
+            local gap = 6
+            if aj.Window and aj.Window.ElementConfig and aj.Window.ElementConfig.UIPadding then
+                gap = aj.Window.ElementConfig.UIPadding / 2
+            end
+
+            local theme = aj.Window and aj.Window.Theme or { Accent = Color3.fromRGB(0, 145, 255) }
+
+            -- [2] Main Container Structure
+            local al = {
+                __type = "SectionTab",
+                Elements = {},
+                Tabs = {},
+                ActiveTab = nil
+            }
+
             local container = ae(
                 "Frame",
                 {
@@ -10727,23 +10877,24 @@ function a.P()
                     BackgroundTransparency = 1,
                     AutomaticSize = Enum.AutomaticSize.Y,
                     Parent = aj.Parent,
-                    Name = "TabbedSection_Container"
+                    Name = "SectionTab_Container"
                 },
                 {
                     ae("UIListLayout", {
                         FillDirection = Enum.FillDirection.Vertical,
                         SortOrder = Enum.SortOrder.LayoutOrder,
-                        Padding = UDim.new(0, gap + 2),
+                        Padding = UDim.new(0, gap + 4),
+                        VerticalAlignment = Enum.VerticalAlignment.Top
                     })
                 }
             )
             al.Container = container
 
-            -- [4] Tab Navigation Bar (Top)
+            -- [3] Tab Bar (Top Navigation)
             local tabBar = ae(
                 "Frame",
                 {
-                    Size = UDim2.new(1, 0, 0, 32), -- Fixed height for tab bar
+                    Size = UDim2.new(1, 0, 0, 32), -- Fixed height for tab buttons
                     BackgroundTransparency = 1,
                     Name = "TabBar",
                     Parent = container
@@ -10752,200 +10903,199 @@ function a.P()
                     ae("UIListLayout", {
                         FillDirection = Enum.FillDirection.Horizontal,
                         SortOrder = Enum.SortOrder.LayoutOrder,
-                        Padding = UDim.new(0, 6),
-                        HorizontalAlignment = Enum.HorizontalAlignment.Left
+                        Padding = UDim.new(0, gap),
+                        VerticalAlignment = Enum.VerticalAlignment.Center
                     })
                 }
             )
 
-            -- [5] Content Container (Holds the actual sections)
-            local contentContainer = ae(
+            -- [4] Content Holder area
+            local contentHolder = ae(
                 "Frame",
                 {
                     Size = UDim2.new(1, 0, 0, 0),
-                    AutomaticSize = Enum.AutomaticSize.Y,
                     BackgroundTransparency = 1,
-                    Name = "Content",
+                    AutomaticSize = Enum.AutomaticSize.Y,
+                    Name = "ContentHolder",
                     Parent = container
                 }
             )
 
-            -- [6] Selection Logic
-            function al:Select(index)
-                if index == al.CurrentIndex then return end
-                al.CurrentIndex = index
+            -- [5] Function to switch tabs
+            local function SelectTab(tabData)
+                if al.ActiveTab == tabData then return end
+                al.ActiveTab = tabData
 
-                -- Update Tabs (Visuals)
-                for i, tabData in ipairs(al.Tabs) do
-                    local isSelected = (i == index)
+                -- Update Visuals
+                for _, t in ipairs(al.Tabs) do
+                    local isSelected = (t == tabData)
+                    t.ContentFrame.Visible = isSelected
                     
-                    local bgAlpha = isSelected and 0 or 1
-                    local strokeAlpha = isSelected and 0.5 or 0.8
-                    local textAlpha = isSelected and 0 or 0.4
-                    
-                    -- Animations
-                    tweenService:Create(tabData.Button.Main, TweenInfo.new(0.2), {ImageTransparency = bgAlpha}):Play()
-                    tweenService:Create(tabData.Button.Outline, TweenInfo.new(0.2), {ImageTransparency = strokeAlpha}):Play()
-                    tweenService:Create(tabData.Title, TweenInfo.new(0.2), {TextTransparency = textAlpha}):Play()
-                    if tabData.Icon then
-                        tweenService:Create(tabData.Icon.ImageLabel, TweenInfo.new(0.2), {ImageTransparency = textAlpha}):Play()
-                    end
-                end
-
-                -- Update Sections (Visibility)
-                for i, sectionObj in ipairs(al.Elements) do
-                    local sectionFrame = sectionObj.ElementFrame or sectionObj.Container -- Support standard or wrapped sections
-                    
-                    if i == index then
-                        if sectionFrame then 
-                            sectionFrame.Visible = true 
-                            -- Quick animation for entering content could go here
+                    -- Button Animation
+                    if isSelected then
+                        af(t.Button, 0.2, { BackgroundTransparency = 0.85 }):Play()
+                        af(t.Button.Title, 0.2, { TextTransparency = 0 }):Play()
+                        if t.Button:FindFirstChild("Stroke") then
+                            af(t.Button.Stroke, 0.2, { Transparency = 0.5 }):Play()
                         end
                     else
-                        if sectionFrame then sectionFrame.Visible = false end
+                        af(t.Button, 0.2, { BackgroundTransparency = 1 }):Play()
+                        af(t.Button.Title, 0.2, { TextTransparency = 0.5 }):Play()
+                        if t.Button:FindFirstChild("Stroke") then
+                            af(t.Button.Stroke, 0.2, { Transparency = 1 }):Play()
+                        end
                     end
                 end
             end
 
-            -- [7] Create Tab (and associated Section)
+            -- [6] Create Tab Method
             function al:Tab(ap)
                 ap = ap or {}
-                
-                local tabIndex = #al.Tabs + 1
-                
-                -- -- 7a. Create Button UI -- --
-                local titleText = ap.Title or "Tab " .. tabIndex
-                local iconId = ap.Icon
-                
-                -- Create button utilizing WindUI round frames for style consistency
-                local buttonContainer = aa.NewRoundFrame(
-                    6, "Squircle", 
+                local title = ap.Title or "Tab"
+                local icon = ap.Icon 
+
+                -- Tab Content Frame
+                local tabFrame = ae(
+                    "Frame",
                     {
-                        Size = UDim2.new(0, 0, 1, 0),
-                        AutomaticSize = Enum.AutomaticSize.X,
-                        ImageColor3 = Color3.fromRGB(45, 45, 45), -- Default color, overriden by themes
-                        ThemeTag = { ImageColor3 = "ElementBackground" }, 
-                        ImageTransparency = 1, -- Start transparent (unselected)
-                        Name = "Main"
+                        Size = UDim2.new(1, 0, 0, 0),
+                        BackgroundTransparency = 1,
+                        AutomaticSize = Enum.AutomaticSize.Y,
+                        Name = title .. "_Content",
+                        Parent = contentHolder,
+                        Visible = false
                     },
                     {
-                        -- Outline
+                        ae("UIListLayout", {
+                            FillDirection = Enum.FillDirection.Vertical,
+                            SortOrder = Enum.SortOrder.LayoutOrder,
+                            Padding = UDim.new(0, gap),
+                            VerticalAlignment = Enum.VerticalAlignment.Top
+                        })
+                    }
+                )
+
+                -- Tab Button UI
+                -- Calculate flexible width based on text
+                local textService = game:GetService("TextService")
+                local font = Font.new(aa.Font, Enum.FontWeight.Medium)
+                local textSize = textService:GetTextSize(title, 14, font, Vector2.new(1000, 32))
+                local btnWidth = textSize.X + 24
+                if icon then btnWidth = btnWidth + 24 end
+
+                local tabButton = aa.NewRoundFrame(
+                    6, -- Radius
+                    "Squircle",
+                    {
+                        Size = UDim2.new(0, btnWidth, 1, 0),
+                        Parent = tabBar,
+                        ThemeTag = { BackgroundColor3 = "Text" }, -- Uses Text color for tint
+                        BackgroundTransparency = 1, -- Start transparent
+                        Name = title .. "_Btn"
+                    },
+                    {
+                        -- Border (Stroke replacement via Image)
                         aa.NewRoundFrame(6, "SquircleOutline", {
-                            Size = UDim2.new(1, 0, 1, 0),
+                            Name = "Stroke",
+                            Size = UDim2.new(1,0,1,0),
                             ThemeTag = { ImageColor3 = "Text" },
-                            ImageTransparency = 0.8,
-                            Name = "Outline"
+                            ImageTransparency = 1
                         }),
-                        -- Text
-                        ae("TextLabel", {
-                            Text = titleText,
-                            AutomaticSize = Enum.AutomaticSize.X,
-                            Size = UDim2.new(0, 0, 1, 0),
-                            BackgroundTransparency = 1,
-                            FontFace = Font.new(aa.Font, Enum.FontWeight.Medium),
-                            TextSize = 14,
-                            ThemeTag = { TextColor3 = "Text" },
-                            TextTransparency = 0.4,
-                            Name = "Label",
-                            Position = UDim2.new(0, iconId and 24 or 10, 0, 0) -- Shift text if icon exists
-                        }),
-                        ae("TextButton", { -- Click capture
-                            Size = UDim2.new(1, 0, 1, 0),
+                        ae("TextButton", {
+                            Size = UDim2.new(1,0,1,0),
                             BackgroundTransparency = 1,
                             Text = ""
                         })
                     }
                 )
-                
-                local iconObj
-                local baseWidth = 20 -- Padding for text
-                
-                -- Handle Icon
-                if iconId then
-                    iconObj = aa.Image(iconId, iconId, 0, aj.Folder, "Tab", true)
-                    iconObj.Size = UDim2.new(0, 16, 0, 16)
-                    iconObj.Position = UDim2.new(0, 8, 0.5, 0)
-                    iconObj.AnchorPoint = Vector2.new(0, 0.5)
-                    iconObj.ImageLabel.ImageTransparency = 0.4
-                    iconObj.Parent = buttonContainer
-                    baseWidth = baseWidth + 24
+
+                -- Button Contents (Icon + Title)
+                local contentLayout = ae(
+                    "Frame", 
+                    {
+                        Size = UDim2.new(1,0,1,0),
+                        BackgroundTransparency = 1,
+                        Parent = tabButton
+                    },
+                    {
+                        ae("UIListLayout", {
+                            FillDirection = Enum.FillDirection.Horizontal,
+                            HorizontalAlignment = Enum.HorizontalAlignment.Center,
+                            VerticalAlignment = Enum.VerticalAlignment.Center,
+                            Padding = UDim.new(0, 6)
+                        }),
+                        ae("TextLabel", {
+                            Text = title,
+                            ThemeTag = { TextColor3 = "Text" },
+                            TextSize = 14,
+                            FontFace = font,
+                            BackgroundTransparency = 1,
+                            AutomaticSize = Enum.AutomaticSize.XY,
+                            Name = "Title",
+                            TextTransparency = 0.5
+                        })
+                    }
+                )
+
+                if icon then
+                    local iconImg = aa.Image(icon, icon, 0, aj.Window.Folder, "TabIcon", true)
+                    iconImg.Size = UDim2.new(0, 16, 0, 16)
+                    iconImg.Parent = contentLayout
+                    -- Push text order after icon
+                    contentLayout.Title.LayoutOrder = 2
                 end
 
-                -- Dynamic Width Handling
-                local function updateWidth()
-                    local textWidth = buttonContainer.Label.TextBounds.X
-                    buttonContainer.Size = UDim2.new(0, textWidth + baseWidth, 1, 0)
-                end
-                
-                -- Button Frame Wrapper
-                local btnWrapper = ae("Frame", {
-                    Size = UDim2.new(0, 0, 1, 0), -- Updated by auto-size
-                    BackgroundTransparency = 1,
-                    Parent = tabBar
-                }, { buttonContainer })
-                
-                buttonContainer:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
-                    btnWrapper.Size = UDim2.new(0, buttonContainer.AbsoluteSize.X, 1, 0)
+                -- Store Tab Data
+                local tabData = {
+                    Button = tabButton,
+                    ContentFrame = tabFrame,
+                    Elements = {}
+                }
+                table.insert(al.Tabs, tabData)
+
+                -- Button Logic
+                aa.AddSignal(tabButton.TextButton.MouseButton1Click, function()
+                    SelectTab(tabData)
                 end)
-                updateWidth()
-                buttonContainer.Label:GetPropertyChangedSignal("TextBounds"):Connect(updateWidth)
 
-                -- Event
-                buttonContainer.TextButton.MouseButton1Click:Connect(function()
-                    al:Select(tabIndex)
-                end)
-
-                table.insert(al.Tabs, {
-                    Wrapper = btnWrapper,
-                    Button = buttonContainer,
-                    Title = buttonContainer.Label,
-                    Icon = iconObj
-                })
-
-                -- -- 7b. Create Actual Section Content -- --
-                
-                -- Clone Context
-                local finalConfig = {}
-                for k, v in pairs(aj) do if k ~= "Elements" and k ~= "Parent" then finalConfig[k] = v end end
-                for k, v in pairs(ap) do finalConfig[k] = v end
-                
-                -- We strip Title/Icon from the Section logic itself so it doesn't double-render a header
-                -- We only want the *container* behavior of the section module
-                -- (Note: depending on implementation of 'P', passing Title might show a header. 
-                -- If P module always forces a header, we can try to pass nil Title, or hide the header frame afterwards).
-                finalConfig.Parent = contentContainer
-                finalConfig.Title = nil -- Hide inner section header
-                finalConfig.Icon = nil
-                
-                -- Ensure Safety Refs
-                finalConfig.Window = aj.Window
-                finalConfig.Folder = aj.Folder or (aj.Window and aj.Window.Folder)
-
-                local _, createdSection = sectionModule.New(sectionModule, finalConfig)
-                
-                -- By default, hide new sections
-                local sectionFrame = createdSection.ElementFrame or createdSection.Container
-                if sectionFrame then sectionFrame.Visible = false end
-
-                table.insert(al.Elements, createdSection)
-
-                -- Auto-select first tab
-                if tabIndex == 1 then
-                    al:Select(1)
+                -- Handle First Tab Auto-Select
+                if #al.Tabs == 1 then
+                    SelectTab(tabData)
                 end
 
-                return createdSection
+                -- Return wrapper to create sections INSIDE this tab
+                local tabWrapper = {}
+                function tabWrapper:Section(secProps)
+                    secProps = secProps or {}
+                    
+                    local finalConfig = {}
+                    for k, v in pairs(aj) do if k~="Elements" and k~="Parent" then finalConfig[k]=v end end
+                    for k, v in pairs(secProps) do finalConfig[k] = v end
+                    
+                    finalConfig.Parent = tabFrame -- Set Parent to THIS tab's content
+                    finalConfig.Window = aj.Window
+                    finalConfig.Folder = aj.Folder or (aj.Window and aj.Window.Folder)
+
+                    local _, createdSection = sectionModule.New(sectionModule, finalConfig)
+                    table.insert(tabData.Elements, createdSection)
+                    return createdSection
+                end
+
+                return tabWrapper
             end
 
             function al:Destroy()
-                for _, elem in ipairs(al.Elements) do
-                    if elem.Destroy then elem:Destroy() end
+                -- Cleanup
+                for _, t in ipairs(al.Tabs) do
+                    for _, elem in ipairs(t.Elements) do
+                        if elem.Destroy then elem:Destroy() end
+                    end
                 end
                 container:Destroy()
             end
 
-            function al:Visible(bool)
-                container.Visible = bool
+            function al:Visible(val)
+                container.Visible = val
             end
 
             return al.__type, al
@@ -11136,6 +11286,7 @@ function a.P()
                 Colorpicker = a.load "O",
                 Section = a.load "P",
                 MultiSection = a.load "MS",
+                SectionTab = a.load "ST",
                 Divider = a.load "I",
                 Space = a.load "Q",
                 Image = a.load "R",
