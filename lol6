@@ -10698,7 +10698,7 @@ function a.MultiSection()
     local comp = {}
 
     function comp.New(props, env)
-        -- Config Object
+        -- Main Configuration Object
         local config = {
             __type = "MultiSection",
             Title = props.Title,
@@ -10706,9 +10706,8 @@ function a.MultiSection()
             ActiveIndex = 0
         }
 
-        -- [Design Fix] Use 'Squircle' with correct transparency.
-        -- We use "ElementBackground" ThemeTag instead of "Text" to avoid solid white blocks, 
-        -- keeping consistency with other sections.
+        -- [Design Fix] Main Container Construction
+        -- Uses "ElementBackground" for the bg to ensure it matches other elements transparency-wise.
         local mainFrame = aa.NewRoundFrame(
             env.Window.ElementConfig.UICorner,
             "Squircle",
@@ -10729,7 +10728,7 @@ function a.MultiSection()
                     {
                         Size = UDim2.new(1, 0, 1, 0),
                         ImageTransparency = 0.85,
-                        ThemeTag = { ImageColor3 = "Outline" }, -- Corrected to Outline for better borders
+                        ThemeTag = { ImageColor3 = "Outline" }, 
                     }
                 ),
                 ae("UIListLayout", {
@@ -10740,38 +10739,38 @@ function a.MultiSection()
         )
         config.ElementFrame = mainFrame
 
-        -- Header Frame
+        -- 1. Tab Selection Header
         local headerFrame = ae("Frame", {
             Name = "Header",
-            Size = UDim2.new(1, 0, 0, 38), -- Adjusted height for UX
+            Size = UDim2.new(1, 0, 0, 42), -- Fixed height for tab buttons
             BackgroundTransparency = 1,
             LayoutOrder = 1,
             Parent = mainFrame
         }, {
             ae("UIListLayout", {
                 FillDirection = Enum.FillDirection.Horizontal,
-                Padding = UDim.new(0, 12),
-                VerticalAlignment = Enum.VerticalAlignment.Center,
+                Padding = UDim.new(0, 4), -- Space between tabs
+                VerticalAlignment = Enum.VerticalAlignment.Bottom,
                 HorizontalAlignment = Enum.HorizontalAlignment.Left
             }),
             ae("UIPadding", {
-                PaddingLeft = UDim.new(0, 12),
-                PaddingRight = UDim.new(0, 12),
-                PaddingTop = UDim.new(0, 8), 
+                PaddingLeft = UDim.new(0, 16),
+                PaddingRight = UDim.new(0, 16),
+                PaddingBottom = UDim.new(0, 0) 
             })
         })
 
-        -- Divider with visual margin
+        -- 2. Visual Divider Line
         ae("Frame", {
             Name = "Divider",
             Size = UDim2.new(1, 0, 0, 1),
-            BackgroundTransparency = 0.9,
+            BackgroundTransparency = 0.85,
             ThemeTag = { BackgroundColor3 = "Outline" },
             LayoutOrder = 2,
             Parent = mainFrame
         })
 
-        -- Content Holder
+        -- 3. Content Container
         local contentArea = ae("Frame", {
             Name = "ContentArea",
             Size = UDim2.new(1, 0, 0, 0),
@@ -10781,18 +10780,18 @@ function a.MultiSection()
             Parent = mainFrame
         }, {
             ae("UIPadding", {
-                PaddingTop = UDim.new(0, 10),
-                PaddingBottom = UDim.new(0, 10),
-                PaddingLeft = UDim.new(0, 12),
-                PaddingRight = UDim.new(0, 12)
+                PaddingTop = UDim.new(0, 14),
+                PaddingBottom = UDim.new(0, 14),
+                PaddingLeft = UDim.new(0, env.Window.ElementConfig.UIPadding or 12),
+                PaddingRight = UDim.new(0, env.Window.ElementConfig.UIPadding or 12)
             })
         })
 
-        -- Internal function to add tabs
+        -- == TAB GENERATION LOGIC ==
         function config.Tab(self, tabName)
             local index = #config.Tabs + 1
             
-            -- [UX Fix] Visual text for tab
+            -- Label Text
             local label = ae("TextLabel", {
                 Text = tabName,
                 TextSize = 14,
@@ -10804,29 +10803,39 @@ function a.MultiSection()
                 Name = "Label"
             })
 
-            -- [UX Fix] Active Tab Indicator (Underline)
+            -- Active Indicator (Underline bar)
             local indicator = ae("Frame", {
-                Size = UDim2.new(1, 4, 0, 2),
-                Position = UDim2.new(0.5, 0, 1, 4),
-                AnchorPoint = Vector2.new(0.5, 1),
+                Name = "Indicator",
+                Size = UDim2.new(1, 0, 0, 0), -- Starts hidden
+                Position = UDim2.new(0, 0, 1, 1), -- Overlaps divider slightly
                 BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-                BackgroundTransparency = 1, -- Hidden by default
-                ThemeTag = { BackgroundColor3 = "Accent" },
-                Parent = nil -- Parented to button later
+                BackgroundTransparency = 1, 
+                ThemeTag = { BackgroundColor3 = "Accent" }, -- Uses Theme Accent
+                BorderSizePixel = 0
             })
 
+            -- The Button Area
             local btn = ae("TextButton", {
-                AutomaticSize = Enum.AutomaticSize.XY,
+                AutomaticSize = Enum.AutomaticSize.X,
+                Size = UDim2.new(0, 0, 1, -4), -- Minus bottom padding
                 BackgroundTransparency = 1,
                 Text = "",
                 Name = "TabBtn_" .. tabName,
                 Parent = headerFrame
             }, {
+                ae("UIPadding", {
+                    PaddingLeft = UDim.new(0, 8),
+                    PaddingRight = UDim.new(0, 8)
+                }),
+                ae("UIListLayout", {
+                    HorizontalAlignment = Enum.HorizontalAlignment.Center,
+                    VerticalAlignment = Enum.VerticalAlignment.Center
+                }),
                 label,
                 indicator
             })
 
-            -- Specific Content Page
+            -- The Actual Page for Elements
             local pageFrame = ae("Frame", {
                 Name = "Page_" .. tabName,
                 Size = UDim2.new(1, 0, 0, 0),
@@ -10841,23 +10850,23 @@ function a.MultiSection()
                 })
             })
 
-            -- [CRITICAL FIX]
-            -- Changed __type to "Group". 
-            -- "Section" logic expects a header, chevron icon, and collapsible behavior.
-            -- Using "Section" here was causing the "ImageLabel is not a valid member" error
-            -- when the library tried to apply section-theme logic to this flat container.
+            -- [CRITICAL FIX] 
+            -- We declare the type as "Group" instead of "Section".
+            -- Standard "Section" elements are expected to have a specific hierarchy (Icons, Header Buttons).
+            -- Since this is an internal page, defining it as a Group avoids the theme engine crashing 
+            -- while looking for those non-existent members.
             local tabObj = {
                 Elements = {},
                 Parent = pageFrame,
                 Window = env.Window,
                 WindUI = env.WindUI,
-                __type = "Group", -- Changed from Section to Group
+                __type = "Group", 
                 ParentType = "MultiSection",
                 Tab = env.Tab,
                 GlobalIndex = -1 
             }
 
-            -- Load elements into the page
+            -- Initialize elements onto this page
             env.ElementsModule.Load(
                 tabObj,                 
                 pageFrame,             
@@ -10870,24 +10879,24 @@ function a.MultiSection()
                 env.Tab                 
             )
 
-            -- Interaction
+            -- == EVENT HANDLERS ==
             aa.AddSignal(btn.MouseButton1Click, function()
                 config:Select(index)
             end)
 
-            -- Hover Effect
             aa.AddSignal(btn.MouseEnter, function()
                 if config.ActiveIndex ~= index then
                     af(label, 0.2, { TextTransparency = 0.2 }):Play()
                 end
             end)
-            
+
             aa.AddSignal(btn.MouseLeave, function()
                 if config.ActiveIndex ~= index then
                     af(label, 0.2, { TextTransparency = 0.5 }):Play()
                 end
             end)
 
+            -- Store in table for management
             table.insert(config.Tabs, {
                 Button = btn,
                 Label = label,
@@ -10896,7 +10905,7 @@ function a.MultiSection()
                 Index = index
             })
 
-            -- Select first tab automatically
+            -- Auto-select the first one
             if index == 1 then
                 config:Select(1)
             end
@@ -10904,24 +10913,28 @@ function a.MultiSection()
             return tabObj
         end
 
-        -- Selection Logic with UI Updates
+        -- Selection Logic
         function config.Select(self, targetIndex)
             if config.ActiveIndex == targetIndex then return end
             config.ActiveIndex = targetIndex
 
             for i, tab in ipairs(config.Tabs) do
                 if tab.Index == targetIndex then
-                    -- Show Active
+                    -- Enable Tab
                     tab.Page.Visible = true
-                    af(tab.Label, 0.25, { TextTransparency = 0 }):Play()
+                    af(tab.Label, 0.2, { TextTransparency = 0 }):Play()
                     tab.Label.FontFace = Font.new(aa.Font, Enum.FontWeight.SemiBold)
-                    af(tab.Indicator, 0.3, { BackgroundTransparency = 0, Size = UDim2.new(1, 0, 0, 2) }, Enum.EasingStyle.Quart, Enum.EasingDirection.Out):Play()
+                    
+                    -- Animate Indicator Strip
+                    af(tab.Indicator, 0.3, { BackgroundTransparency = 0, Size = UDim2.new(1, 0, 0, 2) }, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
                 else
-                    -- Hide Inactive
+                    -- Disable Tab
                     tab.Page.Visible = false
-                    af(tab.Label, 0.25, { TextTransparency = 0.5 }):Play()
+                    af(tab.Label, 0.2, { TextTransparency = 0.5 }):Play()
                     tab.Label.FontFace = Font.new(aa.Font, Enum.FontWeight.Medium)
-                    af(tab.Indicator, 0.2, { BackgroundTransparency = 1, Size = UDim2.new(0, 0, 0, 2) }, Enum.EasingStyle.Quart, Enum.EasingDirection.Out):Play()
+
+                    -- Hide Indicator Strip
+                    af(tab.Indicator, 0.25, { BackgroundTransparency = 1, Size = UDim2.new(0, 0, 0, 2) }, Enum.EasingStyle.Quad, Enum.EasingDirection.Out):Play()
                 end
             end
         end
