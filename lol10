@@ -10697,17 +10697,18 @@ do
         local comp = {}
 
         function comp.New(props, env)
-            -- [Config Object]
+            -- Configuration object
             local config = {
                 __type = "MultiSection",
                 Title = props.Title,
                 Tabs = {},
-                ActiveIndex = 0
+                ActiveIndex = 0,
+                HeaderSize = 42
             }
 
-            -- [Main Container]
-            -- Using NewRoundFrame for the container background style
-            local mainFrame = aa.NewRoundFrame(
+            -- [1] Main Container Frame (Squircle styled like Section)
+            local mainFrame =
+                aa.NewRoundFrame(
                 env.Window.ElementConfig.UICorner,
                 "Squircle",
                 {
@@ -10715,9 +10716,10 @@ do
                     AutomaticSize = Enum.AutomaticSize.Y,
                     BackgroundTransparency = 1,
                     Parent = env.Parent,
-                    ImageTransparency = 0.95, -- Slight opacity for depth
+                    ClipsDescendants = true,
+                    ImageTransparency = 0.96, -- Matching Section style
                     ThemeTag = {
-                        ImageColor3 = "ElementBackground"
+                        ImageColor3 = "Text"
                     }
                 },
                 {
@@ -10728,11 +10730,11 @@ do
                         {
                             Size = UDim2.new(1, 0, 1, 0),
                             ImageTransparency = 0.85,
-                            ThemeTag = {ImageColor3 = "Outline"},
+                            ThemeTag = {ImageColor3 = "Text"},
                             ZIndex = 5
                         }
                     ),
-                    -- Vertical Layout for Header + Divider + Content
+                    -- Vertical Layout (Header -> Divider -> Content)
                     ae(
                         "UIListLayout",
                         {
@@ -10744,12 +10746,13 @@ do
             )
             config.ElementFrame = mainFrame
 
-            -- [Header Area] (Tabs)
-            local headerFrame = ae(
+            -- [2] Header Frame (Holds Tab Buttons)
+            local headerFrame =
+                ae(
                 "Frame",
                 {
                     Name = "Header",
-                    Size = UDim2.new(1, 0, 0, 42),
+                    Size = UDim2.new(1, 0, 0, config.HeaderSize),
                     BackgroundTransparency = 1,
                     LayoutOrder = 1,
                     Parent = mainFrame,
@@ -10760,8 +10763,8 @@ do
                         "UIListLayout",
                         {
                             FillDirection = Enum.FillDirection.Horizontal,
-                            Padding = UDim.new(0, 8), -- Added gap between tab text
-                            VerticalAlignment = Enum.VerticalAlignment.Bottom,
+                            Padding = UDim.new(0, 12), -- Gap between tabs
+                            VerticalAlignment = Enum.VerticalAlignment.Center,
                             HorizontalAlignment = Enum.HorizontalAlignment.Left
                         }
                     ),
@@ -10770,19 +10773,20 @@ do
                         {
                             PaddingLeft = UDim.new(0, 16),
                             PaddingRight = UDim.new(0, 16),
+                            PaddingTop = UDim.new(0, 2), -- Minor offset for vertical centering
                             PaddingBottom = UDim.new(0, 0)
                         }
                     )
                 }
             )
 
-            -- [Divider Line]
+            -- [3] Divider Line
             ae(
                 "Frame",
                 {
                     Name = "Divider",
                     Size = UDim2.new(1, 0, 0, 1),
-                    BackgroundTransparency = 0.85,
+                    BackgroundTransparency = 0.85, -- Matches Section divider style
                     ThemeTag = {BackgroundColor3 = "Outline"},
                     LayoutOrder = 2,
                     Parent = mainFrame,
@@ -10790,8 +10794,9 @@ do
                 }
             )
 
-            -- [Content Container] (Dynamic Height)
-            local contentArea = ae(
+            -- [4] Content Area (Dynamic Page Holder)
+            local contentArea =
+                ae(
                 "Frame",
                 {
                     Name = "ContentArea",
@@ -10799,8 +10804,7 @@ do
                     AutomaticSize = Enum.AutomaticSize.Y,
                     BackgroundTransparency = 1,
                     LayoutOrder = 3,
-                    Parent = mainFrame,
-                    ClipsDescendants = true -- Prevents spill-over during animations
+                    Parent = mainFrame
                 },
                 {
                     ae(
@@ -10815,43 +10819,47 @@ do
                 }
             )
 
-            -- [API] Create New Tab
+            -- [API] Define New Tab Method
             function config.Tab(self, tabName)
                 local index = #config.Tabs + 1
-                
-                -- The visual text label
-                local label = ae(
+
+                -- Text Label
+                local label =
+                    ae(
                     "TextLabel",
                     {
                         Text = tabName,
-                        TextSize = 15, -- Standardized size
+                        TextSize = 15,
                         FontFace = Font.new(aa.Font, Enum.FontWeight.Medium),
                         AutomaticSize = Enum.AutomaticSize.XY,
                         BackgroundTransparency = 1,
                         ThemeTag = {TextColor3 = "Text"},
-                        TextTransparency = 0.5,
+                        TextTransparency = 0.5, -- Start inactive
                         Name = "Label",
                         ZIndex = 3
                     }
                 )
 
-                -- The colored indicator line at the bottom
-                local indicator = ae(
+                -- Active Indicator Line (Underline)
+                local indicator =
+                    ae(
                     "Frame",
                     {
                         Name = "Indicator",
-                        Size = UDim2.new(0, 0, 0, 2), -- Start size 0 width
-                        Position = UDim2.new(0.5, 0, 1, 0), -- Exactly on the bottom edge
+                        Size = UDim2.new(0, 0, 0, 2), -- Hidden initially
+                        Position = UDim2.new(0.5, 0, 1, 8), -- Pushed slightly down towards the divider
                         AnchorPoint = Vector2.new(0.5, 1),
+                        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
                         BackgroundTransparency = 1,
                         ThemeTag = {BackgroundColor3 = "Accent"},
                         BorderSizePixel = 0,
-                        ZIndex = 4 -- Must be higher than Divider ZIndex (1)
+                        ZIndex = 4
                     }
                 )
 
-                -- Clickable area
-                local btn = ae(
+                -- Tab Button Wrapper
+                local btn =
+                    ae(
                     "TextButton",
                     {
                         AutomaticSize = Enum.AutomaticSize.X,
@@ -10870,24 +10878,31 @@ do
                                 VerticalAlignment = Enum.VerticalAlignment.Center
                             }
                         ),
-                        ae("UIPadding", { 
-                            PaddingLeft = UDim.new(0, 4), 
-                            PaddingRight = UDim.new(0, 4) 
-                        }), -- Hitbox padding
+                        -- Padding inside the button makes the hit area larger than text
+                        ae(
+                            "UIPadding", 
+                            { 
+                                PaddingLeft = UDim.new(0, 2), 
+                                PaddingRight = UDim.new(0, 2) 
+                            }
+                        ), 
                         label,
                         indicator
                     }
                 )
 
-                -- The Container for elements in this specific tab
-                local pageFrame = ae(
+                -- The actual page where elements go
+                local pageFrame =
+                    ae(
                     "Frame",
                     {
                         Name = "Page_" .. tabName,
-                        Size = UDim2.fromScale(1, 0), -- Vital Fix: Scale X 1, Y 0 + Automatic
+                        -- FIX: UDim2.fromScale(1, 0) allows AutomaticSize.Y to calculate correctly
+                        -- without collapsing or overflowing horizontally.
+                        Size = UDim2.fromScale(1, 0),
                         AutomaticSize = Enum.AutomaticSize.Y,
                         BackgroundTransparency = 1,
-                        Visible = false, -- Hidden by default
+                        Visible = false,
                         Parent = contentArea
                     },
                     {
@@ -10903,8 +10918,8 @@ do
                     }
                 )
 
-                -- Pass Environment to Loader
-                -- We use 'Group' logic but purely vertical to act like a section interior
+                -- Create Recursive Loading Context
+                -- Treat the inside of the MultiSection tab like a nested Group
                 local tabObj = {
                     Elements = {},
                     Parent = pageFrame,
@@ -10914,49 +10929,61 @@ do
                     ParentType = "MultiSection",
                     Tab = env.Tab,
                     GlobalIndex = -1,
-                    UIScale = env.UIScale -- Pass UI Scale to prevent visual bugs
+                    UIScale = env.UIScale
                 }
 
-                -- Load Module for recursion
+                -- Recursively load elements into the pageFrame
                 env.ElementsModule.Load(
                     tabObj,
                     pageFrame,
                     env.ElementsModule.Elements,
                     env.Window,
                     env.WindUI,
-                    nil,
+                    nil, -- Callback
                     env.ElementsModule,
                     env.UIScale,
                     env.Tab
                 )
 
-                -- Mouse Events
-                aa.AddSignal(btn.MouseButton1Click, function()
-                    config:Select(index)
-                end)
-
-                aa.AddSignal(btn.MouseEnter, function()
-                    if config.ActiveIndex ~= index then
-                        af(label, 0.2, {TextTransparency = 0.2}):Play()
+                -- [Interaction Logic]
+                aa.AddSignal(
+                    btn.MouseButton1Click,
+                    function()
+                        config:Select(index)
                     end
-                end)
+                )
 
-                aa.AddSignal(btn.MouseLeave, function()
-                    if config.ActiveIndex ~= index then
-                        af(label, 0.2, {TextTransparency = 0.5}):Play()
+                aa.AddSignal(
+                    btn.MouseEnter,
+                    function()
+                        if config.ActiveIndex ~= index then
+                            af(label, 0.2, {TextTransparency = 0.2}):Play()
+                        end
                     end
-                end)
+                )
 
-                -- Save to table
-                table.insert(config.Tabs, {
-                    Button = btn,
-                    Label = label,
-                    Indicator = indicator,
-                    Page = pageFrame,
-                    Index = index
-                })
+                aa.AddSignal(
+                    btn.MouseLeave,
+                    function()
+                        if config.ActiveIndex ~= index then
+                            af(label, 0.2, {TextTransparency = 0.5}):Play()
+                        end
+                    end
+                )
 
-                -- If it's the first tab added, select it automatically
+                -- Store logic
+                table.insert(
+                    config.Tabs,
+                    {
+                        Button = btn,
+                        Label = label,
+                        Indicator = indicator,
+                        Page = pageFrame,
+                        Index = index
+                    }
+                )
+
+                -- Select first tab automatically
                 if index == 1 then
                     config:Select(1)
                 end
@@ -10964,40 +10991,53 @@ do
                 return tabObj
             end
 
-            -- [API] Select Tab Logic
+            -- [API] Switch Tab Function
             function config.Select(self, targetIndex)
                 if config.ActiveIndex == targetIndex then return end
                 
-                -- Cache the current/previous for cleaner comparison
                 config.ActiveIndex = targetIndex
 
-                for _, tabData in ipairs(config.Tabs) do
+                for i, tabData in ipairs(config.Tabs) do
                     local isSelected = (tabData.Index == targetIndex)
 
                     if isSelected then
-                        -- Show Page
+                        -- Switch Content
                         tabData.Page.Visible = true
                         
-                        -- Animate UI (Selected State)
+                        -- Style: Active
                         af(tabData.Label, 0.3, {TextTransparency = 0}, Enum.EasingStyle.Quad, Enum.EasingDirection.Out):Play()
-                        tabData.Label.FontFace = Font.new(aa.Font, Enum.FontWeight.SemiBold)
+                        tabData.Label.FontFace = Font.new(aa.Font, Enum.FontWeight.SemiBold) -- Bolder font
                         
-                        af(tabData.Indicator, 0.35, {
-                            BackgroundTransparency = 0,
-                            Size = UDim2.new(1, 4, 0, 2) -- Extend width slightly past text for aesthetics
-                        }, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
+                        -- Animate Indicator (Expand Width + Opacity)
+                        af(
+                            tabData.Indicator, 
+                            0.35, 
+                            {
+                                BackgroundTransparency = 0,
+                                Size = UDim2.new(1, 4, 0, 2) -- Slightly wider than text
+                            }, 
+                            Enum.EasingStyle.Quint, 
+                            Enum.EasingDirection.Out
+                        ):Play()
                     else
-                        -- Hide Page
+                        -- Switch Content
                         tabData.Page.Visible = false
 
-                        -- Animate UI (Unselected State)
+                        -- Style: Inactive
                         af(tabData.Label, 0.3, {TextTransparency = 0.5}, Enum.EasingStyle.Quad, Enum.EasingDirection.Out):Play()
-                        tabData.Label.FontFace = Font.new(aa.Font, Enum.FontWeight.Medium)
+                        tabData.Label.FontFace = Font.new(aa.Font, Enum.FontWeight.Medium) -- Standard font
 
-                        af(tabData.Indicator, 0.25, {
-                            BackgroundTransparency = 1,
-                            Size = UDim2.new(0, 0, 0, 2)
-                        }, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
+                        -- Animate Indicator (Shrink Width + Opacity)
+                        af(
+                            tabData.Indicator, 
+                            0.25, 
+                            {
+                                BackgroundTransparency = 1,
+                                Size = UDim2.new(0, 0, 0, 2)
+                            }, 
+                            Enum.EasingStyle.Quint, 
+                            Enum.EasingDirection.Out
+                        ):Play()
                     end
                 end
             end
