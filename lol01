@@ -10693,319 +10693,468 @@ do
         local aa = a.load "b"
         local ae = aa.New
         local af = aa.Tween
+        local aj = a.load "U" -- Load Tabs module if needed, or simplified local logic
 
-        local comp = {}
+        local ah = {}
 
-        function comp.New(props, env)
-            -- [Config Object]
-            local config = {
+        function ah.New(ak, al)
+            local am = {
                 __type = "MultiSection",
-                Title = props.Title,
+                Title = al.Title or "Multi Section",
+                Desc = al.Desc or nil,
+                Icon = al.Icon,
+                TextXAlignment = al.TextXAlignment or "Left",
+                TextSize = al.TextSize or 18,
+                FontWeight = al.FontWeight or Enum.FontWeight.SemiBold,
+                TextTransparency = al.TextTransparency or 0,
+                Opened = al.Opened or false,
+                HeaderSize = 46,
+                IconSize = 20,
+                TabBarHeight = 36,
+                Padding = 12,
+                Expandable = false,
                 Tabs = {},
-                ActiveIndex = 0
+                CurrentTab = nil,
+                ContainerFrame = nil,
+                Elements = {} -- Keep track for destruction
             }
 
-            -- [Main Container]
-            -- Using NewRoundFrame for the container background style
-            local mainFrame = aa.NewRoundFrame(
-                env.Window.ElementConfig.UICorner,
+            -- Icon Logic
+            local an
+            function am.SetIcon(ao, ap)
+                am.Icon = ap or nil
+                if an then
+                    an:Destroy()
+                end
+                if ap then
+                    an = aa.Image(ap, ap .. ":" .. am.Title, 0, al.Window.Folder, am.__type, true)
+                    an.Size = UDim2.new(0, am.IconSize, 0, am.IconSize)
+                    an.ImageLabel.ImageTransparency = 0.2
+                end
+            end
+
+            -- Chevron Icon (Seta)
+            local ao = ae(
+                "Frame",
+                {
+                    Size = UDim2.new(0, am.IconSize, 0, am.IconSize),
+                    BackgroundTransparency = 1,
+                    Visible = false
+                },
+                {
+                    ae(
+                        "ImageLabel",
+                        {
+                            Size = UDim2.new(1, 0, 1, 0),
+                            BackgroundTransparency = 1,
+                            Image = aa.Icon "chevron-down"[1],
+                            ImageRectSize = aa.Icon "chevron-down"[2].ImageRectSize,
+                            ImageRectOffset = aa.Icon "chevron-down"[2].ImageRectPosition,
+                            ThemeTag = {
+                                ImageColor3 = "Icon"
+                            },
+                            ImageTransparency = .5
+                        }
+                    )
+                }
+            )
+
+            if am.Icon then
+                am:SetIcon(am.Icon)
+            end
+
+            -- Title & Desc Logic
+            local ap = ae(
+                "TextLabel",
+                {
+                    BackgroundTransparency = 1,
+                    TextXAlignment = am.TextXAlignment,
+                    AutomaticSize = "Y",
+                    TextSize = am.TextSize,
+                    TextTransparency = am.TextTransparency,
+                    ThemeTag = { TextColor3 = "Text" },
+                    FontFace = Font.new(aa.Font, am.FontWeight),
+                    Text = am.Title,
+                    Size = UDim2.new(1, 0, 0, 0),
+                    TextWrapped = true,
+                    Name = "Title"
+                }
+            )
+
+            local aq -- DescLabel
+            if am.Desc then
+                aq = ae(
+                    "TextLabel",
+                    {
+                        BackgroundTransparency = 1,
+                        TextXAlignment = am.TextXAlignment,
+                        AutomaticSize = "Y",
+                        TextSize = 13,
+                        TextTransparency = 0.4,
+                        ThemeTag = { TextColor3 = "Text" },
+                        FontFace = Font.new(aa.Font, Enum.FontWeight.Medium),
+                        Text = am.Desc,
+                        Size = UDim2.new(1, 0, 0, 0),
+                        TextWrapped = true,
+                        Name = "Desc"
+                    }
+                )
+            end
+
+            local ar = ae(
+                "Frame",
+                {
+                    BackgroundTransparency = 1,
+                    AutomaticSize = "Y",
+                    Size = UDim2.new(1, 0, 0, 0),
+                    Name = "TextContainer"
+                },
+                {
+                    ae("UIListLayout", { SortOrder = "LayoutOrder", Padding = UDim.new(0, 2) }),
+                    ap,
+                    aq
+                }
+            )
+
+            local function UpdateTitleSize()
+                local as = 0
+                if an then as = as - (am.IconSize + 10) end
+                if ao.Visible then as = as - (am.IconSize + 10) end
+                ar.Size = UDim2.new(1, as, 0, 0)
+            end
+
+            -- Divider
+            local as = ae(
+                "Frame",
+                {
+                    Size = UDim2.new(1, -24, 0, 1),
+                    Position = UDim2.new(0.5, 0, 0, am.HeaderSize - 1),
+                    AnchorPoint = Vector2.new(0.5, 0),
+                    BackgroundTransparency = 1,
+                    ThemeTag = { BackgroundColor3 = "Outline" },
+                    Name = "Divider"
+                }
+            )
+
+            -- Tab Bar Container
+            local at = ae(
+                "Frame",
+                {
+                    Name = "TabBar",
+                    Size = UDim2.new(1, 0, 0, am.TabBarHeight),
+                    BackgroundTransparency = 1,
+                    Visible = false,
+                    ClipsDescendants = true
+                },
+                {
+                    ae("UIPadding", {
+                        PaddingLeft = UDim.new(0, 14),
+                        PaddingRight = UDim.new(0, 14),
+                        PaddingBottom = UDim.new(0, 4)
+                    }),
+                    ae("UIListLayout", {
+                        FillDirection = "Horizontal",
+                        Padding = UDim.new(0, 8),
+                        SortOrder = "LayoutOrder",
+                        VerticalAlignment = "Center"
+                    })
+                }
+            )
+
+            -- Main Section Frame
+            local au = aa.NewRoundFrame(
+                al.Window.ElementConfig.UICorner,
                 "Squircle",
                 {
                     Size = UDim2.new(1, 0, 0, 0),
-                    AutomaticSize = Enum.AutomaticSize.Y,
                     BackgroundTransparency = 1,
-                    Parent = env.Parent,
-                    ImageTransparency = 0.95, -- Slight opacity for depth
-                    ThemeTag = {
-                        ImageColor3 = "ElementBackground"
-                    }
+                    Parent = al.Parent,
+                    ClipsDescendants = true,
+                    AutomaticSize = "Y",
+                    ImageTransparency = 0.96,
+                    ThemeTag = { ImageColor3 = "Text" }
                 },
                 {
-                    -- Outline Stroke
                     aa.NewRoundFrame(
-                        env.Window.ElementConfig.UICorner,
+                        al.Window.ElementConfig.UICorner,
                         "SquircleOutline",
                         {
                             Size = UDim2.new(1, 0, 1, 0),
                             ImageTransparency = 0.85,
-                            ThemeTag = {ImageColor3 = "Outline"},
-                            ZIndex = 5
+                            ThemeTag = { ImageColor3 = "Text" },
+                            Name = "Outline"
                         }
                     ),
-                    -- Vertical Layout for Header + Divider + Content
+                    -- Header
                     ae(
-                        "UIListLayout",
+                        "TextButton",
                         {
-                            SortOrder = Enum.SortOrder.LayoutOrder,
-                            Padding = UDim.new(0, 0)
-                        }
-                    )
-                }
-            )
-            config.ElementFrame = mainFrame
-
-            -- [Header Area] (Tabs)
-            local headerFrame = ae(
-                "Frame",
-                {
-                    Name = "Header",
-                    Size = UDim2.new(1, 0, 0, 42),
-                    BackgroundTransparency = 1,
-                    LayoutOrder = 1,
-                    Parent = mainFrame,
-                    ZIndex = 2
-                },
-                {
-                    ae(
-                        "UIListLayout",
+                            Size = UDim2.new(1, 0, 0, Expandable and 0 or am.HeaderSize),
+                            BackgroundTransparency = 1,
+                            AutomaticSize = Expandable and nil or "Y",
+                            Text = "",
+                            Name = "Top",
+                            ZIndex = 2
+                        },
                         {
-                            FillDirection = Enum.FillDirection.Horizontal,
-                            Padding = UDim.new(0, 8), -- Added gap between tab text
-                            VerticalAlignment = Enum.VerticalAlignment.Bottom,
-                            HorizontalAlignment = Enum.HorizontalAlignment.Left
+                            ae("UIPadding", {
+                                PaddingLeft = UDim.new(0, 14),
+                                PaddingRight = UDim.new(0, 14),
+                                PaddingTop = UDim.new(0, 10),
+                                PaddingBottom = UDim.new(0, 10)
+                            }),
+                            an,
+                            ar,
+                            ae("UIListLayout", {
+                                Padding = UDim.new(0, 10),
+                                FillDirection = "Horizontal",
+                                VerticalAlignment = "Center",
+                                HorizontalAlignment = "Left"
+                            }),
+                            ao
                         }
                     ),
+                    as,
+                    at, -- Tab Bar sits under header/divider
+                    -- Content Holder
                     ae(
-                        "UIPadding",
+                        "Frame",
                         {
-                            PaddingLeft = UDim.new(0, 16),
-                            PaddingRight = UDim.new(0, 16),
-                            PaddingBottom = UDim.new(0, 0)
+                            BackgroundTransparency = 1,
+                            Size = UDim2.new(1, 0, 0, 0),
+                            AutomaticSize = "Y",
+                            Name = "Content",
+                            Visible = false
                         }
                     )
                 }
             )
 
-            -- [Divider Line]
-            ae(
-                "Frame",
-                {
-                    Name = "Divider",
-                    Size = UDim2.new(1, 0, 0, 1),
-                    BackgroundTransparency = 0.85,
-                    ThemeTag = {BackgroundColor3 = "Outline"},
-                    LayoutOrder = 2,
-                    Parent = mainFrame,
-                    ZIndex = 1
-                }
-            )
+            am.ElementFrame = au
 
-            -- [Content Container] (Dynamic Height)
-            local contentArea = ae(
-                "Frame",
-                {
-                    Name = "ContentArea",
-                    Size = UDim2.new(1, 0, 0, 0),
-                    AutomaticSize = Enum.AutomaticSize.Y,
-                    BackgroundTransparency = 1,
-                    LayoutOrder = 3,
-                    Parent = mainFrame,
-                    ClipsDescendants = true -- Prevents spill-over during animations
-                },
-                {
-                    ae(
-                        "UIPadding",
-                        {
-                            PaddingTop = UDim.new(0, 12),
-                            PaddingBottom = UDim.new(0, 14),
-                            PaddingLeft = UDim.new(0, env.Window.ElementConfig.UIPadding or 12),
-                            PaddingRight = UDim.new(0, env.Window.ElementConfig.UIPadding or 12)
-                        }
-                    )
-                }
-            )
+            UpdateTitleSize()
 
-            -- [API] Create New Tab
-            function config.Tab(self, tabName)
-                local index = #config.Tabs + 1
+            local function RecalculateHeight()
+                if am.Opened and am.CurrentTab then
+                    local contentHeight = am.CurrentTab.Frame.AbsoluteSize.Y
+                    -- Calculate UIListLayout inside Container frame offsets
+                    local topPadding = al.Window.ElementConfig.UIPadding or 12
+                    
+                    local finalHeight = am.HeaderSize + am.TabBarHeight + contentHeight
+                    
+                    af(au, 0.35, { Size = UDim2.new(au.Size.X.Scale, au.Size.X.Offset, 0, finalHeight) }, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
+                end
+            end
+
+            function am.SelectTab(av, tabObject)
+                if am.CurrentTab == tabObject then return end
                 
-                -- The visual text label
-                local label = ae(
-                    "TextLabel",
-                    {
-                        Text = tabName,
-                        TextSize = 15, -- Standardized size
-                        FontFace = Font.new(aa.Font, Enum.FontWeight.Medium),
-                        AutomaticSize = Enum.AutomaticSize.XY,
-                        BackgroundTransparency = 1,
-                        ThemeTag = {TextColor3 = "Text"},
-                        TextTransparency = 0.5,
-                        Name = "Label",
-                        ZIndex = 3
-                    }
-                )
+                -- Deselect Old
+                if am.CurrentTab then
+                     af(am.CurrentTab.Button.TextLabel, 0.2, { TextTransparency = 0.6 }):Play()
+                     am.CurrentTab.Frame.Visible = false
+                end
+                
+                -- Select New
+                am.CurrentTab = tabObject
+                af(am.CurrentTab.Button.TextLabel, 0.2, { TextTransparency = 0 }):Play()
+                am.CurrentTab.Frame.Visible = true
 
-                -- The colored indicator line at the bottom
-                local indicator = ae(
-                    "Frame",
-                    {
-                        Name = "Indicator",
-                        Size = UDim2.new(0, 0, 0, 2), -- Start size 0 width
-                        Position = UDim2.new(0.5, 0, 1, 0), -- Exactly on the bottom edge
-                        AnchorPoint = Vector2.new(0.5, 1),
-                        BackgroundTransparency = 1,
-                        ThemeTag = {BackgroundColor3 = "Accent"},
-                        BorderSizePixel = 0,
-                        ZIndex = 4 -- Must be higher than Divider ZIndex (1)
-                    }
-                )
+                -- Resize main frame if open
+                RecalculateHeight()
+            end
 
-                -- Clickable area
-                local btn = ae(
-                    "TextButton",
-                    {
-                        AutomaticSize = Enum.AutomaticSize.X,
+            -- Adiciona uma nova Aba
+            function am.Tab(av, args)
+                local tabObj = {
+                    Title = args.Title or "Tab",
+                    Frame = nil,
+                    Button = nil,
+                    Elements = {}
+                }
+
+                -- 1. Create Tab Button
+                local tabBtn = ae("TextButton", {
+                    AutomaticSize = "X",
+                    Size = UDim2.new(0, 0, 1, 0),
+                    BackgroundTransparency = 1,
+                    Parent = at,
+                    Text = ""
+                }, {
+                    ae("TextLabel", {
+                        Text = tabObj.Title,
+                        AutomaticSize = "XY",
                         Size = UDim2.new(0, 0, 1, 0),
                         BackgroundTransparency = 1,
-                        Text = "",
-                        Name = "TabBtn_" .. tabName,
-                        Parent = headerFrame,
-                        ZIndex = 3
-                    },
-                    {
-                        ae(
-                            "UIListLayout",
-                            {
-                                HorizontalAlignment = Enum.HorizontalAlignment.Center,
-                                VerticalAlignment = Enum.VerticalAlignment.Center
-                            }
-                        ),
-                        ae("UIPadding", { 
-                            PaddingLeft = UDim.new(0, 4), 
-                            PaddingRight = UDim.new(0, 4) 
-                        }), -- Hitbox padding
-                        label,
-                        indicator
-                    }
-                )
-
-                -- The Container for elements in this specific tab
-                local pageFrame = ae(
-                    "Frame",
-                    {
-                        Name = "Page_" .. tabName,
-                        Size = UDim2.fromScale(1, 0), -- Vital Fix: Scale X 1, Y 0 + Automatic
-                        AutomaticSize = Enum.AutomaticSize.Y,
-                        BackgroundTransparency = 1,
-                        Visible = false, -- Hidden by default
-                        Parent = contentArea
-                    },
-                    {
-                        ae(
-                            "UIListLayout",
-                            {
-                                SortOrder = Enum.SortOrder.LayoutOrder,
-                                Padding = UDim.new(0, env.Window.ElementConfig.UIPadding or 6),
-                                HorizontalAlignment = Enum.HorizontalAlignment.Left,
-                                VerticalAlignment = Enum.VerticalAlignment.Top
-                            }
-                        )
-                    }
-                )
-
-                -- Pass Environment to Loader
-                -- We use 'Group' logic but purely vertical to act like a section interior
-                local tabObj = {
-                    Elements = {},
-                    Parent = pageFrame,
-                    Window = env.Window,
-                    WindUI = env.WindUI,
-                    __type = "Group", 
-                    ParentType = "MultiSection",
-                    Tab = env.Tab,
-                    GlobalIndex = -1,
-                    UIScale = env.UIScale -- Pass UI Scale to prevent visual bugs
-                }
-
-                -- Load Module for recursion
-                env.ElementsModule.Load(
-                    tabObj,
-                    pageFrame,
-                    env.ElementsModule.Elements,
-                    env.Window,
-                    env.WindUI,
-                    nil,
-                    env.ElementsModule,
-                    env.UIScale,
-                    env.Tab
-                )
-
-                -- Mouse Events
-                aa.AddSignal(btn.MouseButton1Click, function()
-                    config:Select(index)
-                end)
-
-                aa.AddSignal(btn.MouseEnter, function()
-                    if config.ActiveIndex ~= index then
-                        af(label, 0.2, {TextTransparency = 0.2}):Play()
-                    end
-                end)
-
-                aa.AddSignal(btn.MouseLeave, function()
-                    if config.ActiveIndex ~= index then
-                        af(label, 0.2, {TextTransparency = 0.5}):Play()
-                    end
-                end)
-
-                -- Save to table
-                table.insert(config.Tabs, {
-                    Button = btn,
-                    Label = label,
-                    Indicator = indicator,
-                    Page = pageFrame,
-                    Index = index
+                        ThemeTag = { TextColor3 = "Text" },
+                        FontFace = Font.new(aa.Font, Enum.FontWeight.Medium),
+                        TextSize = 14,
+                        TextTransparency = 0.6 
+                    })
                 })
+                tabObj.Button = tabBtn
 
-                -- If it's the first tab added, select it automatically
-                if index == 1 then
-                    config:Select(1)
-                end
+                -- 2. Create Content Frame for this Tab
+                local tabFrame = ae("Frame", {
+                    Name = tabObj.Title .. "_Frame",
+                    BackgroundTransparency = 1,
+                    Size = UDim2.new(1, 0, 0, 0),
+                    AutomaticSize = "Y",
+                    Visible = false, -- Hidden by default
+                    Parent = au.Content
+                }, {
+                    ae("UIPadding", {
+                        PaddingLeft = UDim.new(0, al.Window.ElementConfig.UIPadding),
+                        PaddingRight = UDim.new(0, al.Window.ElementConfig.UIPadding),
+                        PaddingBottom = UDim.new(0, al.Window.ElementConfig.UIPadding),
+                        PaddingTop = UDim.new(0, 8)
+                    }),
+                    ae("UIListLayout", {
+                        FillDirection = "Vertical",
+                        Padding = UDim.new(0, al.Tab.Gap),
+                        VerticalAlignment = "Top"
+                    })
+                })
+                tabObj.Frame = tabFrame
 
-                return tabObj
-            end
+                -- Listen to resizing inside the tab (e.g., toggles opening)
+                aa.AddSignal(tabFrame.UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"), function()
+                     if am.Opened and am.CurrentTab == tabObj then
+                         RecalculateHeight()
+                     end
+                end)
 
-            -- [API] Select Tab Logic
-            function config.Select(self, targetIndex)
-                if config.ActiveIndex == targetIndex then return end
+                -- 3. Wire button event
+                aa.AddSignal(tabBtn.MouseButton1Click, function()
+                    am:SelectTab(tabObj)
+                end)
+
+                -- 4. Initial Setup
+                table.insert(am.Tabs, tabObj)
                 
-                -- Cache the current/previous for cleaner comparison
-                config.ActiveIndex = targetIndex
-
-                for _, tabData in ipairs(config.Tabs) do
-                    local isSelected = (tabData.Index == targetIndex)
-
-                    if isSelected then
-                        -- Show Page
-                        tabData.Page.Visible = true
-                        
-                        -- Animate UI (Selected State)
-                        af(tabData.Label, 0.3, {TextTransparency = 0}, Enum.EasingStyle.Quad, Enum.EasingDirection.Out):Play()
-                        tabData.Label.FontFace = Font.new(aa.Font, Enum.FontWeight.SemiBold)
-                        
-                        af(tabData.Indicator, 0.35, {
-                            BackgroundTransparency = 0,
-                            Size = UDim2.new(1, 4, 0, 2) -- Extend width slightly past text for aesthetics
-                        }, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
-                    else
-                        -- Hide Page
-                        tabData.Page.Visible = false
-
-                        -- Animate UI (Unselected State)
-                        af(tabData.Label, 0.3, {TextTransparency = 0.5}, Enum.EasingStyle.Quad, Enum.EasingDirection.Out):Play()
-                        tabData.Label.FontFace = Font.new(aa.Font, Enum.FontWeight.Medium)
-
-                        af(tabData.Indicator, 0.25, {
-                            BackgroundTransparency = 1,
-                            Size = UDim2.new(0, 0, 0, 2)
-                        }, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
+                if not am.Expandable then
+                    am.Expandable = true
+                    ao.Visible = true
+                    at.Visible = true -- Show TabBar
+                    UpdateTitleSize()
+                    -- Select first tab automatically
+                    am:SelectTab(tabObj)
+                end
+                
+                -- Allow adding elements to this tab via the same WindUI system
+                local ElementsModule = al.ElementsModule
+                
+                -- Proxy to redirect calls to this tab frame
+                -- This uses a metatable or direct function assignment to emulate a "Section" object
+                -- But pointing to `tabFrame` as the Parent.
+                local tabInterface = {}
+                for key, func in pairs(ElementsModule.Elements) do
+                    tabInterface[key] = function(self, elemArgs)
+                         -- Setup mock parent config that mimics the structure required by loader
+                         -- but changes 'Parent' to our new tabFrame
+                         local elemContext = {
+                             Parent = tabFrame,
+                             Window = al.Window,
+                             WindUI = al.WindUI,
+                             Tab = al.Tab,
+                             ParentType = "MultiSectionTab",
+                             ElementsModule = ElementsModule,
+                             UIScale = al.UIScale
+                         }
+                         
+                         -- Call standard Loader logic for specific element
+                         local _, elem = ElementsModule.Load(
+                             {Elements = tabObj.Elements}, -- dummy 'aa'
+                             tabFrame, -- target parent
+                             {[key] = func}, -- only this element
+                             al.Window,
+                             al.WindUI,
+                             nil, -- custom update function
+                             ElementsModule, -- elements module
+                             al.UIScale,
+                             al.Tab -- config tab
+                         )
+                         
+                         return elem -- returns the created element object (Button, etc)
                     end
                 end
+
+                return tabInterface
             end
 
-            return config.__type, config
+            -- Animation Logic (Open/Close)
+            function am.Open(av)
+                if am.Expandable then
+                    am.Opened = true
+                    
+                    local contentHeight = am.CurrentTab and am.CurrentTab.Frame.AbsoluteSize.Y or 0
+                    local totalHeight = am.HeaderSize + am.TabBarHeight + contentHeight
+
+                    af(au, 0.35, { 
+                        Size = UDim2.new(au.Size.X.Scale, au.Size.X.Offset, 0, totalHeight) 
+                    }, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
+
+                    af(ao.ImageLabel, 0.25, {Rotation = 180, ImageTransparency = 0}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
+                    af(as, 0.25, {BackgroundTransparency = 0.85}, Enum.EasingStyle.Quad, Enum.EasingDirection.Out):Play() -- Show Divider
+
+                    local themeAccent = aa.GetThemeProperty("Accent", aa.Theme)
+                    if themeAccent then
+                         af(ao.ImageLabel, 0.2, {ImageColor3 = themeAccent}):Play()
+                    end
+                    
+                    au.Content.Visible = true
+                    if am.CurrentTab then am.CurrentTab.Frame.Visible = true end
+                end
+            end
+
+            function am.Close(av)
+                if am.Expandable then
+                    am.Opened = false
+                    
+                    af(au, 0.3, {
+                        Size = UDim2.new(au.Size.X.Scale, au.Size.X.Offset, 0, am.HeaderSize)
+                    }, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
+
+                    af(ao.ImageLabel, 0.25, {Rotation = 0, ImageTransparency = 0.5}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
+                    af(as, 0.2, {BackgroundTransparency = 1}, Enum.EasingStyle.Quad, Enum.EasingDirection.Out):Play() -- Hide Divider
+                    
+                    local themeIcon = aa.GetThemeProperty("Icon", aa.Theme)
+                    if themeIcon then
+                        af(ao.ImageLabel, 0.2, {ImageColor3 = themeIcon}):Play()
+                    end
+                    
+                    au.Content.Visible = false
+                end
+            end
+
+            aa.AddSignal(au.Top.MouseButton1Click, function()
+                if am.Expandable then
+                    if am.Opened then
+                        am:Close()
+                    else
+                        am:Open()
+                    end
+                end
+            end)
+            
+            -- Setup hover effect on header
+            aa.AddSignal(au.Top.MouseEnter, function()
+                 if am.Expandable then
+                    af(au, 0.15, {ImageTransparency = 0.93}):Play() 
+                 end
+            end)
+            aa.AddSignal(au.Top.MouseLeave, function()
+                 af(au, 0.15, {ImageTransparency = 0.96}):Play() 
+            end)
+
+            if am.Opened then 
+                am:Open() 
+            end
+            
+            return am.__type, am
         end
 
-        return comp
+        return ah
     end
     function a.Q()
         local aa = a.load "b"
