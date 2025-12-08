@@ -10698,12 +10698,12 @@ function a.MS()
 
         local ah = {}
 
-        -- aj: The internal configuration context passed by the loader
-        -- ak: The user properties (e.g., {Side = "Left"})
+        -- aj: The internal configuration context passed by the loader (Environment)
+        -- ak: The user properties
         function ah.New(aj, ak)
             
-            -- FIX: Safely calculate 'gap' without crashing if Tab is nil
-            local gap = 6 -- Default fallback
+            -- FIX 1: Safe Gap Calculation to prevent "index nil" errors if Tab isn't ready
+            local gap = 6
             if aj.Tab and aj.Tab.Gap then
                 gap = aj.Tab.Gap
             elseif aj.Window and aj.Window.NewElements then
@@ -10789,6 +10789,8 @@ function a.MS()
 
             -- :Section Method
             function al:Section(ap)
+                ap = ap or {} -- Ensure ap exists
+                
                 local side = ap.Side or "Left"
                 local target = an -- Default Left
 
@@ -10796,18 +10798,24 @@ function a.MS()
                     target = ao
                 end
 
-                -- Create a shallow copy of the main configuration (aj)
-                -- We only overwrite 'Parent' so the new section lands in the column
-                local childConfig = {}
+                -- Create Context/Environment Copy
+                local childContext = {}
                 for key, val in pairs(aj) do
-                    childConfig[key] = val
+                    childContext[key] = val
                 end
-                childConfig.Parent = target
+                childContext.Parent = target -- Redirect Parent to the Column
 
-                -- Create the section using the existing Section module
-                local _, createdSection = sectionModule.New(childConfig, ap)
+                -- FIX 2: Inject Critical System References into the Properties table (ap)
+                -- The Section module expects these to exist in the second argument to find Icons/Themes
+                ap.Window = aj.Window
+                ap.WindUI = aj.WindUI
+                ap.Tab = aj.Tab
+                ap.Parent = target
 
-                -- Keep track of it
+                -- Create the section
+                local _, createdSection = sectionModule.New(childContext, ap)
+
+                -- Track it for cleanup
                 table.insert(al.Elements, createdSection)
 
                 return createdSection
