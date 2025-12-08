@@ -10272,16 +10272,17 @@ function a.P()
             local al = {
                 __type = "Section",
                 Title = ak.Title or "Section",
+                Desc = ak.Desc or nil, -- Added Description support
                 Icon = ak.Icon,
                 TextXAlignment = ak.TextXAlignment or "Left",
-                TextSize = ak.TextSize or 17, -- Slightly smaller, cleaner text
-                Box = ak.Box or false,
+                TextSize = ak.TextSize or 18, -- Slightly smaller for better hierarchy
+                Box = true, -- Forced Box style for better design, or keep ak.Box
                 FontWeight = ak.FontWeight or Enum.FontWeight.SemiBold,
                 TextTransparency = ak.TextTransparency or 0,
                 Opened = ak.Opened or false,
                 UIElements = {},
-                HeaderSize = 40, -- Slightly more compact header
-                IconSize = 18,
+                HeaderSize = 46, -- Increased slightly for breathing room
+                IconSize = 20,
                 Padding = 12,
                 Elements = {},
                 Expandable = false
@@ -10297,11 +10298,11 @@ function a.P()
                 if ao then
                     am = aa.Image(ao, ao .. ":" .. al.Title, 0, ak.Window.Folder, al.__type, true)
                     am.Size = UDim2.new(0, al.IconSize, 0, al.IconSize)
-                    am.ImageLabel.ImageTransparency = 0.2 -- Subtle transparency for icon
+                    am.ImageLabel.ImageTransparency = 0.2
                 end
             end
 
-            -- Chevron (Arrow)
+            -- Chevron Icon
             local an =
                 ae(
                 "Frame",
@@ -10320,9 +10321,9 @@ function a.P()
                             ImageRectSize = aa.Icon "chevron-down"[2].ImageRectSize,
                             ImageRectOffset = aa.Icon "chevron-down"[2].ImageRectPosition,
                             ThemeTag = {
-                                ImageColor3 = "Icon"
+                                ImageColor3 = "Icon" -- Will change to Accent on open
                             },
-                            ImageTransparency = 0.5 -- Softer arrow
+                            ImageTransparency = .5
                         }
                     )
                 }
@@ -10332,6 +10333,7 @@ function a.P()
                 al:SetIcon(al.Icon)
             end
 
+            -- Title Label
             local ao =
                 ae(
                 "TextLabel",
@@ -10347,7 +10349,50 @@ function a.P()
                     FontFace = Font.new(aa.Font, al.FontWeight),
                     Text = al.Title,
                     Size = UDim2.new(1, 0, 0, 0),
-                    TextWrapped = true
+                    TextWrapped = true,
+                    Name = "Title"
+                }
+            )
+
+            -- Description Label (New)
+            local descLabel
+            if al.Desc then
+                descLabel = ae(
+                    "TextLabel",
+                    {
+                        BackgroundTransparency = 1,
+                        TextXAlignment = al.TextXAlignment,
+                        AutomaticSize = "Y",
+                        TextSize = 13,
+                        TextTransparency = 0.4,
+                        ThemeTag = {
+                            TextColor3 = "Text"
+                        },
+                        FontFace = Font.new(aa.Font, Enum.FontWeight.Medium),
+                        Text = al.Desc,
+                        Size = UDim2.new(1, 0, 0, 0),
+                        TextWrapped = true,
+                        Name = "Desc"
+                    }
+                )
+            end
+
+            -- Text Container (Holds Title + Desc)
+            local textContainer = ae(
+                "Frame",
+                {
+                    BackgroundTransparency = 1,
+                    AutomaticSize = "Y",
+                    Size = UDim2.new(1, 0, 0, 0),
+                    Name = "TextContainer"
+                },
+                {
+                    ae("UIListLayout", {
+                        SortOrder = "LayoutOrder",
+                        Padding = UDim.new(0, 2)
+                    }),
+                    ao,
+                    descLabel
                 }
             )
 
@@ -10359,25 +10404,25 @@ function a.P()
                 if an.Visible then
                     ap = ap - (al.IconSize + 10)
                 end
-                ao.Size = UDim2.new(1, ap, 0, 0)
+                textContainer.Size = UDim2.new(1, ap, 0, 0)
             end
 
-            -- Divider Line (New Feature)
+            -- Divider Line (New)
             local divider = ae(
                 "Frame",
                 {
-                    Name = "Divider",
                     Size = UDim2.new(1, -24, 0, 1),
-                    Position = UDim2.new(0.5, 0, 0, al.HeaderSize),
+                    Position = UDim2.new(0.5, 0, 0, al.HeaderSize - 1),
                     AnchorPoint = Vector2.new(0.5, 0),
-                    BackgroundTransparency = 1, -- Hidden by default
+                    BackgroundTransparency = 1, -- Starts invisible
                     ThemeTag = {
-                        BackgroundColor3 = "Outline" -- Uses theme outline color
-                    }
+                        BackgroundColor3 = "Outline"
+                    },
+                    Name = "Divider"
                 }
             )
 
-            -- Main Container
+            -- Main Section Frame
             local ap =
                 aa.NewRoundFrame(
                 ak.Window.ElementConfig.UICorner,
@@ -10388,19 +10433,25 @@ function a.P()
                     Parent = ak.Parent,
                     ClipsDescendants = true,
                     AutomaticSize = "Y",
-                    ImageTransparency = al.Box and 0.95 or 1, -- Subtle background if Box
+                    ImageTransparency = 0.96, -- Subtle background
                     ThemeTag = {
-                        ImageColor3 = "Text" -- Uses Text color with high transparency for tint
+                        ImageColor3 = "Text"
                     }
                 },
                 {
-                    -- Optional Stroke for Box mode
-                    al.Box and ae("UIStroke", {
-                        Transparency = 0.9,
-                        Thickness = 1,
-                        ThemeTag = { Color = "Text" }
-                    }) or nil,
-                    
+                    -- Outline (New)
+                    aa.NewRoundFrame(
+                        ak.Window.ElementConfig.UICorner,
+                        "SquircleOutline",
+                        {
+                            Size = UDim2.new(1, 0, 1, 0),
+                            ImageTransparency = 0.85,
+                            ThemeTag = {
+                                ImageColor3 = "Text"
+                            },
+                            Name = "Outline"
+                        }
+                    ),
                     -- Header Button
                     ae(
                         "TextButton",
@@ -10409,24 +10460,21 @@ function a.P()
                             BackgroundTransparency = 1,
                             AutomaticSize = Expandable and nil or "Y",
                             Text = "",
-                            Name = "Top"
+                            Name = "Top",
+                            ZIndex = 2
                         },
                         {
                             ae(
                                 "UIPadding",
                                 {
-                                    PaddingLeft = UDim.new(
-                                        0,
-                                        ak.Window.ElementConfig.UIPadding + (ak.Window.NewElements and 4 or 0)
-                                    ),
-                                    PaddingRight = UDim.new(
-                                        0,
-                                        ak.Window.ElementConfig.UIPadding + (ak.Window.NewElements and 4 or 0)
-                                    )
+                                    PaddingLeft = UDim.new(0, 14),
+                                    PaddingRight = UDim.new(0, 14),
+                                    PaddingTop = UDim.new(0, 10),
+                                    PaddingBottom = UDim.new(0, 10)
                                 }
                             ),
-                            am, -- Icon
-                            ao, -- Title
+                            am,
+                            textContainer,
                             ae(
                                 "UIListLayout",
                                 {
@@ -10436,10 +10484,11 @@ function a.P()
                                     HorizontalAlignment = "Left"
                                 }
                             ),
-                            an -- Chevron
+                            an
                         }
                     ),
-                    divider, -- The new divider
+                    divider,
+                    -- Content Container
                     ae(
                         "Frame",
                         {
@@ -10448,16 +10497,16 @@ function a.P()
                             AutomaticSize = "Y",
                             Name = "Content",
                             Visible = false,
-                            Position = UDim2.new(0, 0, 0, al.HeaderSize + 1) -- Offset by header + divider
+                            Position = UDim2.new(0, 0, 0, al.HeaderSize)
                         },
                         {
                             ae(
                                 "UIPadding",
                                 {
-                                    PaddingTop = UDim.new(0, 12), -- Add padding to top of content
                                     PaddingLeft = UDim.new(0, ak.Window.ElementConfig.UIPadding),
                                     PaddingRight = UDim.new(0, ak.Window.ElementConfig.UIPadding),
-                                    PaddingBottom = UDim.new(0, ak.Window.ElementConfig.UIPadding)
+                                    PaddingBottom = UDim.new(0, ak.Window.ElementConfig.UIPadding),
+                                    PaddingTop = UDim.new(0, 8) -- Add spacing from divider
                                 }
                             ),
                             ae(
@@ -10513,7 +10562,7 @@ function a.P()
                 if al.Expandable then
                     al.Opened = true
                     
-                    -- Animate Container Height
+                    -- Animate Height
                     af(
                         ap,
                         0.35,
@@ -10529,12 +10578,16 @@ function a.P()
                         Enum.EasingDirection.Out
                     ):Play()
 
-                    -- Animate Chevron
-                    af(an.ImageLabel, 0.25, {Rotation = 180, ImageColor3 = Color3.new(1,1,1), ImageTransparency = 0}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
+                    -- Animate Chevron Rotation & Color
+                    af(an.ImageLabel, 0.25, {Rotation = 180, ImageTransparency = 0}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
                     
                     -- Show Divider
-                    if al.Box then
-                        af(divider, 0.3, {BackgroundTransparency = 0.9}, Enum.EasingStyle.Quad, Enum.EasingDirection.Out):Play()
+                    af(divider, 0.25, {BackgroundTransparency = 0.85}, Enum.EasingStyle.Quad, Enum.EasingDirection.Out):Play()
+                    
+                    -- Highlight Chevron with Accent
+                    local themeAccent = aa.GetThemeProperty("Accent", aa.Theme)
+                    if themeAccent then
+                         af(an.ImageLabel, 0.2, {ImageColor3 = themeAccent}):Play()
                     end
                 end
             end
@@ -10543,7 +10596,7 @@ function a.P()
                 if al.Expandable then
                     al.Opened = false
                     
-                    -- Animate Container Height
+                    -- Animate Height
                     af(
                         ap,
                         0.3,
@@ -10554,29 +10607,21 @@ function a.P()
                         Enum.EasingDirection.Out
                     ):Play()
 
-                    -- Animate Chevron
+                    -- Reset Chevron
                     af(an.ImageLabel, 0.25, {Rotation = 0, ImageTransparency = 0.5}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
                     
                     -- Hide Divider
-                    if al.Box then
-                        af(divider, 0.2, {BackgroundTransparency = 1}, Enum.EasingStyle.Quad, Enum.EasingDirection.Out):Play()
+                    af(divider, 0.2, {BackgroundTransparency = 1}, Enum.EasingStyle.Quad, Enum.EasingDirection.Out):Play()
+
+                    -- Reset Chevron Color
+                    local themeIcon = aa.GetThemeProperty("Icon", aa.Theme)
+                    if themeIcon then
+                        af(an.ImageLabel, 0.2, {ImageColor3 = themeIcon}):Play()
                     end
                 end
             end
 
-            -- Hover Effects
-            aa.AddSignal(ap.Top.MouseEnter, function()
-                if al.Expandable then
-                    af(ap, 0.2, {ImageTransparency = al.Box and 0.92 or 0.98}):Play()
-                end
-            end)
-
-            aa.AddSignal(ap.Top.MouseLeave, function()
-                if al.Expandable then
-                    af(ap, 0.2, {ImageTransparency = al.Box and 0.95 or 1}):Play()
-                end
-            end)
-
+            -- Header Interaction Logic
             aa.AddSignal(
                 ap.Top.MouseButton1Click,
                 function()
@@ -10590,11 +10635,35 @@ function a.P()
                 end
             )
 
+            -- Hover Effects
+            aa.AddSignal(
+                ap.Top.MouseEnter,
+                function()
+                    if al.Expandable then
+                        af(ap, 0.15, {ImageTransparency = 0.93}):Play() -- Darken background slightly
+                        if am then
+                             af(am.ImageLabel, 0.15, {ImageTransparency = 0}):Play() -- Highlight Icon
+                        end
+                    end
+                end
+            )
+
+            aa.AddSignal(
+                ap.Top.MouseLeave,
+                function()
+                    af(ap, 0.15, {ImageTransparency = 0.96}):Play() -- Reset background
+                    if am then
+                        af(am.ImageLabel, 0.15, {ImageTransparency = 0.2}):Play() -- Reset Icon
+                   end
+                end
+            )
+
+            -- Auto-resize logic
             aa.AddSignal(
                 ap.Content.UIListLayout:GetPropertyChangedSignal "AbsoluteContentSize",
                 function()
                     if al.Opened then
-                        al:Open()
+                        al:Open() -- Recalculate height
                     end
                 end
             )
