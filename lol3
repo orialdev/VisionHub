@@ -10689,14 +10689,6 @@ do
 
         return ah
     end
-    local WindUI = require("path_to_windui_or_get_global") -- If accessing externally
--- Assuming you are pasting this IN the main script or after loading it.
--- Since WindUI's source wraps everything in `local a = { ... }`, 
--- apply this patch where the 'a' table functions are accessible or define the new feature using WindUI's internal 'Elements' if exposed.
-
--- If you are editing the source code directly, modify it as follows:
-
--- 1. PASTE THIS FUNCTION BEFORE 'function a.T()'
 function a.MultiSection()
     local aa = a.load "b"
     local ae = aa.New
@@ -10885,6 +10877,7 @@ function a.MultiSection()
     end
     return comp
 end
+
     function a.Q()
         local aa = a.load "b"
         local ae = aa.New
