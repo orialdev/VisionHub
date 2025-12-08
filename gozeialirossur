@@ -10854,10 +10854,13 @@ function a.P()
         function ah.New(self, context)
             local aj = context 
             
-            -- [FIX 1] robust context extraction
-            local parentWindow = aj.Window
-            -- Fallback chain to ensure assetsFolder is never nil
-            local assetsFolder = aj.Folder or (parentWindow and parentWindow.Folder) or "WindUI"
+            -- [FIX] Ensure parent Window reference exists
+            local parentWindow = aj.Window or (aj.ParentTable and aj.ParentTable.Window)
+            
+            -- [FIX] Logic to ensure we get a valid folder string for Assets
+            local assetsFolder = "WindUI"
+            if aj.Folder then assetsFolder = aj.Folder end
+            if parentWindow and parentWindow.Folder then assetsFolder = parentWindow.Folder end
 
             -- [1] Resolve Layout Styling
             local gap = 6
@@ -10954,12 +10957,13 @@ function a.P()
                 end
             end
 
-            -- [6] Create Tab Method
+            -- [5] Create Tab Method
             function al:Tab(ap)
                 ap = ap or {}
                 local title = ap.Title or "Tab"
                 local icon = ap.Icon 
 
+                -- The container for elements inside this tab
                 local tabFrame = ae(
                     "Frame",
                     {
@@ -11040,7 +11044,6 @@ function a.P()
                 )
 
                 if icon then
-                    -- [FIX 2] Explicit folder passing to prevent Image util error
                     local iconImg = aa.Image(icon, icon, 0, assetsFolder, "TabIcon", true)
                     iconImg.Size = UDim2.new(0, 16, 0, 16)
                     iconImg.Parent = contentLayout
@@ -11058,39 +11061,34 @@ function a.P()
                     SelectTab(tabData)
                 end)
 
+                -- Select first tab automatically
                 if #al.Tabs == 1 then
                     SelectTab(tabData)
                 end
 
                 local tabWrapper = {}
                 
-                -- [FIX 3] Deep Context Merger for Sections
+                -- [[ Section Creator inside Tab ]]
                 function tabWrapper:Section(secProps)
                     secProps = secProps or {}
                     
-                    local finalConfig = {}
+                    -- Prepare context for the new Section (Context Inheritance)
+                    local sectionContext = {}
                     
-                    -- Inherit context from main context 'aj'
-                    for k, v in pairs(aj) do 
-                        if k~="Elements" and k~="Parent" then 
-                            finalConfig[k] = v 
-                        end 
-                    end
+                    -- Copy essential environment vars from parent context 'aj'
+                    sectionContext.WindUI = aj.WindUI
+                    sectionContext.UIScale = aj.UIScale
                     
-                    -- Inherit context from 'secProps' (overwriting aj)
-                    for k, v in pairs(secProps) do 
-                        finalConfig[k] = v 
-                    end
-                    
-                    -- Explicit overrides to ensure valid state for P.New
-                    finalConfig.Parent = tabFrame
-                    finalConfig.Window = parentWindow
-                    finalConfig.Folder = assetsFolder -- This ensures Section knows where to look for assets
-                    finalConfig.WindUI = aj.WindUI
-                    finalConfig.UIScale = aj.UIScale or 1 -- Prevent math errors if nil
+                    -- Overwrite hierarchy data
+                    sectionContext.Window = parentWindow
+                    sectionContext.Folder = assetsFolder -- Fix: Explicit folder propagation
+                    sectionContext.Parent = tabFrame     -- Fix: Parent set to the Tab's container
+                    sectionContext.Tab = aj.Tab          -- Pass Main Tab Reference
 
-                    -- Safely call sectionModule
-                    local _, createdSection = sectionModule.New(sectionModule, finalConfig)
+                    -- Create Section: sectionModule.New(Context, Props)
+                    -- We do not use 'self' (colon call) for .New here based on lib structure
+                    local _, createdSection = sectionModule.New(sectionContext, secProps)
+                    
                     table.insert(tabData.Elements, createdSection)
                     return createdSection
                 end
