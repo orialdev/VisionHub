@@ -10709,14 +10709,13 @@ do
                 Opened = al.Opened or false,
                 HeaderSize = 46,
                 IconSize = 20,
-                TabBarHeight = 38, -- Taller for better click area
+                TabBarHeight = 38,
                 Tabs = {},
                 CurrentTab = nil,
                 Expandable = false,
                 IsAnimating = false
             }
 
-            -- > ICON LOGIC <
             local iconImg
             function am.SetIcon(val)
                 am.Icon = val or nil
@@ -10746,7 +10745,6 @@ do
 
             if am.Icon then am:SetIcon(am.Icon) end
 
-            -- > HEADER TEXT <
             local titleLbl = ae("TextLabel", {
                 BackgroundTransparency = 1,
                 TextXAlignment = am.TextXAlignment,
@@ -10792,19 +10790,18 @@ do
                 textContainer.Size = UDim2.new(1, -pad, 0, 0)
             end
 
-            -- > DIVIDER & TAB BAR <
             local divider = ae("Frame", {
                 Size = UDim2.new(1, -24, 0, 1),
                 Position = UDim2.new(0.5, 0, 0, am.HeaderSize),
                 AnchorPoint = Vector2.new(0.5, 0),
                 BackgroundTransparency = 1,
                 ThemeTag = { BackgroundColor3 = "Outline" },
-                Visible = true -- Toggled via transparency
+                Visible = true
             })
 
             local activeIndicator = ae("Frame", {
                 Name = "ActiveIndicator",
-                BackgroundColor3 = Color3.fromRGB(255, 255, 255), -- Will receive Accent theme
+                BackgroundColor3 = Color3.fromRGB(255, 255, 255),
                 ThemeTag = { BackgroundColor3 = "Accent" },
                 Size = UDim2.new(0, 0, 0, 2),
                 Position = UDim2.new(0, 0, 1, -2),
@@ -10827,7 +10824,7 @@ do
                 BackgroundTransparency = 1,
                 Visible = false,
                 CanvasSize = UDim2.new(0, 0, 0, 0),
-                AutomaticCanvasSize = Enum.AutomaticCanvasSize.X,
+                AutomaticCanvasSize = Enum.AutomaticSize.X, -- FIXED HERE (was Enum.AutomaticCanvasSize.X)
                 ScrollingDirection = Enum.ScrollingDirection.X,
                 ScrollBarThickness = 0
             }, {
@@ -10841,27 +10838,24 @@ do
                 activeIndicator
             })
 
-            -- > MAIN FRAME STRUCTURE <
             local mainFrame = aa.NewRoundFrame(
                 al.Window.ElementConfig.UICorner,
                 "Squircle",
                 {
-                    Size = UDim2.new(1, 0, 0, 0), -- Animated height
+                    Size = UDim2.new(1, 0, 0, 0),
                     BackgroundTransparency = 1,
                     Parent = al.Parent,
                     ClipsDescendants = true,
-                    AutomaticSize = Enum.AutomaticSize.Y, -- Let layout dictate init size
+                    AutomaticSize = Enum.AutomaticSize.Y,
                     ImageTransparency = 0.96,
                     ThemeTag = { ImageColor3 = "Text" }
                 },
                 {
-                    -- Outline
                     aa.NewRoundFrame(al.Window.ElementConfig.UICorner, "SquircleOutline", {
                         Size = UDim2.new(1, 0, 1, 0),
                         ImageTransparency = 0.85,
                         ThemeTag = { ImageColor3 = "Text" }
                     }),
-                    -- Header Trigger
                     ae("TextButton", {
                         Size = UDim2.new(1, 0, 0, am.HeaderSize),
                         BackgroundTransparency = 1,
@@ -10884,11 +10878,10 @@ do
                     }),
                     divider,
                     tabBar,
-                    -- Content Area
                     ae("Frame", {
                         Name = "Content",
                         BackgroundTransparency = 1,
-                        Size = UDim2.new(1, 0, 0, 0), -- H calculated dynamically
+                        Size = UDim2.new(1, 0, 0, 0),
                         Visible = false,
                         ClipsDescendants = true
                     })
@@ -10898,35 +10891,26 @@ do
             am.ElementFrame = mainFrame
             UpdateHeaderSpacing()
 
-            -- > FUNCTIONALITY < --
-
             local function UpdateHeight()
                 if not am.Opened then 
-                    -- Reset to header size
                     mainFrame.Size = UDim2.new(mainFrame.Size.X.Scale, mainFrame.Size.X.Offset, 0, am.HeaderSize)
                     return 
                 end
 
                 if am.CurrentTab then
-                    -- Calc height of the specific tab frame + list layout
                     local contentH = am.CurrentTab.Frame.UIListLayout.AbsoluteContentSize.Y 
-                    -- Add internal padding of the Content Frame
                     contentH = contentH + (al.Window.ElementConfig.UIPadding or 12) + 8
-
-                    local total = am.HeaderSize + am.TabBarHeight + contentH + 4 -- +4 Buffer
+                    local total = am.HeaderSize + am.TabBarHeight + contentH + 4 
                     
                     af(mainFrame, 0.4, { Size = UDim2.new(1, 0, 0, total) }, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
                 end
             end
 
-            -- Update Active Tab Visuals (Slider & Text Color)
             local function UpdateTabsVisuals()
                 if not am.CurrentTab then return end
 
                 local btn = am.CurrentTab.Button
-                local lbl = btn.Label
-
-                -- 1. Tween Text Color/Transparencies for all tabs
+                
                 for _, t in ipairs(am.Tabs) do
                     local isSelected = (t == am.CurrentTab)
                     af(t.Button.Label, 0.2, { 
@@ -10935,13 +10919,11 @@ do
                     }):Play()
                 end
 
-                -- 2. Move "Magic Line" Indicator
-                -- Use a small delay to ensure AbsoluteSize is ready on first load
                 task.delay(0.01, function() 
                     if not btn then return end
                     local btnX = btn.AbsolutePosition.X
                     local listX = tabBar.AbsolutePosition.X
-                    local relativeX = (btnX - listX) + (tabBar.CanvasPosition.X) -- Adjust for scroll
+                    local relativeX = (btnX - listX) + (tabBar.CanvasPosition.X)
                     
                     local btnW = btn.AbsoluteSize.X
 
@@ -10961,10 +10943,8 @@ do
 
                 UpdateTabsVisuals()
 
-                -- Switch Content Logic (Fade Out -> Switch -> Fade In)
                 if prevTab then
                     local tFrame = prevTab.Frame
-                    -- Fade out old
                     af(tFrame, 0.2, {GroupTransparency = 1}, Enum.EasingStyle.Quad, Enum.EasingDirection.Out):Play()
                     task.wait(0.2)
                     tFrame.Visible = false
@@ -10975,7 +10955,6 @@ do
                     newFrame.GroupTransparency = 1
                     newFrame.Visible = true
                     
-                    -- Calculate height *before* fading in for snappiness
                     if am.Opened then UpdateHeight() end
 
                     af(newFrame, 0.25, {GroupTransparency = 0}, Enum.EasingStyle.Quad, Enum.EasingDirection.In):Play()
@@ -10992,14 +10971,12 @@ do
                     Elements = {}
                 }
 
-                -- Get text bounds for perfect auto-size button
                 local bounds = textService:GetTextSize(tabObj.Title, 14, Font.new(aa.Font, Enum.FontWeight.Medium), Vector2.new(1000, 1000))
 
-                -- Tab Button
                 local tBtn = ae("TextButton", {
                     Name = tabObj.Title,
                     BackgroundTransparency = 1,
-                    Size = UDim2.new(0, bounds.X + 16, 1, 0), -- Extra padding
+                    Size = UDim2.new(0, bounds.X + 16, 1, 0),
                     Parent = tabBar,
                     Text = ""
                 }, {
@@ -11009,7 +10986,7 @@ do
                         Size = UDim2.fromScale(1,1),
                         BackgroundTransparency = 1,
                         TextXAlignment = Enum.TextXAlignment.Center,
-                        ThemeTag = { TextColor3 = "Text" }, -- Init
+                        ThemeTag = { TextColor3 = "Text" },
                         FontFace = Font.new(aa.Font, Enum.FontWeight.Medium),
                         TextSize = 14,
                         TextTransparency = 0.5
@@ -11017,8 +10994,7 @@ do
                 })
                 tabObj.Button = tBtn
 
-                -- Tab Content Canvas (Using CanvasGroup for transparency fades)
-                local tContent = ae("CanvasGroup", { -- IMPORTANT: Changed Frame to CanvasGroup
+                local tContent = ae("CanvasGroup", {
                     Name = tabObj.Title.."_Content",
                     BackgroundTransparency = 1,
                     Size = UDim2.new(1, 0, 0, 0),
@@ -11042,19 +11018,16 @@ do
                 })
                 tabObj.Frame = tContent
 
-                -- Resize listener (Updates whole section height if content inside tab changes)
                 aa.AddSignal(tContent.UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"), function()
                     if am.Opened and am.CurrentTab == tabObj then
                         UpdateHeight()
                     end
                 end)
 
-                -- Button Logic
                 aa.AddSignal(tBtn.MouseButton1Click, function()
                     am.SelectTab(tabObj)
                 end)
                 
-                -- Button Hover
                 aa.AddSignal(tBtn.MouseEnter, function()
                     if am.CurrentTab ~= tabObj then
                         af(tBtn.Label, 0.2, {TextTransparency = 0.2}):Play()
@@ -11068,40 +11041,34 @@ do
 
                 table.insert(am.Tabs, tabObj)
 
-                -- Init if first tab
                 if #am.Tabs == 1 then
-                    -- Enable expandable mechanics
                     am.Expandable = true
                     chevronFrame.Visible = true
                     tabBar.Visible = true
                     UpdateHeaderSpacing()
-                    am.SelectTab(tabObj) -- Select first automatically
+                    am.SelectTab(tabObj) 
                 end
 
-                -- PROXY Element Loader to redirect standard elements into this tab's content
                 local elementsModule = al.ElementsModule
                 local tabInterface = {}
                 
                 for k, _ in pairs(elementsModule.Elements) do
                     tabInterface[k] = function(self, elemArgs)
-                        -- Inject this specific TabFrame as the Parent
                         local elemConfig = {
-                            Parent = tContent, -- ! CRITICAL: Targets internal frame
+                            Parent = tContent,
                             Window = al.Window,
                             WindUI = al.WindUI,
                             Tab = al.Tab,
                             ElementsModule = elementsModule,
                             UIScale = al.UIScale,
-                            -- Add extra metadata
                             ParentType = "MultiSection",
                             IsInsideSection = true 
                         }
                         
-                        -- Invoke original Loader
                         local _, elementInstance = elementsModule.Load(
-                            { Elements = tabObj.Elements }, -- dummy parent container
-                            tContent, -- UI Parent
-                            { [k] = elementsModule.Elements[k] }, -- Function reference
+                            { Elements = tabObj.Elements },
+                            tContent,
+                            { [k] = elementsModule.Elements[k] },
                             al.Window,
                             al.WindUI,
                             nil,
@@ -11116,30 +11083,23 @@ do
                 return tabInterface
             end
 
-            -- > ANIMATIONS (OPEN/CLOSE) < --
-            
             function am.Open(av)
                 if am.Expandable and not am.Opened then
                     am.Opened = true
                     mainFrame.Content.Visible = true
                     mainFrame.TabBar.Visible = true
                     
-                    -- Reset size constraint
                     mainFrame.AutomaticSize = Enum.AutomaticSize.None
 
-                    -- Rotate Chevron
                     af(chevronFrame.ImageLabel, 0.3, {Rotation = 180, ImageTransparency = 0}):Play()
                     
-                    -- Accentuate Icon if present
                     if iconImg then
                         local accent = aa.GetThemeProperty("Accent", aa.Theme)
                         af(iconImg.ImageLabel, 0.3, {ImageColor3 = accent}):Play()
                     end
 
-                    -- Show Divider (Fade in)
                     af(divider, 0.3, {BackgroundTransparency = 0.85}):Play()
 
-                    -- Trigger height expansion
                     UpdateHeight()
                     UpdateTabsVisuals()
                 end
@@ -11149,34 +11109,27 @@ do
                 if am.Expandable and am.Opened then
                     am.Opened = false
                     
-                    -- Reset to header
                     af(mainFrame, 0.35, {
                         Size = UDim2.new(1, 0, 0, am.HeaderSize)
                     }, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
 
-                    -- Rotate Chevron Back
                     af(chevronFrame.ImageLabel, 0.3, {Rotation = 0, ImageTransparency = 0.5}):Play()
                     
-                    -- Revert Icon Color
                     if iconImg then
                         local iconColor = aa.GetThemeProperty("Icon", aa.Theme) or Color3.fromRGB(150,150,150)
                         af(iconImg.ImageLabel, 0.3, {ImageColor3 = iconColor}):Play()
                     end
 
-                    -- Hide Divider
                     af(divider, 0.3, {BackgroundTransparency = 1}):Play()
 
                     task.delay(0.35, function()
                         if not am.Opened then
                             mainFrame.Content.Visible = false
-                            -- Keep TabBar structure visible if transparency permits, but generally logic suggests hiding it or masking
-                            -- Just keeping AutomaticSize off keeps it collapsed.
                         end
                     end)
                 end
             end
 
-            -- Header Interaction
             aa.AddSignal(mainFrame.Top.MouseButton1Click, function()
                 if am.Expandable then
                     if am.Opened then am.Close() else am.Open() end
@@ -11191,7 +11144,6 @@ do
                 af(mainFrame, 0.2, {ImageTransparency = 0.96}):Play()
             end)
 
-            -- Initialize
             mainFrame.Size = UDim2.new(1, 0, 0, am.HeaderSize)
             mainFrame.AutomaticSize = Enum.AutomaticSize.None
             if am.Opened then am.Open() end
