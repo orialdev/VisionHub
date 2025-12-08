@@ -10689,6 +10689,7 @@ do
 
         return ah
     end
+
 function a.MultiSection()
     local aa = a.load "b"
     local ae = aa.New
@@ -10704,7 +10705,7 @@ function a.MultiSection()
             ActiveIndex = 0
         }
 
-        -- [1] Main Container (Squircle Style)
+        -- [Fix 1: visual properties] Use correct environment colors so Tweens don't fail looking for missing images
         local mainFrame = aa.NewRoundFrame(
             env.Window.ElementConfig.UICorner,
             "Squircle",
@@ -10715,11 +10716,10 @@ function a.MultiSection()
                 Parent = env.Parent,
                 ImageTransparency = 0.96,
                 ThemeTag = {
-                        ImageColor3 = "Text"
+                        ImageColor3 = "Text" 
                 }
             },
             {
-                -- Border/Outline
                 aa.NewRoundFrame(
                     env.Window.ElementConfig.UICorner,
                     "SquircleOutline",
@@ -10729,7 +10729,6 @@ function a.MultiSection()
                         ThemeTag = { ImageColor3 = "Text" },
                     }
                 ),
-                -- Main Vertical Layout
                 ae("UIListLayout", {
                     SortOrder = Enum.SortOrder.LayoutOrder,
                     Padding = UDim.new(0, 0)
@@ -10738,10 +10737,10 @@ function a.MultiSection()
         )
         config.ElementFrame = mainFrame
 
-        -- [2] Header Section (Tab Buttons)
+        -- Header
         local headerFrame = ae("Frame", {
             Name = "Header",
-            Size = UDim2.new(1, 0, 0, 42), -- Height for buttons
+            Size = UDim2.new(1, 0, 0, 42),
             BackgroundTransparency = 1,
             LayoutOrder = 1,
             Parent = mainFrame
@@ -10758,7 +10757,6 @@ function a.MultiSection()
             })
         })
 
-        -- [3] Divider Line
         ae("Frame", {
             Name = "Divider",
             Size = UDim2.new(1, 0, 0, 1),
@@ -10768,7 +10766,6 @@ function a.MultiSection()
             Parent = mainFrame
         })
 
-        -- [4] Content Area
         local contentArea = ae("Frame", {
             Name = "ContentArea",
             Size = UDim2.new(1, 0, 0, 0),
@@ -10785,11 +10782,11 @@ function a.MultiSection()
             })
         })
 
-        -- [5] Function to add Internal Tabs
+        -- INTERNAL TAB FUNCTION
         function config.Tab(self, tabName)
             local index = #config.Tabs + 1
             
-            -- Visual: Button Label
+            -- Header Label/Button
             local label = ae("TextLabel", {
                 Text = tabName,
                 TextSize = 14,
@@ -10809,7 +10806,7 @@ function a.MultiSection()
                 label
             })
 
-            -- Visual: Page Content
+            -- Tab Content Page
             local pageFrame = ae("Frame", {
                 Name = "Page_" .. tabName,
                 Size = UDim2.new(1, 0, 0, 0),
@@ -10824,17 +10821,32 @@ function a.MultiSection()
                 })
             })
 
-            -- Create Interface Object for Elements
+            -- [FIX 2] Properly initialize the Tab Object so the ElementsModule.Load function works
             local tabObj = {
+                Elements = {},  -- Critical: Initializes elements array preventing #nil error
                 Parent = pageFrame,
                 Window = env.Window,
                 WindUI = env.WindUI,
+                __type = "Section", -- Mock section type so it acts as a group container for shapes
+                ParentType = "MultiSection",
+                Tab = env.Tab, -- Keep reference to parent Tab
+                GlobalIndex = -1 
             }
 
-            -- Inject Standard Element Creators (Button, Toggle, etc.)
-            env.ElementsModule.Load(tabObj, pageFrame, env.ElementsModule.Elements, env.Window, env.WindUI, nil, env.ElementsModule, env.UIScale, env.Tab)
+            -- Load generic elements into this internal tab
+            env.ElementsModule.Load(
+                tabObj,                 -- Target Env
+                pageFrame,              -- UI Container
+                env.ElementsModule.Elements, -- Element List (Buttons, Toggles, etc.)
+                env.Window,             -- Main Window Ref
+                env.WindUI,             -- Global Ref
+                nil,                    -- No Callback
+                env.ElementsModule,     -- Module Ref
+                env.UIScale,            -- Scale
+                env.Tab                 -- Tab Ref
+            )
 
-            -- Interaction
+            -- Tab switching Logic
             aa.AddSignal(btn.MouseButton1Click, function()
                 config:Select(index)
             end)
@@ -10846,7 +10858,6 @@ function a.MultiSection()
                 Index = index
             })
 
-            -- Auto-select first tab
             if index == 1 then
                 config:Select(1)
             end
@@ -10860,12 +10871,10 @@ function a.MultiSection()
 
             for i, tab in ipairs(config.Tabs) do
                 if tab.Index == targetIndex then
-                    -- Active State
                     tab.Page.Visible = true
                     af(tab.Label, 0.2, { TextTransparency = 0 }):Play()
                     tab.Label.FontFace = Font.new(aa.Font, Enum.FontWeight.SemiBold)
                 else
-                    -- Inactive State
                     tab.Page.Visible = false
                     af(tab.Label, 0.2, { TextTransparency = 0.6 }):Play()
                     tab.Label.FontFace = Font.new(aa.Font, Enum.FontWeight.Medium)
@@ -10877,7 +10886,6 @@ function a.MultiSection()
     end
     return comp
 end
-
     function a.Q()
         local aa = a.load "b"
         local ae = aa.New
