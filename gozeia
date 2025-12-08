@@ -10689,23 +10689,34 @@ function a.P()
 
         return ah
     end
-    function a.MS()
+function a.MS()
         local aa = a.load "b"
         local ae = aa.New
 
-        -- Load the Section module to reuse its logic
+        -- Load the Section module (a.P) to reuse its logic
         local sectionModule = a.load "P"
 
         local ah = {}
 
+        -- aj: The internal configuration context passed by the loader
+        -- ak: The user properties (e.g., {Side = "Left"})
         function ah.New(aj, ak)
+            
+            -- FIX: Safely calculate 'gap' without crashing if Tab is nil
+            local gap = 6 -- Default fallback
+            if aj.Tab and aj.Tab.Gap then
+                gap = aj.Tab.Gap
+            elseif aj.Window and aj.Window.NewElements then
+                gap = 5
+            elseif aj.Window and aj.Window.ElementConfig then
+                gap = aj.Window.ElementConfig.UIPadding and (aj.Window.ElementConfig.UIPadding / 2) or 6
+            end
+
             local al = {
                 __type = "MultiSection",
                 Elements = {},
                 Columns = {}
             }
-
-            local gap = aj.Tab.Gap or 6
 
             -- Main Container Frame
             local am = ae(
@@ -10785,29 +10796,29 @@ function a.P()
                     target = ao
                 end
 
-                -- Prepare a fake configuration that mimics the standard window environment
-                -- but changes the Parent to the specific column
-                local aq = {
-                    Title = ap.Title,
-                    Icon = ap.Icon,
-                    Parent = target,
-                    Window = aj.Window,
-                    Tab = aj.Tab,
-                    Index = aj.Index, -- Placeholder, sorting handled by layout
-                    WindUI = aj.WindUI,
-                    UIScale = aj.UIScale,
-                    ElementsModule = aj.ElementsModule
-                }
-                
-                -- Create the section using the existing Section module
-                local _, createdSection = sectionModule.New(aq, ap)
+                -- Create a shallow copy of the main configuration (aj)
+                -- We only overwrite 'Parent' so the new section lands in the column
+                local childConfig = {}
+                for key, val in pairs(aj) do
+                    childConfig[key] = val
+                end
+                childConfig.Parent = target
 
+                -- Create the section using the existing Section module
+                local _, createdSection = sectionModule.New(childConfig, ap)
+
+                -- Keep track of it
                 table.insert(al.Elements, createdSection)
 
                 return createdSection
             end
 
             function al:Destroy()
+                for _, elem in ipairs(al.Elements) do
+                    if elem.Destroy then
+                        elem:Destroy()
+                    end
+                end
                 am:Destroy()
             end
 
