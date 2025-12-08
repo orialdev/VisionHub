@@ -10693,8 +10693,9 @@ do
         local aa = a.load "b"
         local ae = aa.New
         local af = aa.Tween
-        local textService = game:GetService("TextService")
-
+        
+        -- Removed TextService dependency to fix Font casting error
+        
         local ah = {}
 
         function ah.New(ak, al)
@@ -10716,6 +10717,16 @@ do
                 IsAnimating = false
             }
 
+            -- Safely retrieve Font to avoid "Unable to cast" error in TextLabels
+            local function getSafeFont(weight)
+                local fontData = aa.Font
+                if typeof(fontData) == "Font" then
+                    return fontData
+                end
+                return Font.new(fontData, weight)
+            end
+
+            -- > ICON LOGIC <
             local iconImg
             function am.SetIcon(val)
                 am.Icon = val or nil
@@ -10745,13 +10756,14 @@ do
 
             if am.Icon then am:SetIcon(am.Icon) end
 
+            -- > HEADER TEXT <
             local titleLbl = ae("TextLabel", {
                 BackgroundTransparency = 1,
                 TextXAlignment = am.TextXAlignment,
                 AutomaticSize = Enum.AutomaticSize.Y,
                 TextSize = am.TextSize,
                 ThemeTag = { TextColor3 = "Text" },
-                FontFace = Font.new(aa.Font, am.FontWeight),
+                FontFace = getSafeFont(am.FontWeight),
                 Text = am.Title,
                 Size = UDim2.new(1, 0, 0, 0),
                 Name = "Title"
@@ -10766,7 +10778,7 @@ do
                     TextSize = 13,
                     TextTransparency = 0.4,
                     ThemeTag = { TextColor3 = "Text" },
-                    FontFace = Font.new(aa.Font, Enum.FontWeight.Medium),
+                    FontFace = getSafeFont(Enum.FontWeight.Medium),
                     Text = am.Desc,
                     Size = UDim2.new(1, 0, 0, 0),
                     Name = "Desc"
@@ -10790,6 +10802,7 @@ do
                 textContainer.Size = UDim2.new(1, -pad, 0, 0)
             end
 
+            -- > DIVIDER & TAB BAR <
             local divider = ae("Frame", {
                 Size = UDim2.new(1, -24, 0, 1),
                 Position = UDim2.new(0.5, 0, 0, am.HeaderSize),
@@ -10824,7 +10837,7 @@ do
                 BackgroundTransparency = 1,
                 Visible = false,
                 CanvasSize = UDim2.new(0, 0, 0, 0),
-                AutomaticCanvasSize = Enum.AutomaticSize.X, -- FIXED HERE (was Enum.AutomaticCanvasSize.X)
+                AutomaticCanvasSize = Enum.AutomaticSize.X,
                 ScrollingDirection = Enum.ScrollingDirection.X,
                 ScrollBarThickness = 0
             }, {
@@ -10838,6 +10851,7 @@ do
                 activeIndicator
             })
 
+            -- > MAIN FRAME STRUCTURE <
             local mainFrame = aa.NewRoundFrame(
                 al.Window.ElementConfig.UICorner,
                 "Squircle",
@@ -10890,6 +10904,8 @@ do
 
             am.ElementFrame = mainFrame
             UpdateHeaderSpacing()
+
+            -- > FUNCTIONALITY < --
 
             local function UpdateHeight()
                 if not am.Opened then 
@@ -10971,23 +10987,28 @@ do
                     Elements = {}
                 }
 
-                local bounds = textService:GetTextSize(tabObj.Title, 14, Font.new(aa.Font, Enum.FontWeight.Medium), Vector2.new(1000, 1000))
-
+                -- FIXED: Replaced GetTextSize with AutomaticSize to resolve "Unable to cast Font" errors
                 local tBtn = ae("TextButton", {
                     Name = tabObj.Title,
                     BackgroundTransparency = 1,
-                    Size = UDim2.new(0, bounds.X + 16, 1, 0),
+                    AutomaticSize = Enum.AutomaticSize.X, -- Let engine handle width
+                    Size = UDim2.new(0, 0, 1, 0), 
                     Parent = tabBar,
                     Text = ""
                 }, {
+                    ae("UIPadding", {
+                        PaddingLeft = UDim.new(0, 8),
+                        PaddingRight = UDim.new(0, 8)
+                    }),
                     ae("TextLabel", {
                         Name = "Label",
                         Text = tabObj.Title,
-                        Size = UDim2.fromScale(1,1),
+                        AutomaticSize = Enum.AutomaticSize.X, -- Expand with text
+                        Size = UDim2.new(0, 0, 1, 0),
                         BackgroundTransparency = 1,
                         TextXAlignment = Enum.TextXAlignment.Center,
                         ThemeTag = { TextColor3 = "Text" },
-                        FontFace = Font.new(aa.Font, Enum.FontWeight.Medium),
+                        FontFace = getSafeFont(Enum.FontWeight.Medium),
                         TextSize = 14,
                         TextTransparency = 0.5
                     })
