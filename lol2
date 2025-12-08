@@ -10689,227 +10689,202 @@ do
 
         return ah
     end
-    function a.MultiSection()
-        local aa = a.load "b"
-        local ae = aa.New
-        local af = aa.Tween
+    local WindUI = require("path_to_windui_or_get_global") -- If accessing externally
+-- Assuming you are pasting this IN the main script or after loading it.
+-- Since WindUI's source wraps everything in `local a = { ... }`, 
+-- apply this patch where the 'a' table functions are accessible or define the new feature using WindUI's internal 'Elements' if exposed.
 
-        local ah = {}
+-- If you are editing the source code directly, modify it as follows:
 
-        -- Import element loader to allow nested elements
-        local elementLoader = a.load "T"
+-- 1. PASTE THIS FUNCTION BEFORE 'function a.T()'
+function a.MultiSection()
+    local aa = a.load "b"
+    local ae = aa.New
+    local af = aa.Tween
 
-        function ah.New(config, sectionData)
-            local ms = {
-                __type = "MultiSection",
-                Title = sectionData.Title or "Multi Section",
-                Desc = sectionData.Desc,
-                Tabs = {},
-                ActiveTab = nil,
-                UIElements = {}
-            }
+    local comp = {}
 
-            -- 1. Create the Base Frame using the Standard Element Generator
-            ms.SectionFrame = a.load "z" {
-                Title = ms.Title,
-                Desc = ms.Desc,
-                Parent = config.Parent,
-                TextOffset = 0,
-                Hover = false, -- MultiSection shouldn't highlight on hover like a button
-                Tab = config.Tab,
-                Index = config.Index,
-                Window = config.Window,
-                ElementTable = ms,
-                ParentConfig = config
-            }
-            
-            local container = ms.SectionFrame.UIElements.Main
-            -- Ensure the container aligns contents
-            if not container:FindFirstChild("UIListLayout") then
-                 ae("UIListLayout", {
-                    Parent = container,
-                    SortOrder = "LayoutOrder",
-                    Padding = UDim.new(0, 10),
-                    FillDirection = "Vertical"
-                 })
-            end
+    function comp.New(props, env)
+        local config = {
+            __type = "MultiSection",
+            Title = props.Title,
+            Tabs = {},
+            ActiveIndex = 0
+        }
 
-            -- 2. Create the Tab Button Bar (Top of the section)
-            local tabBar = ae("Frame", {
-                Name = "TabBar",
-                Size = UDim2.new(1, 0, 0, 32),
+        -- [1] Main Container (Squircle Style)
+        local mainFrame = aa.NewRoundFrame(
+            env.Window.ElementConfig.UICorner,
+            "Squircle",
+            {
+                Size = UDim2.new(1, 0, 0, 0),
+                AutomaticSize = Enum.AutomaticSize.Y,
                 BackgroundTransparency = 1,
-                Parent = ms.SectionFrame.UIElements.Container,
-                LayoutOrder = 1
+                Parent = env.Parent,
+                ImageTransparency = 0.96,
+                ThemeTag = {
+                        ImageColor3 = "Text"
+                }
+            },
+            {
+                -- Border/Outline
+                aa.NewRoundFrame(
+                    env.Window.ElementConfig.UICorner,
+                    "SquircleOutline",
+                    {
+                        Size = UDim2.new(1, 0, 1, 0),
+                        ImageTransparency = 0.85,
+                        ThemeTag = { ImageColor3 = "Text" },
+                    }
+                ),
+                -- Main Vertical Layout
+                ae("UIListLayout", {
+                    SortOrder = Enum.SortOrder.LayoutOrder,
+                    Padding = UDim.new(0, 0)
+                })
+            }
+        )
+        config.ElementFrame = mainFrame
+
+        -- [2] Header Section (Tab Buttons)
+        local headerFrame = ae("Frame", {
+            Name = "Header",
+            Size = UDim2.new(1, 0, 0, 42), -- Height for buttons
+            BackgroundTransparency = 1,
+            LayoutOrder = 1,
+            Parent = mainFrame
+        }, {
+            ae("UIListLayout", {
+                FillDirection = Enum.FillDirection.Horizontal,
+                Padding = UDim.new(0, 16),
+                VerticalAlignment = Enum.VerticalAlignment.Center,
+                HorizontalAlignment = Enum.HorizontalAlignment.Left
+            }),
+            ae("UIPadding", {
+                PaddingLeft = UDim.new(0, 16),
+                PaddingRight = UDim.new(0, 16)
+            })
+        })
+
+        -- [3] Divider Line
+        ae("Frame", {
+            Name = "Divider",
+            Size = UDim2.new(1, 0, 0, 1),
+            BackgroundTransparency = 0.9,
+            ThemeTag = { BackgroundColor3 = "Text" },
+            LayoutOrder = 2,
+            Parent = mainFrame
+        })
+
+        -- [4] Content Area
+        local contentArea = ae("Frame", {
+            Name = "ContentArea",
+            Size = UDim2.new(1, 0, 0, 0),
+            AutomaticSize = Enum.AutomaticSize.Y,
+            BackgroundTransparency = 1,
+            LayoutOrder = 3,
+            Parent = mainFrame
+        }, {
+            ae("UIPadding", {
+                PaddingTop = UDim.new(0, 12),
+                PaddingBottom = UDim.new(0, 12),
+                PaddingLeft = UDim.new(0, 12),
+                PaddingRight = UDim.new(0, 12)
+            })
+        })
+
+        -- [5] Function to add Internal Tabs
+        function config.Tab(self, tabName)
+            local index = #config.Tabs + 1
+            
+            -- Visual: Button Label
+            local label = ae("TextLabel", {
+                Text = tabName,
+                TextSize = 14,
+                FontFace = Font.new(aa.Font, Enum.FontWeight.Medium),
+                AutomaticSize = Enum.AutomaticSize.XY,
+                BackgroundTransparency = 1,
+                ThemeTag = { TextColor3 = "Text" },
+                TextTransparency = 0.6
+            })
+
+            local btn = ae("TextButton", {
+                AutomaticSize = Enum.AutomaticSize.XY,
+                BackgroundTransparency = 1,
+                Text = "",
+                Parent = headerFrame
+            }, {
+                label
+            })
+
+            -- Visual: Page Content
+            local pageFrame = ae("Frame", {
+                Name = "Page_" .. tabName,
+                Size = UDim2.new(1, 0, 0, 0),
+                AutomaticSize = Enum.AutomaticSize.Y,
+                BackgroundTransparency = 1,
+                Visible = false,
+                Parent = contentArea
             }, {
                 ae("UIListLayout", {
-                    FillDirection = "Horizontal",
-                    HorizontalAlignment = "Center",
-                    SortOrder = "LayoutOrder",
-                    Padding = UDim.new(0, 8)
-                }),
-                ae("UIPadding", {
-                    PaddingLeft = UDim.new(0, 5),
-                    PaddingRight = UDim.new(0, 5)
+                    SortOrder = Enum.SortOrder.LayoutOrder,
+                    Padding = UDim.new(0, env.Window.ElementConfig.UIPadding or 8)
                 })
             })
 
-            -- 3. Create the Content Holder (Bottom of the section)
-            local contentHolder = ae("Frame", {
-                Name = "ContentHolder",
-                Size = UDim2.new(1, 0, 0, 0), -- Automatic Height
-                AutomaticSize = "Y",
-                BackgroundTransparency = 1,
-                Parent = ms.SectionFrame.UIElements.Container,
-                LayoutOrder = 2
+            -- Create Interface Object for Elements
+            local tabObj = {
+                Parent = pageFrame,
+                Window = env.Window,
+                WindUI = env.WindUI,
+            }
+
+            -- Inject Standard Element Creators (Button, Toggle, etc.)
+            env.ElementsModule.Load(tabObj, pageFrame, env.ElementsModule.Elements, env.Window, env.WindUI, nil, env.ElementsModule, env.UIScale, env.Tab)
+
+            -- Interaction
+            aa.AddSignal(btn.MouseButton1Click, function()
+                config:Select(index)
+            end)
+
+            table.insert(config.Tabs, {
+                Button = btn,
+                Label = label,
+                Page = pageFrame,
+                Index = index
             })
 
-            -- 4. Function to add Tabs
-            function ms:AddTab(tabConfig)
-                local tabName = tabConfig.Title or "Tab"
-                local tabIcon = tabConfig.Icon 
-                
-                -- Create The Tab Button
-                local tabButton = aa.NewRoundFrame(
-                    8, "Squircle", 
-                    {
-                        Size = UDim2.new(0, 0, 1, 0), -- Auto-width based on text
-                        AutomaticSize = "X",
-                        ThemeTag = { ImageColor3 = "ElementBackground" }, 
-                        ImageTransparency = 1, -- Start transparent (unselected)
-                        Parent = tabBar,
-                        Name = tabName
-                    },
-                    {
-                        ae("TextLabel", {
-                            Text = tabName,
-                            Size = UDim2.new(0, 0, 1, 0),
-                            AutomaticSize = "X",
-                            BackgroundTransparency = 1,
-                            FontFace = Font.new(aa.Font, Enum.FontWeight.Medium),
-                            TextSize = 14,
-                            ThemeTag = { TextColor3 = "Text" },
-                            TextTransparency = 0.5, -- Start Dimmed
-                            Name = "Label"
-                        }),
-                        ae("UIPadding", {
-                            PaddingLeft = UDim.new(0, 12),
-                            PaddingRight = UDim.new(0, 12)
-                        }),
-                        ae("UIListLayout", {
-                            FillDirection = "Horizontal",
-                            VerticalAlignment = "Center",
-                            Padding = UDim.new(0, 6)
-                        })
-                    }
-                )
-
-                -- Icon Handling
-                if tabIcon then
-                   local iconImg = aa.Image(tabIcon, tabName, 0, config.Window.Folder, "TabIcon", true)
-                   iconImg.Size = UDim2.new(0, 14, 0, 14)
-                   iconImg.ImageLabel.ImageTransparency = 0.5
-                   iconImg.Parent = tabButton
-                end
-                
-                -- Make button interactive
-                local interactBtn = ae("TextButton", {
-                    Size = UDim2.new(1,0,1,0),
-                    BackgroundTransparency = 1,
-                    Text = "",
-                    Parent = tabButton
-                })
-
-                -- Create The Page Container (Where elements go)
-                local pageFrame = ae("Frame", {
-                    Name = tabName .. "_Page",
-                    Size = UDim2.new(1, 0, 0, 0),
-                    AutomaticSize = "Y",
-                    BackgroundTransparency = 1,
-                    Visible = false, -- Hidden by default
-                    Parent = contentHolder
-                }, {
-                    ae("UIListLayout", {
-                        SortOrder = "LayoutOrder",
-                        Padding = UDim.new(0, config.Window.ElementConfig.UIPadding or 8),
-                        HorizontalAlignment = "Center", 
-                        FillDirection = "Vertical"
-                    })
-                })
-                
-                local tabData = {
-                    Button = tabButton,
-                    Page = pageFrame,
-                    Selected = false
-                }
-
-                -- Switching Logic
-                interactBtn.MouseButton1Click:Connect(function()
-                    ms:SelectTab(tabName)
-                end)
-                
-                -- Construct the 'Window' interface for this tab so Elements can be added to it
-                -- We hook into the Element Loader provided by WindUI
-                local tabInterface = {}
-                
-                -- We create a fake "config" that points to our pageFrame as the Parent
-                -- This creates the nesting effect.
-                elementLoader.Load(
-                    tabInterface,     -- Target Table (methods added here)
-                    pageFrame,        -- Parent GUI for elements
-                    elementLoader.Elements, -- Element Definition List
-                    config.Window,    -- Window Ref
-                    config.WindUI,    -- Library Ref
-                    function()        -- Resize Callback
-                        -- Recalculate size if elements are added dynamically
-                    end,
-                    elementLoader,    -- ElementsModule Ref
-                    config.UIScale,
-                    config.Tab
-                )
-                
-                table.insert(ms.Tabs, {Name = tabName, Data = tabData})
-
-                -- Select first tab automatically
-                if #ms.Tabs == 1 then
-                    ms:SelectTab(tabName)
-                end
-
-                return tabInterface
+            -- Auto-select first tab
+            if index == 1 then
+                config:Select(1)
             end
 
-            -- 5. Selection Logic
-            function ms:SelectTab(name)
-                for _, t in ipairs(ms.Tabs) do
-                    local isSelected = (t.Name == name)
-                    local data = t.Data
-                    
-                    data.Page.Visible = isSelected
-                    
-                    -- Visual updates using standard WindUI tweening
-                    if isSelected then
-                        -- Active Tab Styling
-                        af(data.Button, 0.2, { ImageTransparency = 0.85 }):Play() -- Subtle background
-                        af(data.Button.Label, 0.2, { TextTransparency = 0 }):Play()
-                        if data.Button:FindFirstChild("ImageLabel", true) then
-                            af(data.Button:FindFirstChild("ImageLabel", true), 0.2, { ImageTransparency = 0 }):Play()
-                        end
-                    else
-                        -- Inactive Styling
-                        af(data.Button, 0.2, { ImageTransparency = 1 }):Play() -- Transparent
-                        af(data.Button.Label, 0.2, { TextTransparency = 0.5 }):Play()
-                        if data.Button:FindFirstChild("ImageLabel", true) then
-                            af(data.Button:FindFirstChild("ImageLabel", true), 0.2, { ImageTransparency = 0.5 }):Play()
-                        end
-                    end
-                end
-            end
-
-            return ms.__type, ms
+            return tabObj
         end
 
-        return ah
+        function config.Select(self, targetIndex)
+            if config.ActiveIndex == targetIndex then return end
+            config.ActiveIndex = targetIndex
+
+            for i, tab in ipairs(config.Tabs) do
+                if tab.Index == targetIndex then
+                    -- Active State
+                    tab.Page.Visible = true
+                    af(tab.Label, 0.2, { TextTransparency = 0 }):Play()
+                    tab.Label.FontFace = Font.new(aa.Font, Enum.FontWeight.SemiBold)
+                else
+                    -- Inactive State
+                    tab.Page.Visible = false
+                    af(tab.Label, 0.2, { TextTransparency = 0.6 }):Play()
+                    tab.Label.FontFace = Font.new(aa.Font, Enum.FontWeight.Medium)
+                end
+            end
+        end
+
+        return config.__type, config
     end
+    return comp
+end
     function a.Q()
         local aa = a.load "b"
         local ae = aa.New
