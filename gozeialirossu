@@ -10854,9 +10854,10 @@ function a.P()
         function ah.New(self, context)
             local aj = context 
             
-            -- [FIX] Ensure we have valid window data early
+            -- [FIX 1] robust context extraction
             local parentWindow = aj.Window
-            local assetsFolder = aj.Folder or (parentWindow and parentWindow.Folder) or "Temp"
+            -- Fallback chain to ensure assetsFolder is never nil
+            local assetsFolder = aj.Folder or (parentWindow and parentWindow.Folder) or "WindUI"
 
             -- [1] Resolve Layout Styling
             local gap = 6
@@ -10894,7 +10895,7 @@ function a.P()
             )
             al.Container = container
 
-            -- [3] Tab Bar (Top Navigation)
+            -- [3] Tab Bar
             local tabBar = ae(
                 "Frame",
                 {
@@ -10913,7 +10914,7 @@ function a.P()
                 }
             )
 
-            -- [4] Content Holder area
+            -- [4] Content Holder
             local contentHolder = ae(
                 "Frame",
                 {
@@ -10925,7 +10926,6 @@ function a.P()
                 }
             )
 
-            -- [5] Function to switch tabs
             local function SelectTab(tabData)
                 if al.ActiveTab == tabData then return end
                 al.ActiveTab = tabData
@@ -10960,7 +10960,6 @@ function a.P()
                 local title = ap.Title or "Tab"
                 local icon = ap.Icon 
 
-                -- Tab Content Frame
                 local tabFrame = ae(
                     "Frame",
                     {
@@ -10981,7 +10980,6 @@ function a.P()
                     }
                 )
 
-                -- Flexible width calc
                 local textService = game:GetService("TextService")
                 local font = Font.new(aa.Font, Enum.FontWeight.Medium)
                 local textSize = textService:GetTextSize(title, 14, font, Vector2.new(1000, 32))
@@ -11041,10 +11039,8 @@ function a.P()
                     }
                 )
 
-                -- [FIX] Ensure the Icon loading has the folder passed correctly
                 if icon then
-                    -- aa.Image args: IconName, Key, Radius, FOLDER, ThemeKey, UseThemeColor
-                    -- Passing assetsFolder explicitly prevents the nil index error.
+                    -- [FIX 2] Explicit folder passing to prevent Image util error
                     local iconImg = aa.Image(icon, icon, 0, assetsFolder, "TabIcon", true)
                     iconImg.Size = UDim2.new(0, 16, 0, 16)
                     iconImg.Parent = contentLayout
@@ -11066,26 +11062,34 @@ function a.P()
                     SelectTab(tabData)
                 end
 
-                -- [FIX] The Section Wrapper context passing
                 local tabWrapper = {}
+                
+                -- [FIX 3] Deep Context Merger for Sections
                 function tabWrapper:Section(secProps)
                     secProps = secProps or {}
                     
                     local finalConfig = {}
-                    -- Clone parent context
+                    
+                    -- Inherit context from main context 'aj'
                     for k, v in pairs(aj) do 
-                        if k~="Elements" and k~="Parent" then finalConfig[k]=v end 
+                        if k~="Elements" and k~="Parent" then 
+                            finalConfig[k] = v 
+                        end 
                     end
                     
-                    -- Overwrite with section props
-                    for k, v in pairs(secProps) do finalConfig[k] = v end
+                    -- Inherit context from 'secProps' (overwriting aj)
+                    for k, v in pairs(secProps) do 
+                        finalConfig[k] = v 
+                    end
                     
-                    -- Explicitly set critical keys for the Section module
+                    -- Explicit overrides to ensure valid state for P.New
                     finalConfig.Parent = tabFrame
                     finalConfig.Window = parentWindow
-                    finalConfig.Folder = assetsFolder -- This is critical for icons inside the section
+                    finalConfig.Folder = assetsFolder -- This ensures Section knows where to look for assets
                     finalConfig.WindUI = aj.WindUI
+                    finalConfig.UIScale = aj.UIScale or 1 -- Prevent math errors if nil
 
+                    -- Safely call sectionModule
                     local _, createdSection = sectionModule.New(sectionModule, finalConfig)
                     table.insert(tabData.Elements, createdSection)
                     return createdSection
