@@ -10689,36 +10689,35 @@ function a.P()
 
         return ah
     end
-function a.MS()
+    function a.MS()
         local aa = a.load "b"
         local ae = aa.New
-        local sectionModule = a.load "P" -- Import existing Section module
+        local sectionModule = a.load "P" -- Import standard Section
 
         local ah = {}
 
         function ah.New(aj, ak)
-            -- aj: User Config Table { Sections = {...} }
-            -- ak: System Parent Data (passed by a.T loop)
+            -- aj: User Configuration (e.g. {Sections = {...}})
+            -- ak: System Parent Data passed automatically by WindUI
             
             local config = {
                 __type = "MultiSection",
-                Sections = {}, -- Will store the created Section Objects
+                Sections = {},
                 UIElements = {}
             }
             
-            -- Prepare configuration
             local sectionConfigs = aj.Sections or {}
             local paddingSize = ak.Window.ElementConfig.UIPadding
             local count = #sectionConfigs
 
-            -- Main Container (The Row)
+            -- Container for the columns
             local container = ae(
                 "Frame",
                 {
                     Size = UDim2.new(1, 0, 0, 0),
                     AutomaticSize = "Y",
                     BackgroundTransparency = 1,
-                    Parent = ak.Parent, -- Attaches to Tab
+                    Parent = ak.Parent, -- Attaches to the Tab or Group properly
                     Name = "MultiSectionContainer"
                 },
                 {
@@ -10732,52 +10731,47 @@ function a.MS()
             )
             config.UIElements.Main = container
 
-            -- Generate Sections
             if count > 0 then
-                -- Calculation ensures perfect spacing
                 local widthScale = 1 / count
-                -- Correct offset calculation for UIListLayout Padding:
-                -- Formula: -((TotalPadding) / Items)
                 local widthOffset = -((paddingSize * (count - 1)) / count)
 
-                for i, secConfig in ipairs(sectionConfigs) do
-                    -- 1. Create Column Frame (Constraint)
+                for i, rawConfig in ipairs(sectionConfigs) do
+                    -- Handle config shortcuts
+                    local secConfig = rawConfig
+                    if type(secConfig) == "string" then 
+                        secConfig = { Title = secConfig }
+                    end
+
+                    -- Create Column Frame
                     local column = ae(
                         "Frame",
                         {
                             BackgroundTransparency = 1,
-                            -- Distribute width evenly minus the padding compensation
-                            Size = UDim2.new(widthScale, widthOffset, 0, 0), 
+                            Size = UDim2.new(widthScale, widthOffset, 0, 0),
                             AutomaticSize = "Y",
                             Parent = container,
-                            Name = "Column"
+                            Name = "Column",
+                            LayoutOrder = i
                         }
                     )
 
-                    -- 2. Construct Data Packet for the inner Section
-                    -- We must pass ak.ElementsModule so the section can load its own children buttons/toggles
-                    local subParentData = {
-                        Parent = column,             -- Attach section to this column
-                        Window = ak.Window,
-                        WindUI = ak.WindUI,
-                        Tab = ak.Tab,
-                        UIScale = ak.UIScale,
-                        ElementsModule = ak.ElementsModule, -- CRITICAL: Allows inner elements to form
-                        Index = (ak.Index or 0) .. "_" .. i, -- Unique sub-index
-                        Width = column.AbsoluteSize.X -- Initial hint
-                    }
+                    -- Pass all required data to the Section loader
+                    -- Clone parent data table to safely modify properties
+                    local subParentData = {}
+                    for k, v in pairs(ak) do subParentData[k] = v end
+                    
+                    subParentData.Parent = column -- Force parent to Column
+                    subParentData.Index = (ak.Index or 0) .. "_" .. i -- Unique ID for shaping
+                    
+                    -- ElementsModule is critical here. It enables :Button(), :Toggle() inside the section
+                    -- subParentData already contains it from 'ak'
 
-                    -- 3. Instantiate Section manually
-                    -- a.P returns: typeString, objectTable
                     local _, sectionObj = sectionModule.New(secConfig, subParentData)
-
-                    -- 4. Store object so user can interact with it (S1:Button(), etc)
                     table.insert(config.Sections, sectionObj)
                 end
             end
             
-            -- Method to unpack sections for variable assignment
-            -- usage: local Left, Right = MyMulti:Unpack()
+            -- Helper for: local Left, Right = MS:Unpack()
             function config.Unpack(self)
                 return table.unpack(self.Sections)
             end
@@ -10956,7 +10950,7 @@ function a.MS()
 
         return af
     end
-    function a.T()
+function a.T()
         return {
             Elements = {
                 Paragraph = a.load "A",
@@ -10969,7 +10963,7 @@ function a.MS()
                 Code = a.load "N",
                 Colorpicker = a.load "O",
                 Section = a.load "P",
-                MultiSection = a.load "MS",
+                MultiSection = a.load "MS", -- Registers the module
                 Divider = a.load "I",
                 Space = a.load "Q",
                 Image = a.load "R",
@@ -10994,31 +10988,15 @@ function a.MS()
                         if ar.Flag and typeof(ar.Flag) == "string" then
                             if ah.CurrentConfig then
                                 ah.CurrentConfig:Register(ar.Flag, au)
-
                                 if ah.PendingConfigData and ah.PendingConfigData[ar.Flag] then
                                     local av = ah.PendingConfigData[ar.Flag]
-
                                     local aw = ah.ConfigManager
                                     if aw.Parser[av.__type] then
-                                        task.defer(
-                                            function()
-                                                local ax, ay =
-                                                    pcall(
-                                                    function()
-                                                        aw.Parser[av.__type].Load(au, av)
-                                                    end
-                                                )
-
-                                                if ax then
-                                                    ah.PendingConfigData[ar.Flag] = nil
-                                                else
-                                                    warn(
-                                                        "[ WindUI ] Failed to apply pending config for '" ..
-                                                            ar.Flag .. "': " .. tostring(ay)
-                                                    )
-                                                end
-                                            end
-                                        )
+                                        task.defer(function()
+                                            pcall(function()
+                                                aw.Parser[av.__type].Load(au, av)
+                                            end)
+                                        end)
                                     end
                                 end
                             else
@@ -11028,10 +11006,17 @@ function a.MS()
                         end
 
                         local av
-                        for aw, ax in next, au do
-                            if typeof(ax) == "table" and aw ~= "ElementFrame" and aw:match "Frame$" then
-                                av = ax
-                                break
+                        -- Auto-detect ElementFrame (wrappers like ButtonFrame, ToggleFrame)
+                        if typeof(au) == "table" then
+                            if au.ElementFrame then 
+                                av = { UIElements = { Main = au.ElementFrame } } 
+                            else
+                                for aw, ax in next, au do
+                                    if typeof(ax) == "table" and aw ~= "ElementFrame" and aw:match "Frame$" then
+                                        av = ax
+                                        break
+                                    end
+                                end
                             end
                         end
 
@@ -11044,22 +11029,23 @@ function a.MS()
                                 av:SetDesc(az)
                             end
                             function au.Highlight(ay)
-                                av:Highlight()
+                                if av.Highlight then av:Highlight() end
                             end
                             function au.Destroy(ay)
-                                av:Destroy()
+                                if av.Destroy then av:Destroy() end
 
                                 table.remove(ah.AllElements, ar.GlobalIndex)
                                 table.remove(aa.Elements, ar.Index)
-                                table.remove(an.Elements, ar.Index)
+                                if an then table.remove(an.Elements, ar.Index) end
                                 aa:UpdateAllElementShapes(aa)
                             end
                         end
 
-                        ah.AllElements[ar.Index] = au
-                        aa.Elements[ar.Index] = au
+                        -- Store References
+                        ah.AllElements[ar.GlobalIndex or #ah.AllElements + 1] = au
+                        aa.Elements[ar.Index or #aa.Elements + 1] = au
                         if an then
-                            an.Elements[ar.Index] = au
+                            an.Elements[ar.Index or #an.Elements + 1] = au
                         end
 
                         if ah.NewElements then
@@ -11072,7 +11058,9 @@ function a.MS()
                         return au
                     end
                 end
+                
                 function aa.UpdateAllElementShapes(aq, ar)
+                    if not ar.Elements then return end
                     for as, au in next, ar.Elements do
                         local av
                         for aw, ax in pairs(au) do
@@ -11081,7 +11069,6 @@ function a.MS()
                                 break
                             end
                         end
-
                         if av then
                             av.Index = as
                             if av.UpdateShape then
