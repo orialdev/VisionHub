@@ -10689,7 +10689,7 @@ function a.P()
 
         return ah
     end
-    function a.MS()
+function a.MS()
         local aa = a.load "b"
         local ae = aa.New
         local sectionModule = a.load "P" -- Import existing Section module
@@ -10697,78 +10697,87 @@ function a.P()
         local ah = {}
 
         function ah.New(aj, ak)
-            -- aj is user config, ak is system parent data
+            -- aj: User Config Table { Sections = {...} }
+            -- ak: System Parent Data (passed by a.T loop)
+            
             local config = {
                 __type = "MultiSection",
-                Sections = {},
+                Sections = {}, -- Will store the created Section Objects
                 UIElements = {}
             }
             
-            -- Prepare list of section configs. Support { {Title="A"}, {Title="B"} } or specific naming
+            -- Prepare configuration
             local sectionConfigs = aj.Sections or {}
+            local paddingSize = ak.Window.ElementConfig.UIPadding
+            local count = #sectionConfigs
 
-            -- Main Horizontal Container
+            -- Main Container (The Row)
             local container = ae(
                 "Frame",
                 {
                     Size = UDim2.new(1, 0, 0, 0),
                     AutomaticSize = "Y",
                     BackgroundTransparency = 1,
-                    Parent = ak.Parent,
+                    Parent = ak.Parent, -- Attaches to Tab
                     Name = "MultiSectionContainer"
                 },
                 {
                     ae("UIListLayout", {
                         FillDirection = "Horizontal",
                         HorizontalAlignment = "Center",
-                        VerticalAlignment = "Top", -- Ensures sections align at the top
-                        Padding = UDim.new(0, ak.Window.ElementConfig.UIPadding)
+                        VerticalAlignment = "Top", 
+                        Padding = UDim.new(0, paddingSize)
                     })
                 }
             )
             config.UIElements.Main = container
 
-            local count = #sectionConfigs
+            -- Generate Sections
             if count > 0 then
+                -- Calculation ensures perfect spacing
                 local widthScale = 1 / count
-                local padding = ak.Window.ElementConfig.UIPadding
-                -- Calculate offset to handle padding perfectly (e.g. -5px for 2 cols with 10px padding)
-                local widthOffset = -((padding * (count - 1)) / count)
+                -- Correct offset calculation for UIListLayout Padding:
+                -- Formula: -((TotalPadding) / Items)
+                local widthOffset = -((paddingSize * (count - 1)) / count)
 
                 for i, secConfig in ipairs(sectionConfigs) do
-                    -- Column Frame to constrain the width of the inner section
+                    -- 1. Create Column Frame (Constraint)
                     local column = ae(
                         "Frame",
                         {
                             BackgroundTransparency = 1,
-                            Size = UDim2.new(widthScale, widthOffset, 0, 0),
+                            -- Distribute width evenly minus the padding compensation
+                            Size = UDim2.new(widthScale, widthOffset, 0, 0), 
                             AutomaticSize = "Y",
                             Parent = container,
                             Name = "Column"
                         }
                     )
 
-                    -- Create custom parent data passed to the Section Module
-                    -- so it attaches to our Column instead of the main page
+                    -- 2. Construct Data Packet for the inner Section
+                    -- We must pass ak.ElementsModule so the section can load its own children buttons/toggles
                     local subParentData = {
-                        Parent = column,
+                        Parent = column,             -- Attach section to this column
                         Window = ak.Window,
                         WindUI = ak.WindUI,
                         Tab = ak.Tab,
                         UIScale = ak.UIScale,
-                        ElementsModule = ak.ElementsModule,
-                        Index = ak.Index -- Shared index
+                        ElementsModule = ak.ElementsModule, -- CRITICAL: Allows inner elements to form
+                        Index = (ak.Index or 0) .. "_" .. i, -- Unique sub-index
+                        Width = column.AbsoluteSize.X -- Initial hint
                     }
 
-                    -- Initialize the standard Section within the column
-                    local type, sectionObj = sectionModule.New(secConfig, subParentData)
+                    -- 3. Instantiate Section manually
+                    -- a.P returns: typeString, objectTable
+                    local _, sectionObj = sectionModule.New(secConfig, subParentData)
 
-                    -- Allow user to access individual section instances
+                    -- 4. Store object so user can interact with it (S1:Button(), etc)
                     table.insert(config.Sections, sectionObj)
                 end
             end
             
-            -- Unpack function to allow: local S1, S2 = MultiSection:Unpack()
+            -- Method to unpack sections for variable assignment
+            -- usage: local Left, Right = MyMulti:Unpack()
             function config.Unpack(self)
                 return table.unpack(self.Sections)
             end
