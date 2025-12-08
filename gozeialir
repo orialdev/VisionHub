@@ -10696,8 +10696,14 @@ function a.P()
 
         local ah = {}
 
-        function ah.New(aj, ak)
-            -- Determine gap based on Window config
+        -- Note: When called via :, first arg is self, second is data. 
+        -- renaming arguments to (self, context) to handle this clearly.
+        function ah.New(self, context)
+            -- If context is nil, it might have been called with .New (dot) instead of :New (colon)
+            -- But standard WindUI calls :New, so context contains the data.
+            local aj = context 
+
+            -- Fallback gap logic
             local gap = 6
             if aj.Tab and aj.Tab.Gap then
                 gap = aj.Tab.Gap
@@ -10721,7 +10727,7 @@ function a.P()
                     BackgroundTransparency = 1,
                     AutomaticSize = Enum.AutomaticSize.Y,
                     Parent = aj.Parent,
-                    Name = "MultiSection_Container"
+                    Name = "MultiSection"
                 },
                 {
                     ae(
@@ -10736,11 +10742,9 @@ function a.P()
                 }
             )
 
-            -- Column Configurations
             local colSize = UDim2.new(0.5, -(gap / 2), 0, 0)
 
-            -- Left Column
-            local leftCol = ae(
+            local an = ae(
                 "Frame",
                 {
                     Size = colSize,
@@ -10762,8 +10766,7 @@ function a.P()
                 }
             )
 
-            -- Right Column
-            local rightCol = ae(
+            local ao = ae(
                 "Frame",
                 {
                     Size = colSize,
@@ -10785,45 +10788,42 @@ function a.P()
                 }
             )
 
-            al.Container = am
-
-            -- Create a new Section inside the columns
             function al:Section(ap)
                 ap = ap or {}
-                
-                -- Determine target column
+
                 local side = ap.Side
-                local target = leftCol
-
+                local target = an
+                -- Support string or numeric side index
                 if side == "Right" or side == 2 or side == "right" then
-                    target = rightCol
+                    target = ao
                 end
 
-                -- Clone the parent context but point Parent to the column
-                local childContext = {}
-                for key, val in pairs(aj) do
-                    childContext[key] = val
+                -- BUG FIX: Merge Parent Context + New Section Props into ONE table.
+                -- The Section module expects the 2nd argument to contain EVERYTHING (Window, Folder, Title, etc.)
+                local finalConfig = {}
+
+                -- 1. Copy Window/Tab context
+                for k, v in pairs(aj) do
+                    finalConfig[k] = v
                 end
-                
-                childContext.Parent = target
-                
-                -- Pass necessary references explicitly to be safe
-                childContext.Window = aj.Window
-                childContext.WindUI = aj.WindUI
-                childContext.Tab = aj.Tab
-                childContext.UIScale = aj.UIScale
 
-                -- Create the Section using existing "P" module
-                -- sectionModule.New returns: __type, elementObject
-                local _, createdSection = sectionModule.New(childContext, ap)
+                -- 2. Apply Section specific config (Title, Icon, etc)
+                for k, v in pairs(ap) do
+                    finalConfig[k] = v
+                end
 
-                -- Keep track for cleanup
+                -- 3. Set correct parent for the new section
+                finalConfig.Parent = target
+
+                -- Call the Section module.
+                -- Argument 1: self placeholder (nil).
+                -- Argument 2: The Combined Configuration (IMPORTANT).
+                local _, createdSection = sectionModule.New(nil, finalConfig)
+
                 table.insert(al.Elements, createdSection)
-
                 return createdSection
             end
 
-            -- Allow setting visible/destroying the multisection wrapper
             function al:Destroy()
                 for _, elem in ipairs(al.Elements) do
                     if elem.Destroy then
@@ -10833,8 +10833,9 @@ function a.P()
                 am:Destroy()
             end
             
-            function al:Visible(bool)
-                am.Visible = bool
+            -- Helper for visibility toggling
+            function al:Visible(val)
+                am.Visible = val
             end
 
             return al.__type, al
