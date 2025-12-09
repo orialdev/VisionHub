@@ -13909,7 +13909,7 @@ end
 
         return ae
     end
-    function a.Y()
+function a.Y()
         local aa = (cloneref or clonereference or function(aa)
                 return aa
             end)
@@ -14175,7 +14175,7 @@ end
                         0,
                         as.SideBarWidth,
                         1,
-                        as.User.Enabled and -as.Topbar.Height - 42 - (as.UIPadding * 2) or -as.Topbar.Height
+                        as.User.Enabled and -as.Topbar.Height - 48 - (as.UIPadding * 2) or -as.Topbar.Height -- Adjusted Height
                     ),
                     Position = UDim2.new(0, 0, 0, as.Topbar.Height),
                     BackgroundTransparency = 1,
@@ -14280,7 +14280,7 @@ end
                             0,
                             (as.UIElements.SideBarContainer.AbsoluteSize.X) - (as.UIPadding / 2),
                             0,
-                            42 + (as.UIPadding)
+                            48 + (as.UIPadding) -- Increased height slightly
                         ),
                         Position = UDim2.new(0, as.UIPadding / 2, 1, -(as.UIPadding / 2)),
                         AnchorPoint = Vector2.new(0, 1),
@@ -14290,34 +14290,18 @@ end
                     {
                         aj.NewRoundFrame(
                             as.UICorner - (as.UIPadding / 2),
-                            "SquircleOutline",
+                            "Squircle",
                             {
                                 Size = UDim2.new(1, 0, 1, 0),
                                 ThemeTag = {
                                     ImageColor3 = "Text"
                                 },
                                 ImageTransparency = 1,
-                                Name = "Outline"
-                            },
-                            {
-                                ak(
-                                    "UIGradient",
-                                    {
-                                        Rotation = 78,
-                                        Color = ColorSequence.new {
-                                            ColorSequenceKeypoint.new(0.0, Color3.fromRGB(255, 255, 255)),
-                                            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
-                                            ColorSequenceKeypoint.new(1.0, Color3.fromRGB(255, 255, 255))
-                                        },
-                                        Transparency = NumberSequence.new {
-                                            NumberSequenceKeypoint.new(0.0, 0.1),
-                                            NumberSequenceKeypoint.new(0.5, 1),
-                                            NumberSequenceKeypoint.new(1.0, 0.1)
-                                        }
-                                    }
-                                )
+                                Name = "Outline",
+                                Visible = false -- Removed old Outline approach
                             }
                         ),
+                        -- Updated User Profile with simple border bottom or accent glow
                         aj.NewRoundFrame(
                             as.UICorner - (as.UIPadding / 2),
                             "Squircle",
@@ -14327,108 +14311,97 @@ end
                                     ImageColor3 = "Text"
                                 },
                                 ImageTransparency = 1,
-                                Name = "UserIcon"
+                                Name = "Background"
                             },
                             {
-                                ak(
-                                    "ImageLabel",
-                                    {
-                                        Image = GetUserThumb(),
-                                        BackgroundTransparency = 1,
-                                        Size = UDim2.new(0, 42, 0, 42),
-                                        ThemeTag = {
-                                            BackgroundColor3 = "Text"
-                                        },
-                                        BackgroundTransparency = .93
+                                ak("UIGradient", {
+                                    Color = ColorSequence.new{
+                                        ColorSequenceKeypoint.new(0, Color3.new(1,1,1)),
+                                        ColorSequenceKeypoint.new(1, Color3.new(1,1,1))
                                     },
-                                    {
-                                        ak(
-                                            "UICorner",
-                                            {
-                                                CornerRadius = UDim.new(1, 0)
-                                            }
-                                        )
-                                    }
-                                ),
-                                ak(
-                                    "Frame",
-                                    {
-                                        AutomaticSize = "XY",
-                                        BackgroundTransparency = 1
-                                    },
-                                    {
-                                        ak(
-                                            "TextLabel",
-                                            {
-                                                Text = as.User.Anonymous and "Anonymous" or
-                                                    game.Players.LocalPlayer.DisplayName,
-                                                TextSize = 17,
-                                                ThemeTag = {
-                                                    TextColor3 = "Text"
-                                                },
-                                                FontFace = Font.new(aj.Font, Enum.FontWeight.SemiBold),
-                                                AutomaticSize = "Y",
-                                                BackgroundTransparency = 1,
-                                                Size = UDim2.new(1, -27, 0, 0),
-                                                TextTruncate = "AtEnd",
-                                                TextXAlignment = "Left",
-                                                Name = "DisplayName"
-                                            }
-                                        ),
-                                        ak(
-                                            "TextLabel",
-                                            {
-                                                Text = as.User.Anonymous and "anonymous" or
-                                                    game.Players.LocalPlayer.Name,
-                                                TextSize = 15,
-                                                TextTransparency = .6,
-                                                ThemeTag = {
-                                                    TextColor3 = "Text"
-                                                },
-                                                FontFace = Font.new(aj.Font, Enum.FontWeight.Medium),
-                                                AutomaticSize = "Y",
-                                                BackgroundTransparency = 1,
-                                                Size = UDim2.new(1, -27, 0, 0),
-                                                TextTruncate = "AtEnd",
-                                                TextXAlignment = "Left",
-                                                Name = "UserName"
-                                            }
-                                        ),
-                                        ak(
-                                            "UIListLayout",
-                                            {
-                                                Padding = UDim.new(0, 4),
-                                                HorizontalAlignment = "Left"
-                                            }
-                                        )
-                                    }
-                                ),
-                                ak(
-                                    "UIListLayout",
-                                    {
-                                        Padding = UDim.new(0, as.UIPadding),
-                                        FillDirection = "Horizontal",
-                                        VerticalAlignment = "Center"
-                                    }
-                                ),
-                                ak(
-                                    "UIPadding",
-                                    {
-                                        PaddingLeft = UDim.new(0, as.UIPadding / 2),
-                                        PaddingRight = UDim.new(0, as.UIPadding / 2)
-                                    }
-                                )
+                                    Transparency = NumberSequence.new(0.96)
+                                })
                             }
-                        )
+                        ),
+                        
+                        ak("Frame", {
+                            Size = UDim2.new(1, 0, 1, 0),
+                            BackgroundTransparency = 1,
+                            Name = "Content"
+                        }, {
+                            ak("UIListLayout", {
+                                FillDirection = "Horizontal",
+                                VerticalAlignment = "Center",
+                                Padding = UDim.new(0, 12),
+                                SortOrder = "LayoutOrder"
+                            }),
+                            ak("UIPadding", {
+                                PaddingLeft = UDim.new(0, 12),
+                                PaddingRight = UDim.new(0, 12)
+                            }),
+                            
+                            aj.NewRoundFrame(999, "Squircle", {
+                                Size = UDim2.new(0, 38, 0, 38), -- Improved Profile Pic size
+                                Name = "UserIcon",
+                                ImageColor3 = Color3.new(1,1,1),
+                                ImageTransparency = 0
+                            }, {
+                                ak("ImageLabel", {
+                                    Image = GetUserThumb(),
+                                    Size = UDim2.new(1, 0, 1, 0),
+                                    BackgroundTransparency = 1
+                                }, {
+                                    ak("UICorner", {CornerRadius = UDim.new(1, 0)})
+                                })
+                            }),
+
+                            ak("Frame", {
+                                Size = UDim2.new(1, -50, 1, 0),
+                                BackgroundTransparency = 1,
+                                Name = "TextContainer"
+                            }, {
+                                ak("UIListLayout", {
+                                    FillDirection = "Vertical",
+                                    VerticalAlignment = "Center",
+                                    Padding = UDim.new(0, 2)
+                                }),
+                                ak("TextLabel", {
+                                    Name = "DisplayName",
+                                    Text = as.User.Anonymous and "Anonymous" or game.Players.LocalPlayer.DisplayName,
+                                    FontFace = Font.new(aj.Font, Enum.FontWeight.Bold),
+                                    TextSize = 14,
+                                    ThemeTag = {TextColor3 = "Text"},
+                                    BackgroundTransparency = 1,
+                                    Size = UDim2.new(1, 0, 0, 0),
+                                    AutomaticSize = "Y",
+                                    TextXAlignment = "Left",
+                                    TextTruncate = "AtEnd"
+                                }),
+                                ak("TextLabel", {
+                                    Name = "UserName",
+                                    Text = "@" .. (as.User.Anonymous and "anonymous" or game.Players.LocalPlayer.Name),
+                                    FontFace = Font.new(aj.Font, Enum.FontWeight.Medium),
+                                    TextSize = 12,
+                                    ThemeTag = {TextColor3 = "Text"},
+                                    TextTransparency = 0.5,
+                                    BackgroundTransparency = 1,
+                                    Size = UDim2.new(1, 0, 0, 0),
+                                    AutomaticSize = "Y",
+                                    TextXAlignment = "Left",
+                                    TextTruncate = "AtEnd"
+                                })
+                            })
+                        })
                     }
                 )
 
+                -- Visual Logic for User Button
                 function as.User.Enable(aB)
                     as.User.Enabled = true
                     al(
                         as.UIElements.SideBarContainer,
                         .25,
-                        {Size = UDim2.new(0, as.SideBarWidth, 1, -as.Topbar.Height - 42 - (as.UIPadding * 2))},
+                        {Size = UDim2.new(0, as.SideBarWidth, 1, -as.Topbar.Height - 48 - (as.UIPadding * 2))},
                         Enum.EasingStyle.Quint,
                         Enum.EasingDirection.Out
                     ):Play()
@@ -14445,43 +14418,24 @@ end
                     ):Play()
                     aA.Visible = false
                 end
-                function as.User.SetAnonymous(aB, aC)
-                    if aC ~= false then
-                        aC = true
-                    end
-                    as.User.Anonymous = aC
-                    aA.UserIcon.ImageLabel.Image = GetUserThumb()
-                    aA.UserIcon.Frame.DisplayName.Text = aC and "Anonymous" or game.Players.LocalPlayer.DisplayName
-                    aA.UserIcon.Frame.UserName.Text = aC and "anonymous" or game.Players.LocalPlayer.Name
+                
+                -- Interactions
+                if as.User.Callback then
+                    aj.AddSignal(aA.MouseButton1Click, function()
+                        as.User.Callback()
+                    end)
+                    aj.AddSignal(aA.MouseEnter, function()
+                        al(aA.Background, 0.15, {ImageTransparency = 0.94}):Play()
+                    end)
+                    aj.AddSignal(aA.MouseLeave, function()
+                        al(aA.Background, 0.15, {ImageTransparency = 1}):Play()
+                    end)
                 end
-
+                
                 if as.User.Enabled then
                     as.User:Enable()
                 else
                     as.User:Disable()
-                end
-
-                if as.User.Callback then
-                    aj.AddSignal(
-                        aA.MouseButton1Click,
-                        function()
-                            as.User.Callback()
-                        end
-                    )
-                    aj.AddSignal(
-                        aA.MouseEnter,
-                        function()
-                            al(aA.UserIcon, 0.04, {ImageTransparency = .95}):Play()
-                            al(aA.Outline, 0.04, {ImageTransparency = .85}):Play()
-                        end
-                    )
-                    aj.AddSignal(
-                        aA.InputEnded,
-                        function()
-                            al(aA.UserIcon, 0.04, {ImageTransparency = 1}):Play()
-                            al(aA.Outline, 0.04, {ImageTransparency = 1}):Play()
-                        end
-                    )
                 end
             end
 
@@ -15693,10 +15647,10 @@ end
                     ak(
                     "Frame",
                     {
-                        Size = UDim2.new(1, 0, 0, 1),
+                        Size = UDim2.new(1, -24, 0, 1), -- Better Width
                         Position = UDim2.new(0.5, 0, 0, 0),
                         AnchorPoint = Vector2.new(0.5, 0),
-                        BackgroundTransparency = .9,
+                        BackgroundTransparency = .85, -- Softer visual
                         ThemeTag = {
                             BackgroundColor3 = "Text"
                         }
@@ -15707,7 +15661,7 @@ end
                     "Frame",
                     {
                         Parent = as.UIElements.SideBar.Frame,
-                        Size = UDim2.new(1, -7, 0, 5),
+                        Size = UDim2.new(1, 0, 0, 8), -- Add padding around
                         BackgroundTransparency = 1
                     },
                     {
@@ -15716,6 +15670,28 @@ end
                 )
 
                 return B
+            end
+
+            -- New Sidebar Label Feature
+            function as.SidebarLabel(v, text)
+                local lblContainer = ak("Frame", {
+                    Size = UDim2.new(1, 0, 0, 26),
+                    BackgroundTransparency = 1,
+                    Parent = as.UIElements.SideBar.Frame
+                }, {
+                    ak("TextLabel", {
+                        Text = text and text:upper() or "LABEL",
+                        ThemeTag = {TextColor3 = "Text"},
+                        TextTransparency = 0.5,
+                        TextSize = 12,
+                        FontFace = Font.new(aj.Font, Enum.FontWeight.Bold),
+                        Size = UDim2.new(1, -30, 1, 0),
+                        Position = UDim2.new(0, 15, 0, 0),
+                        BackgroundTransparency = 1,
+                        TextXAlignment = "Left"
+                    })
+                })
+                return lblContainer
             end
 
             local v = a.load "l".Init(as, nil)
@@ -16085,9 +16061,18 @@ end
                 local G = a.load "X"
                 local H = false
 
+                -- Updated Search Icon logic for better visuals
                 local J = am("Search", "search", as.UIElements.SideBarContainer, true)
                 J.Size = UDim2.new(1, -as.UIPadding / 2, 0, 39)
                 J.Position = UDim2.new(0, as.UIPadding / 2, 0, 0)
+                
+                -- Slightly cleaner look for Search
+                aj.AddSignal(J.MouseEnter, function()
+                    al(J.TextButton.Frame, 0.1, {ImageTransparency = 0.94}):Play()
+                end)
+                aj.AddSignal(J.MouseLeave, function()
+                    al(J.TextButton.Frame, 0.1, {ImageTransparency = 0.95}):Play()
+                end)
 
                 aj.AddSignal(
                     J.MouseButton1Click,
