@@ -907,10 +907,10 @@ do
     end
     function a.d()
         local b = a.load "b"
-        local d = b.New
-        local e = b.Tween
+        local e = b.New
+        local f = b.Tween
 
-        local f = {
+        local g = {
             Size = UDim2.new(0, 300, 1, -156),
             SizeLower = UDim2.new(0, 300, 1, -56),
             UICorner = 13,
@@ -920,28 +920,28 @@ do
             Notifications = {}
         }
 
-        function f.Init(g)
-            local h = {
+        function g.Init(h)
+            local i = {
                 Lower = false
             }
 
-            function h.SetLower(j)
-                h.Lower = j
-                h.Frame.Size = j and f.SizeLower or f.Size
+            function i.SetLower(j)
+                i.Lower = j
+                i.Frame.Size = j and g.SizeLower or g.Size
             end
 
-            h.Frame =
-                d(
+            i.Frame =
+                e(
                 "Frame",
                 {
                     Position = UDim2.new(1, -29, 0, 56),
                     AnchorPoint = Vector2.new(1, 0),
-                    Size = f.Size,
-                    Parent = g,
+                    Size = g.Size,
+                    Parent = h,
                     BackgroundTransparency = 1
                 },
                 {
-                    d(
+                    e(
                         "UIListLayout",
                         {
                             HorizontalAlignment = "Center",
@@ -950,7 +950,7 @@ do
                             Padding = UDim.new(0, 8)
                         }
                     ),
-                    d(
+                    e(
                         "UIPadding",
                         {
                             PaddingBottom = UDim.new(0, 29)
@@ -958,41 +958,52 @@ do
                     )
                 }
             )
-            return h
+            return i
         end
 
-        function f.New(g)
-            local h = {
-                Title = g.Title or "Notification",
-                Content = g.Content or nil,
-                Icon = g.Icon or nil,
-                IconThemed = g.IconThemed,
-                Background = g.Background,
-                BackgroundImageTransparency = g.BackgroundImageTransparency,
-                Duration = g.Duration or 5,
-                Buttons = g.Buttons or {},
+        function g.New(h)
+            local i = {
+                Title = h.Title or "Notification",
+                Content = h.Content or nil,
+                Icon = h.Icon or nil,
+                IconThemed = h.IconThemed,
+                Background = h.Background,
+                BackgroundImageTransparency = h.BackgroundImageTransparency,
+                Duration = h.Duration or 5,
+                Buttons = h.Buttons or {},
                 CanClose = true,
                 UIElements = {},
-                Closed = false
+                Closed = false,
+                TitleColor = h.TitleColor,
+                ContentColor = h.ContentColor,
+                IconColor = h.IconColor,
+                BackgroundColor = h.BackgroundColor,
+                ProgressBarColor = h.ProgressBarColor,
+                CloseButtonColor = h.CloseButtonColor
             }
-            if h.CanClose == nil then
-                h.CanClose = true
+            if i.CanClose == nil then
+                i.CanClose = true
             end
-            f.NotificationIndex = f.NotificationIndex + 1
-            f.Notifications[f.NotificationIndex] = h
+            g.NotificationIndex = g.NotificationIndex + 1
+            g.Notifications[g.NotificationIndex] = i
 
             local j
 
-            if h.Icon then
-                j = b.Image(h.Icon, h.Title .. ":" .. h.Icon, 0, g.Window, "Notification", h.IconThemed)
+            if i.Icon then
+                j = b.Image(i.Icon, i.Title .. ":" .. i.Icon, 0, h.Window, "Notification", i.IconThemed)
                 j.Size = UDim2.new(0, 26, 0, 26)
-                j.Position = UDim2.new(0, f.UIPadding, 0, f.UIPadding)
+                j.Position = UDim2.new(0, g.UIPadding, 0, g.UIPadding)
+                
+                if i.IconColor and j:FindFirstChild("ImageLabel") then
+                    j.ImageLabel.ImageColor3 = i.IconColor
+                    if j.ImageLabel:FindFirstChild("ThemeTag") then j.ImageLabel.ThemeTag:Destroy() end
+                end
             end
 
             local l
-            if h.CanClose then
+            if i.CanClose then
                 l =
-                    d(
+                    e(
                     "ImageButton",
                     {
                         Image = b.Icon "x"[1],
@@ -1000,15 +1011,16 @@ do
                         ImageRectOffset = b.Icon "x"[2].ImageRectPosition,
                         BackgroundTransparency = 1,
                         Size = UDim2.new(0, 16, 0, 16),
-                        Position = UDim2.new(1, -f.UIPadding, 0, f.UIPadding),
+                        Position = UDim2.new(1, -g.UIPadding, 0, g.UIPadding),
                         AnchorPoint = Vector2.new(1, 0),
-                        ThemeTag = {
+                        ImageColor3 = i.CloseButtonColor or nil,
+                        ThemeTag = (not i.CloseButtonColor) and {
                             ImageColor3 = "Text"
-                        },
+                        } or nil,
                         ImageTransparency = .4
                     },
                     {
-                        d(
+                        e(
                             "TextButton",
                             {
                                 Size = UDim2.new(1, 8, 1, 8),
@@ -1023,65 +1035,67 @@ do
             end
 
             local m =
-                d(
+                e(
                 "Frame",
                 {
                     Size = UDim2.new(0, 0, 1, 0),
                     BackgroundTransparency = .95,
-                    ThemeTag = {
+                    BackgroundColor3 = i.ProgressBarColor or nil,
+                    ThemeTag = (not i.ProgressBarColor) and {
                         BackgroundColor3 = "Text"
-                    }
+                    } or nil
                 }
             )
 
             local p =
-                d(
+                e(
                 "Frame",
                 {
-                    Size = UDim2.new(1, h.Icon and -28 - f.UIPadding or 0, 1, 0),
+                    Size = UDim2.new(1, i.Icon and -28 - g.UIPadding or 0, 1, 0),
                     Position = UDim2.new(1, 0, 0, 0),
                     AnchorPoint = Vector2.new(1, 0),
                     BackgroundTransparency = 1,
                     AutomaticSize = "Y"
                 },
                 {
-                    d(
+                    e(
                         "UIPadding",
                         {
-                            PaddingTop = UDim.new(0, f.UIPadding),
-                            PaddingLeft = UDim.new(0, f.UIPadding),
-                            PaddingRight = UDim.new(0, f.UIPadding),
-                            PaddingBottom = UDim.new(0, f.UIPadding)
+                            PaddingTop = UDim.new(0, g.UIPadding),
+                            PaddingLeft = UDim.new(0, g.UIPadding),
+                            PaddingRight = UDim.new(0, g.UIPadding),
+                            PaddingBottom = UDim.new(0, g.UIPadding)
                         }
                     ),
-                    d(
+                    e(
                         "TextLabel",
                         {
                             AutomaticSize = "Y",
-                            Size = UDim2.new(1, -30 - f.UIPadding, 0, 0),
+                            Size = UDim2.new(1, -30 - g.UIPadding, 0, 0),
                             TextWrapped = true,
                             TextXAlignment = "Left",
                             RichText = true,
                             BackgroundTransparency = 1,
                             TextSize = 16,
-                            ThemeTag = {
+                            TextColor3 = i.TitleColor or nil,
+                            ThemeTag = (not i.TitleColor) and {
                                 TextColor3 = "Text"
-                            },
-                            Text = h.Title,
+                            } or nil,
+                            Text = i.Title,
                             FontFace = Font.new(b.Font, Enum.FontWeight.Medium)
                         }
                     ),
-                    d(
+                    e(
                         "UIListLayout",
                         {
-                            Padding = UDim.new(0, f.UIPadding / 3)
+                            Padding = UDim.new(0, g.UIPadding / 3)
                         }
                     )
                 }
             )
 
-            if h.Content then
-                d(
+            if i.Content then
+                e(
                     "TextLabel",
                     {
                         AutomaticSize = "Y",
@@ -1092,10 +1106,11 @@ do
                         BackgroundTransparency = 1,
                         TextTransparency = .4,
                         TextSize = 15,
-                        ThemeTag = {
+                        TextColor3 = i.ContentColor or nil,
+                        ThemeTag = (not i.ContentColor) and {
                             TextColor3 = "Text"
-                        },
-                        Text = h.Content,
+                        } or nil,
+                        Text = i.Content,
                         FontFace = Font.new(b.Font, Enum.FontWeight.Medium),
                         Parent = p
                     }
@@ -1104,7 +1119,7 @@ do
 
             local r =
                 b.NewRoundFrame(
-                f.UICorner,
+                g.UICorner,
                 "Squircle",
                 {
                     Size = UDim2.new(1, 0, 0, 0),
@@ -1112,12 +1127,13 @@ do
                     AnchorPoint = Vector2.new(0, 1),
                     AutomaticSize = "Y",
                     ImageTransparency = .05,
-                    ThemeTag = {
+                    ImageColor3 = i.BackgroundColor or nil,
+                    ThemeTag = (not i.BackgroundColor) and {
                         ImageColor3 = "Background"
-                    }
+                    } or nil
                 },
                 {
-                    d(
+                    e(
                         "CanvasGroup",
                         {
                             Size = UDim2.new(1, 0, 1, 0),
@@ -1125,29 +1141,29 @@ do
                         },
                         {
                             m,
-                            d(
+                            e(
                                 "UICorner",
                                 {
-                                    CornerRadius = UDim.new(0, f.UICorner)
+                                    CornerRadius = UDim.new(0, g.UICorner)
                                 }
                             )
                         }
                     ),
-                    d(
+                    e(
                         "ImageLabel",
                         {
                             Name = "Background",
-                            Image = h.Background,
+                            Image = i.Background,
                             BackgroundTransparency = 1,
                             Size = UDim2.new(1, 0, 1, 0),
                             ScaleType = "Crop",
-                            ImageTransparency = h.BackgroundImageTransparency
+                            ImageTransparency = i.BackgroundImageTransparency
                         },
                         {
-                            d(
+                            e(
                                 "UICorner",
                                 {
-                                    CornerRadius = UDim.new(0, f.UICorner)
+                                    CornerRadius = UDim.new(0, g.UICorner)
                                 }
                             )
                         }
@@ -1159,23 +1175,23 @@ do
             )
 
             local u =
-                d(
+                e(
                 "Frame",
                 {
                     BackgroundTransparency = 1,
                     Size = UDim2.new(1, 0, 0, 0),
-                    Parent = g.Holder
+                    Parent = h.Holder
                 },
                 {
                     r
                 }
             )
 
-            function h.Close(v)
-                if not h.Closed then
-                    h.Closed = true
-                    e(u, 0.45, {Size = UDim2.new(1, 0, 0, -8)}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
-                    e(r, 0.55, {Position = UDim2.new(2, 0, 1, 0)}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play(
+            function i.Close(v)
+                if not i.Closed then
+                    i.Closed = true
+                    f(u, 0.45, {Size = UDim2.new(1, 0, 0, -8)}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
+                    f(r, 0.55, {Position = UDim2.new(2, 0, 1, 0)}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play(
 
                     )
                     task.wait(.45)
@@ -1186,7 +1202,7 @@ do
             task.spawn(
                 function()
                     task.wait()
-                    e(
+                    f(
                         u,
                         0.45,
                         {
@@ -1195,19 +1211,19 @@ do
                         Enum.EasingStyle.Quint,
                         Enum.EasingDirection.Out
                     ):Play()
-                    e(r, 0.45, {Position = UDim2.new(0, 0, 1, 0)}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play(
+                    f(r, 0.45, {Position = UDim2.new(0, 0, 1, 0)}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play(
 
                     )
-                    if h.Duration then
-                        e(
+                    if i.Duration then
+                        f(
                             m,
-                            h.Duration,
+                            i.Duration,
                             {Size = UDim2.new(1, 0, 1, 0)},
                             Enum.EasingStyle.Linear,
                             Enum.EasingDirection.InOut
                         ):Play()
-                        task.wait(h.Duration)
-                        h:Close()
+                        task.wait(i.Duration)
+                        i:Close()
                     end
                 end
             )
@@ -1216,15 +1232,15 @@ do
                 b.AddSignal(
                     l.TextButton.MouseButton1Click,
                     function()
-                        h:Close()
+                        i:Close()
                     end
                 )
             end
 
-            return h
+            return i
         end
 
-        return f
+        return g
     end
     function a.e()
         local b = 4294967296
@@ -8341,22 +8357,17 @@ do
 
         return ae
     end
-    function a.J()
+function a.J()
         local aa = {}
 
-        local ac = (cloneref or clonereference or function(ac)
-                return ac
-            end)
+        local ac = (cloneref or clonereference or function(ac) return ac end)
 
-        local ae = ac(game:GetService "UserInputService")
-        local af = ac(game:GetService "Players").LocalPlayer:GetMouse()
-        local ag = ac(game:GetService "Workspace").CurrentCamera
+        local ae = ac(game:GetService("UserInputService"))
+        local af = ac(game:GetService("Players")).LocalPlayer:GetMouse()
+        local ag = ac(game:GetService("Workspace")).CurrentCamera
 
-        local ah = workspace.CurrentCamera
-
-        local ai = a.load "k".New
-
-        local aj = a.load "b"
+        local ai = a.load("k").New
+        local aj = a.load("b")
         local ak = aj.New
         local al = aj.Tween
 
@@ -8367,774 +8378,515 @@ do
                 aq = "Menu"
             end
 
-            an.UIElements.UIListLayout =
-                ak(
-                "UIListLayout",
-                {
-                    Padding = UDim.new(0, ao.MenuPadding / 1.5),
-                    FillDirection = "Vertical",
-                    HorizontalAlignment = "Center"
-                }
-            )
+            an.UIElements.UIListLayout = ak("UIListLayout", {
+                Padding = UDim.new(0, 4), -- Tighter padding for cleaner look
+                FillDirection = "Vertical",
+                HorizontalAlignment = "Center",
+                SortOrder = "LayoutOrder"
+            })
 
-            an.UIElements.Menu =
-                aj.NewRoundFrame(
-                ao.MenuCorner,
-                "Squircle",
-                {
-                    ThemeTag = {
-                        ImageColor3 = "Background"
-                    },
-                    ImageTransparency = 1,
-                    Size = UDim2.new(1, 0, 1, 0),
-                    AnchorPoint = Vector2.new(1, 0),
-                    Position = UDim2.new(1, 0, 0, 0)
-                },
-                {
-                    ak(
-                        "UIPadding",
-                        {
-                            PaddingTop = UDim.new(0, ao.MenuPadding),
-                            PaddingLeft = UDim.new(0, ao.MenuPadding),
-                            PaddingRight = UDim.new(0, ao.MenuPadding),
-                            PaddingBottom = UDim.new(0, ao.MenuPadding)
-                        }
-                    ),
-                    ak(
-                        "UIListLayout",
-                        {
-                            FillDirection = "Vertical",
-                            Padding = UDim.new(0, ao.MenuPadding)
-                        }
-                    ),
-                    ak(
-                        "Frame",
-                        {
-                            BackgroundTransparency = 1,
-                            Size = UDim2.new(1, 0, 1, an.SearchBarEnabled and -ao.MenuPadding - ao.SearchBarHeight),
-                            ClipsDescendants = true,
-                            LayoutOrder = 999
-                        },
-                        {
-                            ak(
-                                "UICorner",
-                                {
-                                    CornerRadius = UDim.new(0, ao.MenuCorner - ao.MenuPadding)
-                                }
-                            ),
-                            ak(
-                                "ScrollingFrame",
-                                {
-                                    Size = UDim2.new(1, 0, 1, 0),
-                                    ScrollBarThickness = 0,
-                                    ScrollingDirection = "Y",
-                                    AutomaticCanvasSize = "Y",
-                                    CanvasSize = UDim2.new(0, 0, 0, 0),
-                                    BackgroundTransparency = 1,
-                                    ScrollBarImageTransparency = 1
-                                },
-                                {
-                                    an.UIElements.UIListLayout
-                                }
-                            )
-                        }
-                    )
-                }
-            )
-
-            an.UIElements.MenuCanvas =
-                ak(
-                "Frame",
-                {
-                    Size = UDim2.new(0, an.MenuWidth, 0, 300),
+            -- The Menu Background
+            an.UIElements.Menu = aj.NewRoundFrame(ao.MenuCorner, "Squircle", {
+                ThemeTag = { ImageColor3 = "Background" },
+                ImageTransparency = 1, -- Start hidden
+                Size = UDim2.new(1, 0, 1, 0),
+            }, {
+                ak("UIPadding", {
+                    PaddingTop = UDim.new(0, 8),
+                    PaddingLeft = UDim.new(0, 8),
+                    PaddingRight = UDim.new(0, 8),
+                    PaddingBottom = UDim.new(0, 8)
+                }),
+                
+                -- Container for Search + List
+                ak("Frame", {
+                    Name = "ContentContainer",
                     BackgroundTransparency = 1,
-                    Position = UDim2.new(-10, 0, -10, 0),
-                    Visible = false,
-                    Active = false,
-                    Parent = am.WindUI.DropdownGui,
-                    AnchorPoint = Vector2.new(1, 0)
-                },
-                {
-                    an.UIElements.Menu,
-                    ak(
-                        "UISizeConstraint",
-                        {
-                            MinSize = Vector2.new(170, 0),
-                            MaxSize = Vector2.new(300, 400)
-                        }
-                    )
-                }
-            )
+                    Size = UDim2.new(1, 0, 1, 0),
+                }, {
+                    ak("UIListLayout", {
+                        FillDirection = "Vertical",
+                        Padding = UDim.new(0, 8),
+                        SortOrder = "LayoutOrder"
+                    }),
+                    
+                    -- Search Bar Holder (Created dynamically later if needed)
+                    -- Scroll List Holder
+                    ak("Frame", {
+                        Name = "ListHolder",
+                        BackgroundTransparency = 1,
+                        Size = UDim2.new(1, 0, 1, 0), -- Dynamic size adjusted later
+                        ClipsDescendants = true,
+                        LayoutOrder = 2
+                    }, {
+                        ak("UICorner", { CornerRadius = UDim.new(0, 6) }),
+                        ak("ScrollingFrame", {
+                            Size = UDim2.new(1, 0, 1, 0),
+                            ScrollBarThickness = 2,
+                            ScrollBarImageColor3 = Color3.fromRGB(80, 80, 80),
+                            ScrollingDirection = "Y",
+                            AutomaticCanvasSize = "Y",
+                            CanvasSize = UDim2.new(0, 0, 0, 0),
+                            BackgroundTransparency = 1,
+                            ScrollBarImageTransparency = 0.5,
+                            BorderSizePixel = 0
+                        }, {
+                            an.UIElements.UIListLayout,
+                            ak("UIPadding", { PaddingRight = UDim.new(0, 6) }) -- Padding for scrollbar
+                        })
+                    })
+                })
+            })
 
-            local function RecalculateCanvasSize()
-                an.UIElements.Menu.Frame.ScrollingFrame.CanvasSize =
-                    UDim2.fromOffset(0, an.UIElements.UIListLayout.AbsoluteContentSize.Y)
-            end
+            -- The Floating Canvas
+            an.UIElements.MenuCanvas = ak("Frame", {
+                Size = UDim2.new(0, an.MenuWidth, 0, 0), -- Height animates
+                BackgroundTransparency = 1,
+                Visible = false,
+                Active = false,
+                Parent = am.WindUI.DropdownGui,
+                ZIndex = 1000
+            }, {
+                an.UIElements.Menu,
+                ak("UISizeConstraint", {
+                    MinSize = Vector2.new(170, 0),
+                    MaxSize = Vector2.new(300, 400)
+                }),
+                -- Drop Shadow
+                aj.NewRoundFrame(ao.MenuCorner + 5, "Squircle", {
+                    ZIndex = -1,
+                    Position = UDim2.new(0.5, 0, 0.5, 3),
+                    AnchorPoint = Vector2.new(0.5, 0.5),
+                    Size = UDim2.new(1, 10, 1, 10),
+                    ImageColor3 = Color3.fromRGB(0,0,0),
+                    ImageTransparency = 0.6
+                }, {
+                    ak("UICorner", {CornerRadius = UDim.new(0, 10)})
+                })
+            })
 
-            local function RecalculateListSize()
-                local as = ah.ViewportSize.Y * 0.6
+            local function RecalculateSize()
+                local contentSize = an.UIElements.UIListLayout.AbsoluteContentSize.Y
+                local padding = 16 -- Top/Bottom padding of menu
+                local searchH = (an.SearchBarEnabled and as) and (ao.SearchBarHeight + 8) or 0
+                
+                local totalHeight = contentSize + padding + searchH
+                local maxHeight = 300 
+                local finalHeight = math.min(totalHeight, maxHeight)
 
-                local at = an.UIElements.UIListLayout.AbsoluteContentSize.Y
-                local au = an.SearchBarEnabled and (ao.SearchBarHeight + (ao.MenuPadding * 3)) or (ao.MenuPadding * 2)
-                local av = (at) + au
-
-                if av > as then
-                    an.UIElements.MenuCanvas.Size = UDim2.fromOffset(an.UIElements.MenuCanvas.AbsoluteSize.X, as)
-                else
-                    an.UIElements.MenuCanvas.Size = UDim2.fromOffset(an.UIElements.MenuCanvas.AbsoluteSize.X, av)
-                end
+                -- Update Canvas Height Logic handled in UpdatePosition or Refresh
+                return finalHeight
             end
 
             function UpdatePosition()
-                local as = an.UIElements.Dropdown or an.DropdownFrame.UIElements.Main
-                local at = an.UIElements.MenuCanvas
+                if not an.Opened then return end
+                
+                local sourceObj = an.UIElements.Dropdown or an.DropdownFrame.UIElements.Main
+                if not sourceObj.Parent then return end
 
-                local au = ag.ViewportSize.Y - (as.AbsolutePosition.Y + as.AbsoluteSize.Y) - ao.MenuPadding - 54
-                local av = at.AbsoluteSize.Y + ao.MenuPadding
+                local screenHeight = ag.ViewportSize.Y
+                local menuHeight = an.UIElements.Menu.Frame.ContentContainer.ListHolder.ScrollingFrame.UIListLayout.AbsoluteContentSize.Y + 24
+                if an.SearchBarEnabled then menuHeight = menuHeight + ao.SearchBarHeight + 8 end
+                menuHeight = math.min(menuHeight, 300)
 
-                local aw = -54
-                if au < av then
-                    aw = av - au - 54
+                local dropY = sourceObj.AbsolutePosition.Y + sourceObj.AbsoluteSize.Y + 6
+                local upY = sourceObj.AbsolutePosition.Y - menuHeight - 6
+                
+                local posX = sourceObj.AbsolutePosition.X + sourceObj.AbsoluteSize.X
+
+                -- Intelligent Direction: Drop Up if not enough space Down
+                if dropY + menuHeight > screenHeight - 10 then
+                    -- Drop Up
+                    an.UIElements.MenuCanvas.AnchorPoint = Vector2.new(1, 1)
+                    an.UIElements.MenuCanvas.Position = UDim2.new(0, posX, 0, sourceObj.AbsolutePosition.Y - 6)
+                else
+                    -- Drop Down
+                    an.UIElements.MenuCanvas.AnchorPoint = Vector2.new(1, 0)
+                    an.UIElements.MenuCanvas.Position = UDim2.new(0, posX, 0, dropY)
                 end
-
-                at.Position =
-                    UDim2.new(
-                    0,
-                    as.AbsolutePosition.X + as.AbsoluteSize.X,
-                    0,
-                    as.AbsolutePosition.Y + as.AbsoluteSize.Y - aw + (ao.MenuPadding * 2)
-                )
+                
+                -- Animate Size
+                al(an.UIElements.MenuCanvas, 0.25, { Size = UDim2.new(0, an.MenuWidth, 0, menuHeight) }, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
             end
 
-            local as
+            local as -- SearchBar Instance
 
             function ar.Display(at)
+                if not an.UIElements.Dropdown then return end
+                
+                local label = an.UIElements.Dropdown.Frame.Frame.TextLabel
                 local au = an.Values
-                local av = ""
+                local displayStr = "Select..."
 
                 if an.Multi then
-                    local aw = {}
+                    local count = 0
+                    local firstItem = nil
+                    
                     if typeof(an.Value) == "table" then
-                        for ax, ay in ipairs(an.Value) do
-                            local az = typeof(ay) == "table" and ay.Title or ay
-                            aw[az] = true
+                        for _, v in ipairs(an.Value) do
+                            local vName = typeof(v) == "table" and v.Title or v
+                            if not firstItem then firstItem = vName end
+                            count = count + 1
                         end
                     end
 
-                    for ax, ay in ipairs(au) do
-                        local az = typeof(ay) == "table" and ay.Title or ay
-                        if aw[az] then
-                            av = av .. az .. ", "
-                        end
-                    end
-
-                    if #av > 0 then
-                        av = av:sub(1, #av - 2)
+                    if count == 0 then
+                        displayStr = an.AllowNone and "None" or "Select..."
+                    elseif count == 1 then
+                        displayStr = firstItem
+                    elseif count > 1 then
+                        displayStr = firstItem .. " + " .. (count - 1) .. " more"
                     end
                 else
-                    av = typeof(an.Value) == "table" and an.Value.Title or an.Value or ""
+                    displayStr = typeof(an.Value) == "table" and an.Value.Title or an.Value or "None"
                 end
 
-                if an.UIElements.Dropdown then
-                    an.UIElements.Dropdown.Frame.Frame.TextLabel.Text = (av == "" and "--" or av)
-                end
+                if displayStr == "" then displayStr = "None" end
+                
+                -- Text fade effect for update
+                al(label, 0.1, {TextTransparency = 1}, Enum.EasingStyle.Linear, Enum.EasingDirection.Out):Play()
+                task.wait(0.1)
+                label.Text = displayStr
+                al(label, 0.1, {TextTransparency = (an.UIElements.Dropdown.Parent and 0 or 0.4)}, Enum.EasingStyle.Linear, Enum.EasingDirection.Out):Play()
             end
 
             local function Callback(at)
                 ar:Display()
                 if an.Callback then
-                    task.spawn(
-                        function()
-                            aj.SafeCallback(an.Callback, an.Value)
-                        end
-                    )
-                else
-                    task.spawn(
-                        function()
-                            aj.SafeCallback(at)
-                        end
-                    )
+                    task.spawn(function()
+                        aj.SafeCallback(an.Callback, an.Value)
+                    end)
                 end
             end
 
-            function ar.LockValues(at, au)
-                if not au then
-                    return
-                end
-
-                for av, aw in next, an.Tabs do
-                    if aw and aw.UIElements and aw.UIElements.TabItem then
-                        local ax = aw.Name
-                        local ay = false
-
-                        for az, aA in next, au do
-                            if ax == aA then
-                                ay = true
-                                break
-                            end
-                        end
-
-                        if ay then
-                            al(aw.UIElements.TabItem, 0.1, {ImageTransparency = 1}):Play()
-                            al(aw.UIElements.TabItem.Highlight, 0.1, {ImageTransparency = 1}):Play()
-                            al(aw.UIElements.TabItem.Frame.Title.TextLabel, 0.1, {TextTransparency = 0.6}):Play()
-                            if aw.UIElements.TabIcon then
-                                al(aw.UIElements.TabIcon.ImageLabel, 0.1, {ImageTransparency = 0.6}):Play()
-                            end
-
-                            aw.UIElements.TabItem.Active = false
-                            aw.Locked = true
-                        else
-                            if aw.Selected then
-                                al(aw.UIElements.TabItem, 0.1, {ImageTransparency = 0.95}):Play()
-                                al(aw.UIElements.TabItem.Highlight, 0.1, {ImageTransparency = 0.75}):Play()
-                                al(aw.UIElements.TabItem.Frame.Title.TextLabel, 0.1, {TextTransparency = 0}):Play()
-                                if aw.UIElements.TabIcon then
-                                    al(aw.UIElements.TabIcon.ImageLabel, 0.1, {ImageTransparency = 0}):Play()
-                                end
-                            else
-                                al(aw.UIElements.TabItem, 0.1, {ImageTransparency = 1}):Play()
-                                al(aw.UIElements.TabItem.Highlight, 0.1, {ImageTransparency = 1}):Play()
-                                al(
-                                    aw.UIElements.TabItem.Frame.Title.TextLabel,
-                                    0.1,
-                                    {TextTransparency = aq == "Dropdown" and 0.4 or 0.05}
-                                ):Play()
-                                if aw.UIElements.TabIcon then
-                                    al(
-                                        aw.UIElements.TabIcon.ImageLabel,
-                                        0.1,
-                                        {ImageTransparency = aq == "Dropdown" and 0.2 or 0}
-                                    ):Play()
-                                end
-                            end
-
-                            aw.UIElements.TabItem.Active = true
-                            aw.Locked = false
-                        end
-                    end
-                end
-            end
-
+            -- Main function to populate the list
             function ar.Refresh(at, au)
-                for av, aw in next, an.UIElements.Menu.Frame.ScrollingFrame:GetChildren() do
-                    if not aw:IsA "UIListLayout" then
-                        aw:Destroy()
-                    end
+                -- Clear old
+                for _, obj in next, an.UIElements.Menu.Frame.ContentContainer.ListHolder.ScrollingFrame:GetChildren() do
+                    if not obj:IsA("UIListLayout") and not obj:IsA("UIPadding") then obj:Destroy() end
                 end
 
                 an.Tabs = {}
 
+                -- Handle Search Bar
                 if an.SearchBarEnabled then
                     if not as then
-                        as =
-                            ai(
-                            "Search...",
-                            "search",
-                            an.UIElements.Menu,
-                            nil,
-                            function(ax)
-                                for ay, az in next, an.Tabs do
-                                    if string.find(string.lower(az.Name), string.lower(ax), 1, true) then
-                                        az.UIElements.TabItem.Visible = true
-                                    else
-                                        az.UIElements.TabItem.Visible = false
-                                    end
-                                    RecalculateListSize()
-                                    RecalculateCanvasSize()
+                        -- Using the library's Input builder, customized
+                        as = ai("Search...", "search", an.UIElements.Menu.Frame.ContentContainer, "Input", function(text)
+                            for _, tabData in next, an.Tabs do
+                                if string.find(string.lower(tabData.Name), string.lower(text), 1, true) then
+                                    tabData.UIElements.TabItem.Visible = true
+                                else
+                                    tabData.UIElements.TabItem.Visible = false
                                 end
-                            end,
-                            true
-                        )
-                        as.Size = UDim2.new(1, 0, 0, ao.SearchBarHeight)
-                        as.Position = UDim2.new(0, 0, 0, 0)
-                        as.Name = "SearchBar"
+                            end
+                            local sH = an.UIElements.Menu.Frame.ContentContainer.ListHolder.ScrollingFrame.UIListLayout.AbsoluteContentSize.Y
+                            an.UIElements.Menu.Frame.ContentContainer.ListHolder.ScrollingFrame.CanvasSize = UDim2.fromOffset(0, sH)
+                        end, nil, 8, true)
+                        
+                        as.Size = UDim2.new(1, 0, 0, 32) -- Compact Search
+                        as.LayoutOrder = 1
                     end
+                    -- Update size of ListHolder based on Search presence
+                    an.UIElements.Menu.Frame.ContentContainer.ListHolder.Size = UDim2.new(1,0,1, -(32 + 8))
+                else
+                    an.UIElements.Menu.Frame.ContentContainer.ListHolder.Size = UDim2.new(1,0,1,0)
                 end
 
-                for ax, ay in next, au do
-                    if (ay.Type ~= "Divider") then
-                        local az = {
-                            Name = typeof(ay) == "table" and ay.Title or ay,
-                            Desc = typeof(ay) == "table" and ay.Desc or nil,
-                            Icon = typeof(ay) == "table" and ay.Icon or nil,
-                            Original = ay,
+                -- Create Items
+                for idx, val in next, au do
+                    if (val.Type ~= "Divider") then
+                        local itemData = {
+                            Name = typeof(val) == "table" and val.Title or val,
+                            Icon = typeof(val) == "table" and val.Icon or nil,
+                            Original = val,
                             Selected = false,
-                            Locked = typeof(ay) == "table" and ay.Locked or false,
+                            Locked = typeof(val) == "table" and val.Locked or false,
                             UIElements = {}
                         }
-                        local aA
-                        if az.Icon then
-                            aA = aj.Image(az.Icon, az.Icon, 0, am.Window.Folder, "Dropdown", true)
-                            aA.Size = UDim2.new(0, ao.TabIcon, 0, ao.TabIcon)
-                            aA.ImageLabel.ImageTransparency = aq == "Dropdown" and .2 or 0
-                            az.UIElements.TabIcon = aA
-                        end
-                        az.UIElements.TabItem =
-                            aj.NewRoundFrame(
-                            ao.MenuCorner - ao.MenuPadding,
-                            "Squircle",
-                            {
-                                Size = UDim2.new(1, 0, 0, 36),
-                                AutomaticSize = az.Desc and "Y",
-                                ImageTransparency = 1,
-                                Parent = an.UIElements.Menu.Frame.ScrollingFrame,
-                                ImageColor3 = Color3.new(1, 1, 1),
-                                Active = not az.Locked
-                            },
-                            {
-                                aj.NewRoundFrame(
-                                    ao.MenuCorner - ao.MenuPadding,
-                                    "SquircleOutline",
-                                    {
-                                        Size = UDim2.new(1, 0, 1, 0),
-                                        ImageColor3 = Color3.new(1, 1, 1),
-                                        ImageTransparency = 1,
-                                        Name = "Highlight"
-                                    },
-                                    {
-                                        ak(
-                                            "UIGradient",
-                                            {
-                                                Rotation = 80,
-                                                Color = ColorSequence.new {
-                                                    ColorSequenceKeypoint.new(0.0, Color3.fromRGB(255, 255, 255)),
-                                                    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
-                                                    ColorSequenceKeypoint.new(1.0, Color3.fromRGB(255, 255, 255))
-                                                },
-                                                Transparency = NumberSequence.new {
-                                                    NumberSequenceKeypoint.new(0.0, 0.1),
-                                                    NumberSequenceKeypoint.new(0.5, 1),
-                                                    NumberSequenceKeypoint.new(1.0, 0.1)
-                                                }
-                                            }
-                                        )
-                                    }
-                                ),
-                                ak(
-                                    "Frame",
-                                    {
-                                        Size = UDim2.new(1, 0, 1, 0),
-                                        BackgroundTransparency = 1
-                                    },
-                                    {
-                                        ak(
-                                            "UIListLayout",
-                                            {
-                                                Padding = UDim.new(0, ao.TabPadding),
-                                                FillDirection = "Horizontal",
-                                                VerticalAlignment = "Center"
-                                            }
-                                        ),
-                                        ak(
-                                            "UIPadding",
-                                            {
-                                                PaddingTop = UDim.new(0, ao.TabPadding),
-                                                PaddingLeft = UDim.new(0, ao.TabPadding),
-                                                PaddingRight = UDim.new(0, ao.TabPadding),
-                                                PaddingBottom = UDim.new(0, ao.TabPadding)
-                                            }
-                                        ),
-                                        ak(
-                                            "UICorner",
-                                            {
-                                                CornerRadius = UDim.new(0, ao.MenuCorner - ao.MenuPadding)
-                                            }
-                                        ),
-                                        aA,
-                                        ak(
-                                            "Frame",
-                                            {
-                                                Size = UDim2.new(1, aA and -ao.TabPadding - ao.TabIcon or 0, 0, 0),
-                                                BackgroundTransparency = 1,
-                                                AutomaticSize = "Y",
-                                                Name = "Title"
-                                            },
-                                            {
-                                                ak(
-                                                    "TextLabel",
-                                                    {
-                                                        Text = az.Name,
-                                                        TextXAlignment = "Left",
-                                                        FontFace = Font.new(aj.Font, Enum.FontWeight.Medium),
-                                                        ThemeTag = {
-                                                            TextColor3 = "Text",
-                                                            BackgroundColor3 = "Text"
-                                                        },
-                                                        TextSize = 15,
-                                                        BackgroundTransparency = 1,
-                                                        TextTransparency = aq == "Dropdown" and .4 or .05,
-                                                        LayoutOrder = 999,
-                                                        AutomaticSize = "Y",
-                                                        Size = UDim2.new(1, 0, 0, 0)
-                                                    }
-                                                ),
-                                                ak(
-                                                    "TextLabel",
-                                                    {
-                                                        Text = az.Desc or "",
-                                                        TextXAlignment = "Left",
-                                                        FontFace = Font.new(aj.Font, Enum.FontWeight.Regular),
-                                                        ThemeTag = {
-                                                            TextColor3 = "Text",
-                                                            BackgroundColor3 = "Text"
-                                                        },
-                                                        TextSize = 15,
-                                                        BackgroundTransparency = 1,
-                                                        TextTransparency = aq == "Dropdown" and .6 or .35,
-                                                        LayoutOrder = 999,
-                                                        AutomaticSize = "Y",
-                                                        TextWrapped = true,
-                                                        Size = UDim2.new(1, 0, 0, 0),
-                                                        Visible = az.Desc and true or false,
-                                                        Name = "Desc"
-                                                    }
-                                                ),
-                                                ak(
-                                                    "UIListLayout",
-                                                    {
-                                                        Padding = UDim.new(0, ao.TabPadding / 3),
-                                                        FillDirection = "Vertical"
-                                                    }
-                                                )
-                                            }
-                                        )
-                                    }
-                                )
-                            },
-                            true
-                        )
 
-                        if az.Locked then
-                            az.UIElements.TabItem.Frame.Title.TextLabel.TextTransparency = 0.6
-                            if az.UIElements.TabIcon then
-                                az.UIElements.TabIcon.ImageLabel.ImageTransparency = 0.6
+                        -- Selection Check
+                        if an.Multi and typeof(an.Value) == "table" then
+                            for _, v in ipairs(an.Value) do
+                                local vName = typeof(v) == "table" and v.Title or v
+                                if vName == itemData.Name then itemData.Selected = true; break end
                             end
-                        end
-
-                        if an.Multi and typeof(an.Value) == "string" then
-                            for aB, aC in next, an.Values do
-                                if typeof(aC) == "table" then
-                                    if aC.Title == an.Value then
-                                        an.Value = {aC}
-                                    end
-                                else
-                                    if aC == an.Value then
-                                        an.Value = {an.Value}
-                                    end
-                                end
-                            end
-                        end
-
-                        if an.Multi then
-                            local aB = false
-                            if typeof(an.Value) == "table" then
-                                for aC, aD in ipairs(an.Value) do
-                                    local aE = typeof(aD) == "table" and aD.Title or aD
-                                    if aE == az.Name then
-                                        aB = true
-                                        break
-                                    end
-                                end
-                            end
-                            az.Selected = aB
                         else
-                            local aB = typeof(an.Value) == "table" and an.Value.Title or an.Value
-                            az.Selected = aB == az.Name
+                            local vName = typeof(an.Value) == "table" and an.Value.Title or an.Value
+                            itemData.Selected = vName == itemData.Name
                         end
 
-                        if az.Selected and not az.Locked then
-                            az.UIElements.TabItem.ImageTransparency = .95
-                            az.UIElements.TabItem.Highlight.ImageTransparency = .75
-                            az.UIElements.TabItem.Frame.Title.TextLabel.TextTransparency = 0
-                            if az.UIElements.TabIcon then
-                                az.UIElements.TabIcon.ImageLabel.ImageTransparency = 0
+                        -- Item Frame
+                        local tabItem = aj.NewRoundFrame(6, "Squircle", {
+                            Size = UDim2.new(1, -2, 0, 32), -- Standard Height
+                            BackgroundTransparency = 1,
+                            Parent = an.UIElements.Menu.Frame.ContentContainer.ListHolder.ScrollingFrame,
+                            ThemeTag = { ImageColor3 = itemData.Selected and "Accent" or "Background" },
+                            ImageTransparency = 1, -- Hover/Select control manually
+                            Active = not itemData.Locked,
+                            LayoutOrder = idx
+                        })
+
+                        itemData.UIElements.TabItem = tabItem
+
+                        -- Layout within Item
+                        local itemLayout = ak("UIListLayout", {
+                            FillDirection = "Horizontal",
+                            VerticalAlignment = "Center",
+                            Padding = UDim.new(0, 10),
+                            SortOrder = "LayoutOrder"
+                        })
+                        itemLayout.Parent = tabItem
+
+                        ak("UIPadding", {
+                            PaddingLeft = UDim.new(0, 10),
+                            PaddingRight = UDim.new(0, 10),
+                            Parent = tabItem
+                        })
+
+                        -- Check/Dot Indicator
+                        local indicatorContainer = ak("Frame", {
+                            Size = UDim2.new(0, 14, 0, 14),
+                            BackgroundTransparency = 1,
+                            LayoutOrder = 0,
+                        }, {
+                            aj.NewRoundFrame(4, an.Multi and "Squircle" or "Squircle", {
+                                Size = UDim2.new(1, 0, 1, 0),
+                                ThemeTag = { ImageColor3 = "Text" }, -- Outline color
+                                ImageTransparency = 0.8 
+                            }),
+                            ak("Frame", {
+                                Name = "Fill",
+                                Size = UDim2.new(0, 0, 0, 0), -- Scale up when selected
+                                Position = UDim2.new(0.5,0,0.5,0),
+                                AnchorPoint = Vector2.new(0.5,0.5),
+                                ThemeTag = { BackgroundColor3 = "Accent" },
+                                BackgroundTransparency = 0,
+                            }, { ak("UICorner", {CornerRadius = UDim.new(0,3)}) })
+                        })
+                        indicatorContainer.Parent = tabItem
+
+                        -- Text
+                        local titleLabel = ak("TextLabel", {
+                            Text = itemData.Name,
+                            FontFace = Font.new(aj.Font, Enum.FontWeight.Medium),
+                            TextSize = 14,
+                            ThemeTag = { TextColor3 = itemData.Selected and "Accent" or "Text" },
+                            BackgroundTransparency = 1,
+                            TextXAlignment = "Left",
+                            AutomaticSize = "XY",
+                            LayoutOrder = 2
+                        })
+                        titleLabel.Parent = tabItem
+
+                        -- Initial State Visuals
+                        if itemData.Selected then
+                            indicatorContainer.Fill.Size = UDim2.new(1, -4, 1, -4)
+                            tabItem.ImageTransparency = 0.92
+                            tabItem.ThemeTag = {ImageColor3 = "Accent"}
+                            aj.UpdateTheme(tabItem)
+                        end
+
+                        -- Icon?
+                        if itemData.Icon then
+                            local iconObj = aj.Image(itemData.Icon, nil, 0, am.Window.Folder, "Dropdown", true)
+                            iconObj.Size = UDim2.new(0, 16, 0, 16)
+                            iconObj.LayoutOrder = 1
+                            iconObj.ImageLabel.ImageTransparency = 0.2
+                            iconObj.Parent = tabItem
+                        end
+
+                        -- Interaction
+                        aj.AddSignal(tabItem.MouseEnter, function()
+                            if not itemData.Selected then
+                                al(tabItem, 0.15, {ImageTransparency = 0.95}):Play()
+                                tabItem.ThemeTag = {ImageColor3 = "Text"}
+                                aj.UpdateTheme(tabItem)
                             end
-                        end
-
-                        an.Tabs[ax] = az
-
-                        ar:Display()
-
-                        if aq == "Dropdown" then
-                            aj.AddSignal(
-                                az.UIElements.TabItem.MouseButton1Click,
-                                function()
-                                    if az.Locked then
-                                        return
-                                    end
-
-                                    if an.Multi then
-                                        if not az.Selected then
-                                            az.Selected = true
-                                            al(az.UIElements.TabItem, 0.1, {ImageTransparency = .95}):Play()
-                                            al(az.UIElements.TabItem.Highlight, 0.1, {ImageTransparency = .75}):Play()
-                                            al(az.UIElements.TabItem.Frame.Title.TextLabel, 0.1, {TextTransparency = 0}):Play(
-
-                                            )
-                                            if az.UIElements.TabIcon then
-                                                al(az.UIElements.TabIcon.ImageLabel, 0.1, {ImageTransparency = 0}):Play(
-
-                                                )
-                                            end
-                                            table.insert(an.Value, az.Original)
-                                        else
-                                            if not an.AllowNone and #an.Value == 1 then
-                                                return
-                                            end
-                                            az.Selected = false
-                                            al(az.UIElements.TabItem, 0.1, {ImageTransparency = 1}):Play()
-                                            al(az.UIElements.TabItem.Highlight, 0.1, {ImageTransparency = 1}):Play()
-                                            al(
-                                                az.UIElements.TabItem.Frame.Title.TextLabel,
-                                                0.1,
-                                                {TextTransparency = .4}
-                                            ):Play()
-                                            if az.UIElements.TabIcon then
-                                                al(az.UIElements.TabIcon.ImageLabel, 0.1, {ImageTransparency = .2}):Play(
-
-                                                )
-                                            end
-
-                                            for aB, aC in next, an.Value do
-                                                if typeof(aC) == "table" and (aC.Title == az.Name) or (aC == az.Name) then
-                                                    table.remove(an.Value, aB)
-                                                    break
-                                                end
-                                            end
-                                        end
-                                    else
-                                        for aB, aC in next, an.Tabs do
-                                            al(aC.UIElements.TabItem, 0.1, {ImageTransparency = 1}):Play()
-                                            al(aC.UIElements.TabItem.Highlight, 0.1, {ImageTransparency = 1}):Play()
-                                            al(
-                                                aC.UIElements.TabItem.Frame.Title.TextLabel,
-                                                0.1,
-                                                {TextTransparency = .4}
-                                            ):Play()
-                                            if aC.UIElements.TabIcon then
-                                                al(aC.UIElements.TabIcon.ImageLabel, 0.1, {ImageTransparency = .2}):Play(
-
-                                                )
-                                            end
-                                            aC.Selected = false
-                                        end
-                                        az.Selected = true
-                                        al(az.UIElements.TabItem, 0.1, {ImageTransparency = .95}):Play()
-                                        al(az.UIElements.TabItem.Highlight, 0.1, {ImageTransparency = .75}):Play()
-                                        al(az.UIElements.TabItem.Frame.Title.TextLabel, 0.1, {TextTransparency = 0}):Play(
-
-                                        )
-                                        if az.UIElements.TabIcon then
-                                            al(az.UIElements.TabIcon.ImageLabel, 0.1, {ImageTransparency = 0}):Play()
-                                        end
-                                        an.Value = az.Original
-                                    end
-                                    Callback()
-                                end
-                            )
-                        elseif aq == "Menu" then
-                            if not az.Locked then
-                                aj.AddSignal(
-                                    az.UIElements.TabItem.MouseEnter,
-                                    function()
-                                        al(az.UIElements.TabItem, 0.08, {ImageTransparency = .95}):Play()
-                                    end
-                                )
-                                aj.AddSignal(
-                                    az.UIElements.TabItem.InputEnded,
-                                    function()
-                                        al(az.UIElements.TabItem, 0.08, {ImageTransparency = 1}):Play()
-                                    end
-                                )
+                        end)
+                        aj.AddSignal(tabItem.MouseLeave, function()
+                            if not itemData.Selected then
+                                al(tabItem, 0.2, {ImageTransparency = 1}):Play()
                             end
-                            aj.AddSignal(
-                                az.UIElements.TabItem.MouseButton1Click,
-                                function()
-                                    if az.Locked then
-                                        return
-                                    end
-                                    Callback(
-                                        ay.Callback or function()
-                                            end
-                                    )
-                                end
-                            )
-                        end
+                        end)
 
-                        RecalculateCanvasSize()
-                        RecalculateListSize()
-                    else
-                        a.load "I":New {Parent = an.UIElements.Menu.Frame.ScrollingFrame}
+                        -- Click Logic
+                        aj.AddSignal(tabItem.MouseButton1Click, function()
+                            if itemData.Locked then return end
+
+                            local isNowSelected = false
+
+                            if an.Multi then
+                                if not itemData.Selected then
+                                    itemData.Selected = true
+                                    table.insert(an.Value, itemData.Original)
+                                else
+                                    -- Deselect logic
+                                    if not an.AllowNone and #an.Value == 1 then return end -- Keep at least one if required
+                                    itemData.Selected = false
+                                    for i, v in ipairs(an.Value) do
+                                        local vName = typeof(v) == "table" and v.Title or v
+                                        if vName == itemData.Name then
+                                            table.remove(an.Value, i)
+                                            break
+                                        end
+                                    end
+                                end
+                                isNowSelected = itemData.Selected
+                            else
+                                -- Single Select
+                                if itemData.Selected and not an.AllowNone then return end -- Already selected
+                                
+                                -- Deselect others
+                                for _, otherTab in next, an.Tabs do
+                                    otherTab.Selected = false
+                                    -- Visual Reset Other
+                                    al(otherTab.UIElements.TabItem, 0.2, {ImageTransparency = 1}):Play()
+                                    al(otherTab.UIElements.TabItem:FindFirstChild("TextLabel", true), 0.2, {TextColor3 = Color3.fromRGB(200,200,200)}):Play() -- Approx Text color
+                                    al(otherTab.UIElements.TabItem:FindFirstChild("Fill", true), 0.2, {Size = UDim2.new(0,0,0,0)}):Play()
+                                end
+
+                                itemData.Selected = true
+                                an.Value = itemData.Original
+                                isNowSelected = true
+                            end
+
+                            -- Animate Selection Visuals
+                            local targetSize = isNowSelected and UDim2.new(1,-4,1,-4) or UDim2.new(0,0,0,0)
+                            local targetBG = isNowSelected and 0.92 or 0.95
+                            
+                            al(indicatorContainer.Fill, 0.2, {Size = targetSize}, Enum.EasingStyle.Back, Enum.EasingDirection.Out):Play()
+                            
+                            if isNowSelected then
+                                tabItem.ThemeTag = {ImageColor3 = "Accent"}
+                                aj.UpdateTheme(tabItem)
+                                aj.AddThemeObject(titleLabel, {TextColor3 = "Accent"})
+                                aj.UpdateTheme(titleLabel)
+                                al(tabItem, 0.15, {ImageTransparency = 0.9}):Play()
+                            else
+                                tabItem.ThemeTag = {ImageColor3 = "Text"}
+                                aj.UpdateTheme(tabItem)
+                                aj.AddThemeObject(titleLabel, {TextColor3 = "Text"})
+                                aj.UpdateTheme(titleLabel)
+                            end
+
+                            Callback()
+                            if not an.Multi then ar:Close() end
+                        end)
+
+                        an.Tabs[idx] = itemData
                     end
                 end
-
-                local az = an.MenuWidth or 0
-                if az == 0 then
-                    for aA, aB in next, an.Tabs do
-                        if aB.UIElements.TabItem.Frame.UIListLayout then
-                            az = math.max(az, aB.UIElements.TabItem.Frame.UIListLayout.AbsoluteContentSize.X)
-                        end
-                    end
-                end
-
-                an.UIElements.MenuCanvas.Size =
-                    UDim2.new(
-                    0,
-                    az + 6 + 6 + 5 + 5 + 18 + 6 + 6,
-                    an.UIElements.MenuCanvas.Size.Y.Scale,
-                    an.UIElements.MenuCanvas.Size.Y.Offset
-                )
-                Callback()
-
+                
+                -- Fix sizes
+                local contentH = an.UIElements.Menu.Frame.ContentContainer.ListHolder.ScrollingFrame.UIListLayout.AbsoluteContentSize.Y
+                an.UIElements.Menu.Frame.ContentContainer.ListHolder.ScrollingFrame.CanvasSize = UDim2.fromOffset(0, contentH + 10)
+                
                 an.Values = au
             end
 
             ar:Refresh(an.Values)
 
+            -- Public Methods
             function ar.Select(at, au)
                 if au then
                     an.Value = au
                 else
-                    if an.Multi then
-                        an.Value = {}
-                    else
-                        an.Value = nil
-                    end
+                    an.Value = an.Multi and {} or nil
                 end
                 ar:Refresh(an.Values)
             end
 
-            RecalculateListSize()
-            RecalculateCanvasSize()
-
             function ar.Open(at)
                 if ap then
-                    an.UIElements.Menu.Visible = true
                     an.UIElements.MenuCanvas.Visible = true
                     an.UIElements.MenuCanvas.Active = true
-                    an.UIElements.Menu.Size = UDim2.new(1, 0, 0, 0)
-                    al(
-                        an.UIElements.Menu,
-                        0.1,
-                        {
-                            Size = UDim2.new(1, 0, 1, 0),
-                            ImageTransparency = 0.05
-                        },
-                        Enum.EasingStyle.Quart,
-                        Enum.EasingDirection.Out
-                    ):Play()
-
-                    task.spawn(
-                        function()
-                            task.wait(.1)
-                            an.Opened = true
-                        end
-                    )
-
-                    UpdatePosition()
+                    an.UIElements.Menu.ImageTransparency = 0.05 -- Nearly Opaque
+                    
+                    -- Reset visuals
+                    al(an.UIElements.Menu, 0.2, {ImageTransparency = 0.05}):Play()
+                    
+                    task.spawn(function()
+                        an.Opened = true
+                        UpdatePosition() -- Animate opening here
+                    end)
                 end
             end
 
             function ar.Close(at)
                 an.Opened = false
-
-                al(
-                    an.UIElements.Menu,
-                    0.25,
-                    {
-                        Size = UDim2.new(1, 0, 0, 0),
-                        ImageTransparency = 1
-                    },
-                    Enum.EasingStyle.Quart,
-                    Enum.EasingDirection.Out
-                ):Play()
-
-                task.spawn(
-                    function()
-                        task.wait(.1)
-                        an.UIElements.Menu.Visible = false
-                    end
-                )
-
-                task.spawn(
-                    function()
-                        task.wait(.25)
+                
+                -- Animate Closed
+                al(an.UIElements.MenuCanvas, 0.2, {Size = UDim2.new(0, an.MenuWidth, 0, 0)}, Enum.EasingStyle.Quint, Enum.EasingDirection.In):Play()
+                
+                task.delay(0.2, function()
+                    if not an.Opened then
                         an.UIElements.MenuCanvas.Visible = false
                         an.UIElements.MenuCanvas.Active = false
                     end
-                )
+                end)
             end
 
-            aj.AddSignal(
-                (an.UIElements.Dropdown and an.UIElements.Dropdown.MouseButton1Click or
-                    an.DropdownFrame.UIElements.Main.MouseButton1Click),
-                function()
-                    ar:Open()
-                end
-            )
+            -- Interactions
+            aj.AddSignal((an.UIElements.Dropdown and an.UIElements.Dropdown.MouseButton1Click or an.DropdownFrame.UIElements.Main.MouseButton1Click), function()
+                if an.Opened then ar:Close() else ar:Open() end
+            end)
 
-            aj.AddSignal(
-                ae.InputBegan,
-                function(at)
-                    if
-                        at.UserInputType == Enum.UserInputType.MouseButton1 or
-                            at.UserInputType == Enum.UserInputType.Touch
-                     then
-                        local au = an.UIElements.MenuCanvas
-                        local av, aw = au.AbsolutePosition, au.AbsoluteSize
+            -- Click-Off to close
+            aj.AddSignal(ae.InputBegan, function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                    if an.Opened then
+                        local menu = an.UIElements.MenuCanvas
+                        local drop = an.UIElements.Dropdown or an.DropdownFrame.UIElements.Main
+                        
+                        -- Logic to check bounds. If outside menu AND outside button, close.
+                        local mPos, mSize = menu.AbsolutePosition, menu.AbsoluteSize
+                        local dPos, dSize = drop.AbsolutePosition, drop.AbsoluteSize
+                        local mX, mY = af.X, af.Y
 
-                        local ax = an.UIElements.Dropdown or an.DropdownFrame.UIElements.Main
-                        local ay = ax.AbsolutePosition
-                        local az = ax.AbsoluteSize
+                        local inMenu = (mX >= mPos.X and mX <= mPos.X + mSize.X) and (mY >= mPos.Y and mY <= mPos.Y + mSize.Y)
+                        local inDrop = (mX >= dPos.X and mX <= dPos.X + dSize.X) and (mY >= dPos.Y and mY <= dPos.Y + dSize.Y)
 
-                        local aA = af.X >= ay.X and af.X <= ay.X + az.X and af.Y >= ay.Y and af.Y <= ay.Y + az.Y
-
-                        local aB = af.X >= av.X and af.X <= av.X + aw.X and af.Y >= av.Y and af.Y <= av.Y + aw.Y
-
-                        if am.Window.CanDropdown and an.Opened and not aA and not aB then
+                        if not inMenu and not inDrop then
                             ar:Close()
                         end
                     end
                 end
-            )
+            end)
 
-            aj.AddSignal(
-                an.UIElements.Dropdown and an.UIElements.Dropdown:GetPropertyChangedSignal "AbsolutePosition" or
-                    an.DropdownFrame.UIElements.Main:GetPropertyChangedSignal "AbsolutePosition",
-                UpdatePosition
-            )
+            aj.AddSignal(an.UIElements.Dropdown and an.UIElements.Dropdown:GetPropertyChangedSignal("AbsolutePosition") or an.DropdownFrame.UIElements.Main:GetPropertyChangedSignal("AbsolutePosition"), function()
+                if an.Opened then UpdatePosition() end
+            end)
 
             return ar
         end
 
         return aa
     end
+
     function a.K()
-        local aa = (cloneref or clonereference or function(aa)
-                return aa
-            end)
+        local aa = (cloneref or clonereference or function(aa) return aa end)
 
-        aa(game:GetService "UserInputService")
-        aa(game:GetService "Players").LocalPlayer:GetMouse()
-        local ac = aa(game:GetService "Workspace").CurrentCamera
+        aa(game:GetService("UserInputService"))
+        aa(game:GetService("Players")).LocalPlayer:GetMouse()
+        local ac = aa(game:GetService("Workspace")).CurrentCamera
 
-        local ae = a.load "b"
+        local ae = a.load("b")
         local af = ae.New
         local ag = ae.Tween
 
-        local ah = a.load "t".New
-        local ai = a.load "k".New
-        local aj = a.load "J".New
+        local ah = a.load("t").New
+        local ai = a.load("k").New
+        local aj = a.load("J").New -- Uses the new Logic
         local ak = workspace.CurrentCamera
 
         local al = {
             UICorner = 10,
             UIPadding = 12,
-            MenuCorner = 15,
+            MenuCorner = 14,
             MenuPadding = 5,
             TabPadding = 10,
-            SearchBarHeight = 39,
+            SearchBarHeight = 36,
             TabIcon = 18
         }
 
@@ -9145,7 +8897,7 @@ do
                 Desc = an.Desc or nil,
                 Locked = an.Locked or false,
                 Values = an.Values or {},
-                MenuWidth = an.MenuWidth,
+                MenuWidth = an.MenuWidth or (an.Width and an.Width or 150),
                 Value = an.Value,
                 AllowNone = an.AllowNone,
                 SearchBarEnabled = an.SearchBarEnabled or false,
@@ -9154,22 +8906,20 @@ do
                 UIElements = {},
                 Opened = false,
                 Tabs = {},
-                Width = 150
+                Width = an.Width or 150
             }
 
-            if ao.Multi and not ao.Value then
-                ao.Value = {}
-            end
+            if ao.Multi and not ao.Value then ao.Value = {} end
 
             local ap = true
 
-            ao.DropdownFrame =
-                a.load "z" {
+            -- Frame Wrapper
+            ao.DropdownFrame = a.load("z"){
                 Title = ao.Title,
                 Desc = ao.Desc,
                 Parent = an.Parent,
                 TextOffset = ao.Callback and ao.Width or 20,
-                Hover = not ao.Callback and true or false,
+                Hover = not ao.Callback,
                 Tab = an.Tab,
                 Index = an.Index,
                 Window = an.Window,
@@ -9178,18 +8928,20 @@ do
             }
 
             if ao.Callback then
-                ao.UIElements.Dropdown =
-                    ah("", nil, ao.DropdownFrame.UIElements.Main, nil, an.Window.NewElements and 12 or 10)
-
+                -- Input-Style Trigger
+                ao.UIElements.Dropdown = ah("", nil, ao.DropdownFrame.UIElements.Main, nil, an.Window.NewElements and 12 or 10)
                 ao.UIElements.Dropdown.Frame.Frame.TextLabel.TextTruncate = "AtEnd"
-                ao.UIElements.Dropdown.Frame.Frame.TextLabel.Size =
-                    UDim2.new(1, ao.UIElements.Dropdown.Frame.Frame.TextLabel.Size.X.Offset - 18 - 12 - 12, 0, 0)
+                
+                -- Resize text to fit icon
+                local txtLbl = ao.UIElements.Dropdown.Frame.Frame.TextLabel
+                txtLbl.Size = UDim2.new(1, -28, 0, 0)
 
                 ao.UIElements.Dropdown.Size = UDim2.new(0, ao.Width, 0, 36)
                 ao.UIElements.Dropdown.Position = UDim2.new(1, 0, an.Window.NewElements and 0 or 0.5, 0)
                 ao.UIElements.Dropdown.AnchorPoint = Vector2.new(1, an.Window.NewElements and 0 or 0.5)
             end
 
+            -- Logic Module
             ao.DropdownMenu = aj(an, ao, al, ap, "Dropdown")
 
             ao.Display = ao.DropdownMenu.Display
@@ -9198,21 +8950,18 @@ do
             ao.Open = ao.DropdownMenu.Open
             ao.Close = ao.DropdownMenu.Close
 
-            af(
-                "ImageLabel",
-                {
-                    Image = ae.Icon "chevrons-up-down"[1],
-                    ImageRectOffset = ae.Icon "chevrons-up-down"[2].ImageRectPosition,
-                    ImageRectSize = ae.Icon "chevrons-up-down"[2].ImageRectSize,
-                    Size = UDim2.new(0, 18, 0, 18),
-                    Position = UDim2.new(1, ao.UIElements.Dropdown and -12 or 0, 0.5, 0),
-                    ThemeTag = {
-                        ImageColor3 = "Icon"
-                    },
-                    AnchorPoint = Vector2.new(1, 0.5),
-                    Parent = ao.UIElements.Dropdown and ao.UIElements.Dropdown.Frame or ao.DropdownFrame.UIElements.Main
-                }
-            )
+            -- Chevron Icon on Trigger
+            af("ImageLabel", {
+                Image = ae.Icon("chevrons-up-down")[1],
+                ImageRectOffset = ae.Icon("chevrons-up-down")[2].ImageRectPosition,
+                ImageRectSize = ae.Icon("chevrons-up-down")[2].ImageRectSize,
+                Size = UDim2.new(0, 16, 0, 16),
+                Position = UDim2.new(1, ao.UIElements.Dropdown and -12 or 0, 0.5, 0),
+                ThemeTag = { ImageColor3 = "Icon" },
+                ImageTransparency = 0.4,
+                AnchorPoint = Vector2.new(1, 0.5),
+                Parent = ao.UIElements.Dropdown and ao.UIElements.Dropdown.Frame or ao.DropdownFrame.UIElements.Main
+            })
 
             function ao.Lock(aq)
                 ao.Locked = true
@@ -9225,9 +8974,7 @@ do
                 return ao.DropdownFrame:Unlock()
             end
 
-            if ao.Locked then
-                ao:Lock()
-            end
+            if ao.Locked then ao:Lock() end
 
             return ao.__type, ao
         end
@@ -12120,390 +11867,206 @@ do
             end
         }
     end
-    function a.U()
-        local aa = (cloneref or clonereference or function(aa)
-                return aa
-            end)
+        function a.U()
+        local ac = {}
 
-        aa(game:GetService "UserInputService")
-        local ae = game.Players.LocalPlayer:GetMouse()
+        local ae = a.load "b"
+        local ag = ae.New
+        local ai = ae.Tween
 
-        local af = a.load "b"
-        local ah = af.New
-        local aj = af.Tween
+        local aj = a.load "T"
 
-        local ak = a.load "y".New
-        local al = a.load "u".New
-
-        local am = {
-            Tabs = {},
-            Containers = {},
-            SelectedTab = nil,
-            TabCount = 0,
-            ToolTipParent = nil,
-            TabHighlight = nil,
-            OnChangeFunc = function(am)
-            end
-        }
-
-        function am.Init(an, ao, ap, aq)
-            Window = an
-            WindUI = ao
-            am.ToolTipParent = ap
-            am.TabHighlight = aq
-            return am
-        end
-
-        function am.New(an, ao)
+        function ac.New(ak, al, am, an, ao)
             local ap = {
-                __type = "Tab",
-                Title = an.Title or "Tab",
-                Desc = an.Desc,
-                Icon = an.Icon,
-                IconColor = an.IconColor,
-                IconShape = an.IconShape,
-                IconThemed = an.IconThemed,
-                Badge = an.Badge, -- Added Badge Support
-                Locked = an.Locked,
-                ShowTabTitle = an.ShowTabTitle,
-                Selected = false,
-                Index = nil,
-                Parent = an.Parent,
-                UIElements = {},
-                Elements = {},
-                ContainerFrame = nil,
-                UICorner = Window.UICorner - (Window.UIPadding / 2),
-                Gap = Window.NewElements and 6 or 8,
-                TabPaddingX = 8 + (Window.UIPadding / 2),
-                TabPaddingY = 5 + (Window.UIPadding / 2),
-                TitlePaddingY = 0
+                Title = ak.Title or "Section",
+                Icon = ak.Icon,
+                IconThemed = ak.IconThemed,
+                Opened = ak.Opened or false,
+                HeaderSize = 42,
+                IconSize = 18,
+                Expandable = false
             }
 
-            am.TabCount = am.TabCount + 1
-            local aq = am.TabCount
-            ap.Index = aq
+            local aq
+            if ap.Icon then
+                aq = ae.Image(ap.Icon, ap.Icon, 0, am, "Section", true, ap.IconThemed)
 
-            -- Advanced: Active Pill Indicator (The colored line on the left)
-            local activePill = af.NewRoundFrame(4, "Squircle", {
-                Size = UDim2.new(0, 3, 0, 16),
-                Position = UDim2.new(0, 4, 0.5, 0),
-                AnchorPoint = Vector2.new(0, 0.5),
-                ThemeTag = {ImageColor3 = "Accent"},
-                ImageTransparency = 1, -- Hidden by default
-                ZIndex = 3
-            })
-
-            -- Advanced: Notification Badge Frame
-            local badgeFrame
-            if ap.Badge then
-                badgeFrame = af.NewRoundFrame(4, "Squircle", {
-                    AutomaticSize = Enum.AutomaticSize.X,
-                    Size = UDim2.new(0, 0, 0, 18),
-                    ThemeTag = {ImageColor3 = "Accent"},
-                    ImageTransparency = 0.2
-                }, {
-                    ah("TextLabel", {
-                        Text = tostring(ap.Badge),
-                        TextColor3 = Color3.new(1,1,1),
-                        TextSize = 11,
-                        FontFace = Font.new(af.Font, Enum.FontWeight.Bold),
-                        BackgroundTransparency = 1,
-                        AutomaticSize = Enum.AutomaticSize.XY,
-                        Size = UDim2.new(0, 0, 1, 0)
-                    }),
-                    ah("UIPadding", {
-                        PaddingLeft = UDim.new(0, 6),
-                        PaddingRight = UDim.new(0, 6)
-                    })
-                })
+                aq.Size = UDim2.new(0, ap.IconSize, 0, ap.IconSize)
+                aq.ImageLabel.ImageTransparency = .25
             end
 
-            ap.UIElements.Main = af.NewRoundFrame(
-                ap.UICorner,
-                "Squircle",
+            local ar =
+                ag(
+                "Frame",
                 {
+                    Size = UDim2.new(0, ap.IconSize, 0, ap.IconSize),
                     BackgroundTransparency = 1,
-                    Size = UDim2.new(1, -4, 0, 0), -- Slightly tighter to sidebar edge
-                    AutomaticSize = "Y",
-                    Parent = an.Parent,
-                    ThemeTag = { ImageColor3 = "TabBackground" }, -- Will be mostly transparent until active
-                    ImageTransparency = 1
+                    Visible = false
                 },
                 {
-                    -- Subtle Background Glow when Active
-                    ah("UIGradient", {
-                        Transparency = NumberSequence.new{
-                            NumberSequenceKeypoint.new(0, 0.9), 
-                            NumberSequenceKeypoint.new(1, 1)
-                        },
-                        Rotation = 0,
-                        Color = ColorSequence.new(Color3.new(1,1,1))
-                    }),
-                    
-                    af.NewRoundFrame(
-                        ap.UICorner,
-                        "Squircle",
+                    ag(
+                        "ImageLabel",
                         {
-                            Size = UDim2.new(1, 0, 0, 0),
-                            AutomaticSize = "Y",
-                            ThemeTag = { ImageColor3 = "Text" }, -- Just for text structure parent
-                            ImageTransparency = 1,
-                            Name = "ContentFrame"
-                        },
-                        {
-                            ah("UIListLayout", {
-                                SortOrder = "LayoutOrder",
-                                Padding = UDim.new(0, 10),
-                                FillDirection = "Horizontal",
-                                VerticalAlignment = "Center"
-                            }),
-                            ah("UIPadding", {
-                                PaddingTop = UDim.new(0, 10),
-                                PaddingLeft = UDim.new(0, 12),
-                                PaddingRight = UDim.new(0, 12),
-                                PaddingBottom = UDim.new(0, 10)
-                            }),
-                            activePill, -- Inject Pill
-                            
-                            -- Tab Title
-                            ah("TextLabel", {
-                                Name = "TitleLabel",
-                                Text = ap.Title,
-                                ThemeTag = { TextColor3 = "Text" },
-                                TextTransparency = not ap.Locked and 0.45 or 0.7, -- UX: Starts dimmer
-                                TextSize = 15,
-                                Size = UDim2.new(1, badgeFrame and -25 or 0, 0, 0),
-                                FontFace = Font.new(af.Font, Enum.FontWeight.Medium),
-                                TextWrapped = true,
-                                RichText = true,
-                                AutomaticSize = "Y",
-                                LayoutOrder = 2,
-                                TextXAlignment = "Left",
-                                BackgroundTransparency = 1
-                            }),
-                            
-                            badgeFrame -- Inject Badge at the end (LayoutOrder handles it)
+                            Size = UDim2.new(1, 0, 1, 0),
+                            BackgroundTransparency = 1,
+                            Image = ae.Icon "chevron-down"[1],
+                            ImageRectSize = ae.Icon "chevron-down"[2].ImageRectSize,
+                            ImageRectOffset = ae.Icon "chevron-down"[2].ImageRectPosition,
+                            ThemeTag = {
+                                ImageColor3 = "Icon"
+                            },
+                            ImageTransparency = .7
                         }
                     )
-                },
-                true
+                }
             )
 
-            local titleLabel = ap.UIElements.Main.ContentFrame.TitleLabel
-            local iconObject
+            local as =
+                ag(
+                "Frame",
+                {
+                    Size = UDim2.new(1, 0, 0, ap.HeaderSize),
+                    BackgroundTransparency = 1,
+                    Parent = al,
+                    ClipsDescendants = true
+                },
+                {
+                    ag(
+                        "TextButton",
+                        {
+                            Size = UDim2.new(1, 0, 0, ap.HeaderSize),
+                            BackgroundTransparency = 1,
+                            Text = ""
+                        },
+                        {
+                            aq,
+                            ag(
+                                "TextLabel",
+                                {
+                                    Text = ap.Title,
+                                    TextXAlignment = "Left",
+                                    Size = UDim2.new(1, aq and (-ap.IconSize - 10) * 2 or (-ap.IconSize - 10), 1, 0),
+                                    ThemeTag = {
+                                        TextColor3 = "Text"
+                                    },
+                                    FontFace = Font.new(ae.Font, Enum.FontWeight.SemiBold),
+                                    TextSize = 14,
+                                    BackgroundTransparency = 1,
+                                    TextTransparency = .7,
+                                    TextWrapped = true
+                                }
+                            ),
+                            ag(
+                                "UIListLayout",
+                                {
+                                    FillDirection = "Horizontal",
+                                    VerticalAlignment = "Center",
+                                    Padding = UDim.new(0, 10)
+                                }
+                            ),
+                            ar,
+                            ag(
+                                "UIPadding",
+                                {
+                                    PaddingLeft = UDim.new(0, 11),
+                                    PaddingRight = UDim.new(0, 11)
+                                }
+                            )
+                        }
+                    ),
+                    ag(
+                        "Frame",
+                        {
+                            BackgroundTransparency = 1,
+                            Size = UDim2.new(1, 0, 0, 0),
+                            AutomaticSize = "Y",
+                            Name = "Content",
+                            Visible = true,
+                            Position = UDim2.new(0, 0, 0, ap.HeaderSize)
+                        },
+                        {
+                            ag(
+                                "UIListLayout",
+                                {
+                                    FillDirection = "Vertical",
+                                    Padding = UDim.new(0, ao.Gap),
+                                    VerticalAlignment = "Bottom"
+                                }
+                            )
+                        }
+                    )
+                }
+            )
 
-            -- Improved Icon Handling
-            if ap.Icon then
-                iconObject = af.Image(
-                    ap.Icon,
-                    ap.Icon .. ":" .. ap.Title,
-                    0,
-                    Window.Folder,
-                    ap.__type,
-                    true, -- Usually monochrome so we can tint it
-                    false -- No explicit theme logic here, handled manually for UX
+            function ap.Tab(at, au)
+                if not ap.Expandable then
+                    ap.Expandable = true
+                    ar.Visible = true
+                end
+                au.Parent = as.Content
+                return aj.New(au, an)
+            end
+
+            function ap.Open(at)
+                if ap.Expandable then
+                    ap.Opened = true
+                    ai(
+                        as,
+                        0.33,
+                        {
+                            Size = UDim2.new(1, 0, 0, ap.HeaderSize + (as.Content.AbsoluteSize.Y / an))
+                        },
+                        Enum.EasingStyle.Quint,
+                        Enum.EasingDirection.Out
+                    ):Play()
+
+                    ai(ar.ImageLabel, 0.1, {Rotation = 180}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
+                end
+            end
+            function ap.Close(at)
+                if ap.Expandable then
+                    ap.Opened = false
+                    ai(
+                        as,
+                        0.26,
+                        {
+                            Size = UDim2.new(1, 0, 0, ap.HeaderSize)
+                        },
+                        Enum.EasingStyle.Quint,
+                        Enum.EasingDirection.Out
+                    ):Play()
+                    ai(ar.ImageLabel, 0.1, {Rotation = 0}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
+                end
+            end
+
+            ae.AddSignal(
+                as.TextButton.MouseButton1Click,
+                function()
+                    if ap.Expandable then
+                        if ap.Opened then
+                            ap:Close()
+                        else
+                            ap:Open()
+                        end
+                    end
+                end
+            )
+
+            if ap.Opened then
+                task.spawn(
+                    function()
+                        task.wait()
+                        ap:Open()
+                    end
                 )
-                iconObject.Size = UDim2.new(0, 18, 0, 18) -- Slightly larger for modern look
-                iconObject.Parent = ap.UIElements.Main.ContentFrame
-                iconObject.LayoutOrder = 1 -- Put before text (0 is pill)
-                
-                -- UX: Icons start transparent/grey, turn Accent color on Select
-                iconObject.ImageLabel.ImageTransparency = 0.4
-                af.AddThemeObject(iconObject.ImageLabel, {ImageColor3 = "Icon"}) 
-                
-                ap.UIElements.Icon = iconObject
             end
-
-            -- UX: Move Badge to right if it exists
-            if badgeFrame then 
-                badgeFrame.LayoutOrder = 3
-                badgeFrame.Parent = ap.UIElements.Main.ContentFrame
-            end
-
-            -- Logic for moving the Title Size to accommodate icon
-            local sizeOffset = 0
-            if ap.Icon then sizeOffset = sizeOffset - 28 end
-            if ap.Badge then sizeOffset = sizeOffset - 30 end
-            titleLabel.Size = UDim2.new(1, sizeOffset, 0, 0)
-
-
-            -- Container Logic (Standard WindUI Scrollframe)
-            ap.UIElements.ContainerFrame = ah("ScrollingFrame", {
-                Size = UDim2.new(1, 0, 1, ap.ShowTabTitle and -((Window.UIPadding * 2.4) + 12) or 0),
-                BackgroundTransparency = 1,
-                ScrollBarThickness = 0,
-                ElasticBehavior = "Never",
-                CanvasSize = UDim2.new(0, 0, 0, 0),
-                AnchorPoint = Vector2.new(0, 1),
-                Position = UDim2.new(0, 0, 1, 0),
-                AutomaticCanvasSize = "Y",
-                ScrollingDirection = "Y"
-            }, {
-                ah("UIPadding", {
-                    PaddingTop = UDim.new(0, 14), -- UX: More breathing room
-                    PaddingLeft = UDim.new(0, 14),
-                    PaddingRight = UDim.new(0, 14),
-                    PaddingBottom = UDim.new(0, 14)
-                }),
-                ah("UIListLayout", {
-                    SortOrder = "LayoutOrder",
-                    Padding = UDim.new(0, ap.Gap),
-                    HorizontalAlignment = "Center"
-                })
-            })
-
-            -- The Frame holding the content
-            ap.UIElements.ContainerFrameCanvas = ah("Frame", {
-                Size = UDim2.new(1, 0, 1, 0),
-                BackgroundTransparency = 1,
-                Visible = false,
-                Parent = Window.UIElements.MainBar,
-                ZIndex = 5
-            }, {
-                ap.UIElements.ContainerFrame
-                -- Optional Tab Title in Header (Preserved from original)
-            })
-
-            am.Containers[aq] = ap.UIElements.ContainerFrameCanvas
-            am.Tabs[aq] = ap
-            ap.ContainerFrame = ContainerFrameCanvas
-
-            -- ----------------------------------------------------
-            -- INTERACTION EVENTS (UX Upgrade)
-            -- ----------------------------------------------------
-
-            -- Click
-            af.AddSignal(ap.UIElements.Main.MouseButton1Click, function()
-                if not ap.Locked then am:SelectTab(aq) end
-            end)
-
-            if Window.ScrollBarEnabled then
-                al(ap.UIElements.ContainerFrame, ap.UIElements.ContainerFrameCanvas, Window, 3)
-            end
-
-            -- Hover Effect (Slide & Tint)
-            af.AddSignal(ap.UIElements.Main.MouseEnter, function()
-                if not ap.Locked and not ap.Selected then
-                    -- Slight shift to right
-                    aj(ap.UIElements.Main.ContentFrame.UIPadding, 0.25, {PaddingLeft = UDim.new(0, 16)}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
-                    
-                    -- Highlight Background slightly
-                    aj(ap.UIElements.Main, 0.25, {ImageTransparency = 0.96}):Play()
-                    
-                    -- Lighten text
-                    aj(titleLabel, 0.25, {TextTransparency = 0.2}):Play()
-                    if iconObject then aj(iconObject.ImageLabel, 0.25, {ImageTransparency = 0.2}):Play() end
-                end
-            end)
-
-            -- Hover End (Reset)
-            af.AddSignal(ap.UIElements.Main.InputEnded, function()
-                if not ap.Locked and not ap.Selected then
-                    -- Shift back
-                    aj(ap.UIElements.Main.ContentFrame.UIPadding, 0.25, {PaddingLeft = UDim.new(0, 12)}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
-                    
-                    -- Remove Highlight
-                    aj(ap.UIElements.Main, 0.25, {ImageTransparency = 1}):Play()
-                    
-                    -- Reset text
-                    aj(titleLabel, 0.25, {TextTransparency = 0.45}):Play()
-                    if iconObject then aj(iconObject.ImageLabel, 0.25, {ImageTransparency = 0.4}):Play() end
-                end
-            end)
-
-            local az = a.load "T"
-            az.Load(ap, ap.UIElements.ContainerFrame, az.Elements, Window, WindUI, nil, az, ao)
-
-            function ap.Select(aA) return am:SelectTab(ap.Index) end
 
             return ap
         end
 
-        function am.OnChange(an, ao)
-            am.OnChangeFunc = ao
-        end
-
-        -- Advanced Select Tab Logic
-        function am.SelectTab(an, tabIndex)
-            if not am.Tabs[tabIndex].Locked then
-                am.SelectedTab = tabIndex
-
-                -- Deselect Loop
-                for id, tab in next, am.Tabs do
-                    if not tab.Locked then
-                        tab.Selected = false
-                        
-                        -- Animate UI Reset
-                        local pill = tab.UIElements.Main.ContentFrame:FindFirstChild("Squircle") -- Find pill by shape/order or index 1
-                        
-                        aj(tab.UIElements.Main, 0.3, {ImageTransparency = 1}):Play()
-                        aj(tab.UIElements.Main.ContentFrame.TitleLabel, 0.3, {TextTransparency = 0.45}):Play()
-                        
-                        -- Reset Position
-                        aj(tab.UIElements.Main.ContentFrame.UIPadding, 0.3, {PaddingLeft = UDim.new(0, 12)}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
-
-                        if pill then -- Hide Active Pill
-                            aj(pill, 0.3, {ImageTransparency = 1, Size = UDim2.new(0, 3, 0, 10)}):Play()
-                        end
-
-                        if tab.UIElements.Icon then
-                            -- Revert Icon Color to standard Text/Icon theme
-                            af.UpdateTheme(tab.UIElements.Icon.ImageLabel) 
-                            af.AddThemeObject(tab.UIElements.Icon.ImageLabel, {ImageColor3 = "Icon"})
-                            aj(tab.UIElements.Icon.ImageLabel, 0.3, {ImageTransparency = 0.4}):Play()
-                        end
-                    end
-                end
-
-                -- Select Logic
-                local target = am.Tabs[tabIndex]
-                target.Selected = true
-                
-                local activePill = target.UIElements.Main.ContentFrame:FindFirstChild("Squircle")
-
-                -- Background Highlight
-                aj(target.UIElements.Main, 0.3, {ImageTransparency = 0.94}):Play() 
-                
-                -- Bold/Brighten Text
-                aj(target.UIElements.Main.ContentFrame.TitleLabel, 0.3, {TextTransparency = 0}):Play()
-                
-                -- Show Pill (Grow height)
-                if activePill then
-                    activePill.Size = UDim2.new(0, 3, 0, 8) -- Start Small
-                    aj(activePill, 0.35, {ImageTransparency = 0, Size = UDim2.new(0, 4, 0, 18)}, Enum.EasingStyle.Back, Enum.EasingDirection.Out):Play()
-                end
-
-                -- Tint Icon to Accent Color
-                if target.UIElements.Icon then
-                    af.AddThemeObject(target.UIElements.Icon.ImageLabel, {ImageColor3 = "Accent"})
-                    af.UpdateTheme(target.UIElements.Icon.ImageLabel)
-                    aj(target.UIElements.Icon.ImageLabel, 0.3, {ImageTransparency = 0}):Play()
-                end
-
-                -- Container Switch Animation (Slide Up + Fade)
-                task.spawn(function()
-                    for id, cont in next, am.Containers do
-                        if id ~= tabIndex then
-                            cont.Visible = false
-                            cont.Position = UDim2.new(0, 0, 0, 15) -- Push others down slightly
-                            cont.BackgroundTransparency = 1
-                        end
-                    end
-                    
-                    local activeCont = am.Containers[tabIndex]
-                    activeCont.Visible = true
-                    activeCont.Position = UDim2.new(0, 0, 0, 20) -- Start lower
-                    
-                    -- Slide Up
-                    aj(activeCont, 0.4, {Position = UDim2.new(0,0,0,0)}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
-                end)
-
-                am.OnChangeFunc(tabIndex)
-            end
-        end
-
-        return am
+        return ac
     end
+
     function a.V()
         local aa = {}
 
