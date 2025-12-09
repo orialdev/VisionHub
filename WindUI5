@@ -11144,7 +11144,7 @@ do
 
         return ah
     end
-function a.MS()
+    function a.MS()
         local aa = a.load "b"
         local ab = aa.New
         local ac = aa.Tween
@@ -11427,7 +11427,7 @@ function a.MS()
                 ab(
                 "Frame",
                 {
-                    Size = UDim2.new(1, 0, 0, 36 + 8), -- Height + top padding compensation
+                    Size = UDim2.new(1, 0, 0, 36 + 8),
                     BackgroundTransparency = 1,
                     Name = "NavBar",
                     Parent = contentHolder
@@ -11585,7 +11585,6 @@ function a.MS()
 
                 aa.AddSignal(pFrame.UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"), Resize)
 
-                -- Visual Pill Background (The Fill)
                 local pill =
                     ad(
                     8,
@@ -11594,12 +11593,11 @@ function a.MS()
                         Name = "Pill",
                         Size = UDim2.new(1, 0, 1, 0),
                         ThemeTag = {ImageColor3 = "Accent"},
-                        ImageTransparency = (i == 1 and 0 or 1), -- Active: Solid/Vis, Inactive: Transparent
+                        ImageTransparency = (i == 1 and 0 or 1),
                         ZIndex = 1
                     }
                 )
 
-                -- The Border (The Stroke)
                 local border =
                     ad(
                     8,
@@ -11607,8 +11605,8 @@ function a.MS()
                     {
                         Name = "Border",
                         Size = UDim2.new(1, 0, 1, 0),
-                        ThemeTag = {ImageColor3 = "Text"}, -- Matches text for inactive
-                        ImageTransparency = (i == 1 and 1 or 0.8), -- Active: Hidden (fill takes over), Inactive: Visible
+                        ThemeTag = {ImageColor3 = "Text"},
+                        ImageTransparency = (i == 1 and 1 or 0.8),
                         ZIndex = 2
                     }
                 )
@@ -11620,10 +11618,8 @@ function a.MS()
                     icon.LayoutOrder = 1
                     icon.Name = "BtnIcon"
 
-                    -- Text contrast: White on Active, Gray/Theme on Inactive
-                    local iconColor = i == 1 and "White" or "Text"
                     if i == 1 then
-                        icon.ImageLabel.ImageColor3 = Color3.new(1, 1, 1) -- Force white for contrast
+                        icon.ImageLabel.ImageColor3 = Color3.new(1, 1, 1)
                     else
                         aa.AddThemeObject(icon.ImageLabel, {ImageColor3 = "Text"})
                     end
@@ -11641,8 +11637,8 @@ function a.MS()
                         FontFace = Font.new(aa.Font, i == 1 and Enum.FontWeight.Bold or Enum.FontWeight.Medium),
                         TextSize = 14,
                         AutomaticSize = "XY",
-                        ThemeTag = {TextColor3 = "Text"}, -- Initial, overwritten by manual setting
-                        TextColor3 = i == 1 and Color3.new(1, 1, 1) or nil, -- Contrast for active
+                        ThemeTag = {TextColor3 = "Text"},
+                        TextColor3 = (i == 1 and Color3.new(1, 1, 1) or nil),
                         TextTransparency = (i == 1 and 0 or 0.4),
                         LayoutOrder = 2
                     }
@@ -11688,7 +11684,7 @@ function a.MS()
                     "TextButton",
                     {
                         Name = pName,
-                        Size = UDim2.new(0, 0, 0, 36), -- Increased height from 30
+                        Size = UDim2.new(0, 0, 0, 36),
                         AutomaticSize = "X",
                         BackgroundTransparency = 1,
                         Parent = navList
@@ -11706,10 +11702,10 @@ function a.MS()
                                         FillDirection = "Horizontal",
                                         VerticalAlignment = "Center",
                                         HorizontalAlignment = "Center",
-                                        Padding = UDim.new(0, 8) -- Increased padding between icon/text
+                                        Padding = UDim.new(0, 8)
                                     }
                                 ),
-                                ab("UIPadding", {PaddingLeft = UDim.new(0, 16), PaddingRight = UDim.new(0, 16)}), -- Increased click area
+                                ab("UIPadding", {PaddingLeft = UDim.new(0, 16), PaddingRight = UDim.new(0, 16)}),
                                 unpack(content)
                             }
                         )
@@ -11717,34 +11713,29 @@ function a.MS()
                 )
 
                 local function updateVisuals(isActive, isHover)
-                    -- Active: Accent Fill (Trans 0), No Border. White Text.
-                    -- Inactive: No Fill, Visible Border. Text Color.
                     local pillTrans = isActive and 0 or (isHover and 0.9 or 1)
                     local borderTrans = isActive and 1 or (isHover and 0.6 or 0.8)
 
                     ac(pill, 0.2, {ImageTransparency = pillTrans}):Play()
                     ac(border, 0.2, {ImageTransparency = borderTrans}):Play()
 
-                    -- Update Text Color
                     if isActive then
-                        -- For active state, we generally want contrast (White on Accent)
                         ac(lbl, 0.2, {TextColor3 = Color3.new(1, 1, 1), TextTransparency = 0}):Play()
                     else
-                        -- Revert to theme
-                        local themeCol = aa.GetThemeProperty("Text", aa.Theme) or Color3.new(1, 1, 1)
+                        local themeCol = (aa.Theme and aa.GetThemeProperty("Text", aa.Theme)) or Color3.fromRGB(200, 200, 200)
                         ac(lbl, 0.2, {TextColor3 = themeCol, TextTransparency = 0.4}):Play()
                     end
 
                     lbl.FontFace = Font.new(aa.Font, isActive and Enum.FontWeight.Bold or Enum.FontWeight.Medium)
 
-                    -- Update Icon
                     if sInfo.Icon then
                         local icon = btnContainer:FindFirstChild("BtnIcon", true)
                         if icon then
                             if isActive then
                                 ac(icon.ImageLabel, 0.2, {ImageColor3 = Color3.new(1, 1, 1), ImageTransparency = 0}):Play()
                             else
-                                local themeCol = aa.GetThemeProperty("Text", aa.Theme) or Color3.new(1, 1, 1)
+                                local themeCol =
+                                    (aa.Theme and aa.GetThemeProperty("Text", aa.Theme)) or Color3.fromRGB(200, 200, 200)
                                 ac(
                                     icon.ImageLabel,
                                     0.2,
@@ -11756,6 +11747,8 @@ function a.MS()
                 end
 
                 sectionData.SectionButtons[pName] = updateVisuals
+
+                updateVisuals(i == 1, false)
 
                 aa.AddSignal(
                     btnContainer.MouseButton1Click,
@@ -11774,14 +11767,12 @@ function a.MS()
 
                         local btnX =
                             btnContainer.AbsolutePosition.X - navList.AbsolutePosition.X + navList.CanvasPosition.X
+                        local offset = btnX - navList.AbsoluteSize.X / 2 + btnContainer.AbsoluteSize.X / 2
                         ac(
                             navList,
                             0.3,
                             {
-                                CanvasPosition = Vector2.new(
-                                    btnX - navList.AbsoluteSize.X / 2 + btnContainer.AbsoluteSize.X / 2,
-                                    0
-                                )
+                                CanvasPosition = Vector2.new(offset, 0)
                             }
                         ):Play()
 
@@ -11822,9 +11813,7 @@ function a.MS()
                     Enum.EasingStyle.Quint,
                     Enum.EasingDirection.Out
                 ):Play()
-                ac(divider, 0.25, {BackgroundTransparency = 0.85}, Enum.EasingStyle.Quad, Enum.EasingDirection.Out):Play(
-
-                )
+                ac(divider, 0.25, {BackgroundTransparency = 0.85}, Enum.EasingStyle.Quad, Enum.EasingDirection.Out):Play()
 
                 local themeAccent = aa.GetThemeProperty("Accent", aa.Theme)
                 if themeAccent then
@@ -11918,6 +11907,7 @@ function a.MS()
 
         return ae
     end
+
     function a.Q()
         local aa = a.load "b"
         local ae = aa.New
