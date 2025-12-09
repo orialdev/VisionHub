@@ -12176,11 +12176,11 @@ do
                 IconColor = an.IconColor,
                 IconShape = an.IconShape,
                 IconThemed = an.IconThemed,
-                Badge = an.Badge, -- Added Badge Support
+                Badge = an.Badge, -- Added Badge Property
                 Locked = an.Locked,
                 ShowTabTitle = an.ShowTabTitle,
                 Selected = false,
-                Visible = true, -- Added Visible State
+                Visible = (an.Visible == nil) and true or an.Visible, -- Added Visible State
                 Index = nil,
                 Parent = an.Parent,
                 UIElements = {},
@@ -12204,6 +12204,7 @@ do
             local aq = am.TabCount
             ap.Index = aq
 
+            -- Main Tab Button Frame
             ap.UIElements.Main =
                 af.NewRoundFrame(
                 ap.UICorner,
@@ -12216,7 +12217,8 @@ do
                     ThemeTag = {
                         ImageColor3 = "TabBackground"
                     },
-                    ImageTransparency = 1
+                    ImageTransparency = 1,
+                    Visible = ap.Visible
                 },
                 {
                     af.NewRoundFrame(
@@ -12280,15 +12282,15 @@ do
                                     },
                                     TextTransparency = not ap.Locked and 0.4 or .7,
                                     TextSize = 15,
-                                    Size = UDim2.new(1, 0, 0, 0), -- Size set dynamically later
+                                    Size = UDim2.new(1, 0, 0, 0),
                                     FontFace = Font.new(af.Font, Enum.FontWeight.Medium),
                                     TextWrapped = true,
-                                    TextTruncate = Enum.TextTruncate.AtEnd,
                                     RichText = true,
                                     AutomaticSize = "Y",
                                     LayoutOrder = 2,
                                     TextXAlignment = "Left",
                                     BackgroundTransparency = 1,
+                                    TextTruncate = Enum.TextTruncate.AtEnd,
                                     Name = "TextLabel"
                                 },
                                 {
@@ -12334,8 +12336,6 @@ do
                     "TabIcon"
                 )
                 as.Size = UDim2.new(0, 16, 0, 16)
-                as.Name = "Icon"
-                
                 if ap.IconColor then
                     as.ImageLabel.ImageColor3 = ap.IconColor
                 end
@@ -12344,7 +12344,7 @@ do
                     as.Parent = ap.UIElements.Main.Frame
                     ap.UIElements.Icon = as
                     as.ImageLabel.ImageTransparency = not ap.Locked and 0 or .7
-                    titleWidthOffset = titleWidthOffset - 18 - (Window.UIPadding / 2)
+                    titleWidthOffset = -18 - (Window.UIPadding / 2)
                 elseif ap.IconColor then
                     af.NewRoundFrame(
                         ap.IconShape ~= "Circle" and (ap.UICorner + 5 - (2 + (Window.UIPadding / 4))) or 9999,
@@ -12393,7 +12393,7 @@ do
                     as.Position = UDim2.new(0.5, 0, 0.5, 0)
                     as.ImageLabel.ImageTransparency = 0
                     as.ImageLabel.ImageColor3 = af.GetTextColorForHSB(ap.IconColor)
-                    titleWidthOffset = titleWidthOffset - 28 - (Window.UIPadding / 2)
+                    titleWidthOffset = -28 - (Window.UIPadding / 2)
                 end
 
                 au = af.Image(ap.Icon, ap.Icon .. ":" .. ap.Title, 0, Window.Folder, ap.__type, true, ap.IconThemed)
@@ -12401,36 +12401,47 @@ do
                 au.ImageLabel.ImageTransparency = not ap.Locked and 0 or .7
             end
 
-            -- Badge Creation
-            ap.UIElements.BadgeContainer = af.NewRoundFrame(
-                6, 
-                "Squircle", 
+            -- Initial offset set
+            ap.UIElements.Main.Frame.TextLabel.Size = UDim2.new(1, titleWidthOffset, 0, 0)
+
+            -- Badge Component
+            ap.UIElements.BadgeContainer =
+                af.NewRoundFrame(
+                6,
+                "Squircle",
                 {
                     AutomaticSize = Enum.AutomaticSize.XY,
-                    ThemeTag = { ImageColor3 = "Accent" },
+                    ThemeTag = {ImageColor3 = "Accent"},
                     Parent = ap.UIElements.Main.Frame,
                     Visible = false,
                     LayoutOrder = 3
-                }, 
+                },
                 {
-                    ah("UIPadding", {
-                        PaddingLeft = UDim.new(0,6), 
-                        PaddingRight = UDim.new(0,6),
-                        PaddingTop = UDim.new(0,2),
-                        PaddingBottom = UDim.new(0,2)
-                    }),
-                    ah("TextLabel", {
-                        Text = "",
-                        TextColor3 = Color3.fromRGB(255,255,255),
-                        TextSize = 11,
-                        BackgroundTransparency = 1,
-                        FontFace = Font.new(af.Font, Enum.FontWeight.Bold),
-                        AutomaticSize = Enum.AutomaticSize.XY,
-                        Name = "TextLabel"
-                    })
+                    ah(
+                        "UIPadding",
+                        {
+                            PaddingLeft = UDim.new(0, 6),
+                            PaddingRight = UDim.new(0, 6),
+                            PaddingTop = UDim.new(0, 2),
+                            PaddingBottom = UDim.new(0, 2)
+                        }
+                    ),
+                    ah(
+                        "TextLabel",
+                        {
+                            Text = "",
+                            TextColor3 = Color3.fromRGB(255, 255, 255),
+                            TextSize = 11,
+                            BackgroundTransparency = 1,
+                            FontFace = Font.new(af.Font, Enum.FontWeight.Bold),
+                            AutomaticSize = Enum.AutomaticSize.XY,
+                            Name = "TextLabel"
+                        }
+                    )
                 }
             )
 
+            -- Resize title to ensure text doesn't overlap badge
             local function RecalculateTitleSize()
                 local extra = titleWidthOffset
                 if ap.UIElements.BadgeContainer.Visible then
@@ -12439,7 +12450,6 @@ do
                 ap.UIElements.Main.Frame.TextLabel.Size = UDim2.new(1, extra, 0, 0)
             end
 
-            -- Main Content
             ap.UIElements.ContainerFrame =
                 ah(
                 "ScrollingFrame",
@@ -12555,7 +12565,9 @@ do
 
             ap.ContainerFrame = ContainerFrameCanvas
 
-            -- Badge Methods
+            -- ===== [ NEW METHODS START ] ===== --
+
+            -- Set the Badge text (e.g. "New" or "1")
             function ap.SetBadge(s, val)
                 ap.Badge = val
                 if not val or val == "" then
@@ -12564,41 +12576,44 @@ do
                     ap.UIElements.BadgeContainer.Visible = true
                     ap.UIElements.BadgeContainer.TextLabel.Text = tostring(val)
                 end
-                task.wait()
-                RecalculateTitleSize()
+                -- Delay to allow frame calculation before resizing text
+                task.delay(0.05, RecalculateTitleSize)
             end
 
-            -- Visible Methods
+            -- Initialize Badge if present
+            if ap.Badge then
+                ap:SetBadge(ap.Badge)
+            else
+                task.delay(0.05, RecalculateTitleSize)
+            end
+
+            -- Show the tab button
             function ap.Show(s)
                 ap.Visible = true
                 ap.UIElements.Main.Visible = true
             end
 
+            -- Hide the tab button and switch tab if this one was selected
             function ap.Hide(s)
                 ap.Visible = false
                 ap.UIElements.Main.Visible = false
                 if ap.Selected then
-                    -- Switch to first available tab
-                    for i, t in pairs(am.Tabs) do
+                    -- Find another available tab
+                    for i, t in next, am.Tabs do
                         if t.Visible and not t.Locked and t.Index ~= ap.Index then
-                            t:Select()
+                            am:SelectTab(t.Index)
                             break
                         end
                     end
                 end
             end
 
-            -- Initialize Badge if provided
-            if ap.Badge then
-                ap:SetBadge(ap.Badge)
-            else
-                RecalculateTitleSize()
-            end
+            -- ===== [ NEW METHODS END ] ===== --
 
             af.AddSignal(
                 ap.UIElements.Main.MouseButton1Click,
                 function()
-                    if not ap.Locked then
+                    if not ap.Locked and ap.Visible then
                         am:SelectTab(aq)
                     end
                 end
@@ -12645,7 +12660,7 @@ do
             af.AddSignal(
                 ap.UIElements.Main.MouseEnter,
                 function()
-                    if not ap.Locked then
+                    if not ap.Locked and ap.Visible then
                         aj(ap.UIElements.Main.Frame, 0.08, {ImageTransparency = .97}):Play()
                     end
                 end
@@ -12669,7 +12684,7 @@ do
                         end
                     end
 
-                    if not ap.Locked then
+                    if not ap.Locked and ap.Visible then
                         aj(ap.UIElements.Main.Frame, 0.08, {ImageTransparency = 1}):Play()
                     end
                 end
@@ -12823,39 +12838,45 @@ do
         end
 
         function am.SelectTab(an, ao)
-            if not am.Tabs[ao].Locked and am.Tabs[ao].Visible then
+            if am.Tabs[ao] and not am.Tabs[ao].Locked and am.Tabs[ao].Visible then
                 am.SelectedTab = ao
 
+                -- Unselect all other tabs
                 for ap, aq in next, am.Tabs do
                     if not aq.Locked then
                         aj(aq.UIElements.Main, 0.15, {ImageTransparency = 1}):Play()
-
                         aj(aq.UIElements.Main.Frame.TextLabel, 0.15, {TextTransparency = 0.3}):Play()
+                        
                         if aq.UIElements.Icon and not aq.IconColor then
                             aj(aq.UIElements.Icon.ImageLabel, 0.15, {ImageTransparency = 0.4}):Play()
                         end
+                        -- Dim Badge if exists
                         if aq.UIElements.BadgeContainer then
-                             aj(aq.UIElements.BadgeContainer, 0.15, {ImageTransparency = 0.4}):Play()
-                             aj(aq.UIElements.BadgeContainer.TextLabel, 0.15, {TextTransparency = 0.4}):Play()
+                            aj(aq.UIElements.BadgeContainer, 0.15, {ImageTransparency = 0.4}):Play()
+                            aj(aq.UIElements.BadgeContainer.TextLabel, 0.15, {TextTransparency = 0.4}):Play()
                         end
                         aq.Selected = false
                     end
                 end
+
+                -- Highlight Active Tab
+                local active = am.Tabs[ao]
+                aj(active.UIElements.Main, 0.15, {ImageTransparency = 0.93}):Play()
+                aj(active.UIElements.Main.Frame.TextLabel, 0.15, {TextTransparency = 0}):Play()
                 
-                -- Highlight active tab
-                aj(am.Tabs[ao].UIElements.Main, 0.15, {ImageTransparency = 0.93}):Play()
-                aj(am.Tabs[ao].UIElements.Main.Frame.TextLabel, 0.15, {TextTransparency = 0}):Play()
-                
-                if am.Tabs[ao].UIElements.Icon and not am.Tabs[ao].IconColor then
-                    aj(am.Tabs[ao].UIElements.Icon.ImageLabel, 0.15, {ImageTransparency = 0.1}):Play()
+                if active.UIElements.Icon and not active.IconColor then
+                    aj(active.UIElements.Icon.ImageLabel, 0.15, {ImageTransparency = 0.1}):Play()
                 end
-                if am.Tabs[ao].UIElements.BadgeContainer then
-                     aj(am.Tabs[ao].UIElements.BadgeContainer, 0.15, {ImageTransparency = 0}):Play()
-                     aj(am.Tabs[ao].UIElements.BadgeContainer.TextLabel, 0.15, {TextTransparency = 0}):Play()
+                
+                -- Brighten Badge if exists
+                if active.UIElements.BadgeContainer then
+                    aj(active.UIElements.BadgeContainer, 0.15, {ImageTransparency = 0}):Play()
+                    aj(active.UIElements.BadgeContainer.TextLabel, 0.15, {TextTransparency = 0}):Play()
                 end
 
-                am.Tabs[ao].Selected = true
+                active.Selected = true
 
+                -- Switch Container View
                 task.spawn(
                     function()
                         for ar, as in next, am.Containers do
