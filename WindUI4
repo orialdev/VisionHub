@@ -11166,8 +11166,8 @@ function a.MS()
                 Box = true,
                 FontWeight = ag.FontWeight or Enum.FontWeight.SemiBold,
                 TextTransparency = ag.TextTransparency or 0,
-                HeaderSize = 50, -- Increased header size
-                IconSize = 22,   -- Increased icon size
+                HeaderSize = 46,
+                IconSize = 20,
                 Pages = {},
                 SectionButtons = {},
                 CurrentSection = nil,
@@ -11317,7 +11317,7 @@ function a.MS()
                 "Frame",
                 {
                     Name = "Divider",
-                    Size = UDim2.new(1, -30, 0, 1),
+                    Size = UDim2.new(1, -24, 0, 1),
                     Position = UDim2.new(0.5, 0, 0, sectionData.HeaderSize - 1),
                     AnchorPoint = Vector2.new(0.5, 0),
                     BackgroundTransparency = 1,
@@ -11378,20 +11378,9 @@ function a.MS()
                         "SquircleOutline",
                         {
                             Size = UDim2.new(1, 0, 1, 0),
-                            ImageTransparency = 0.8,
+                            ImageTransparency = 0.85,
                             ThemeTag = {ImageColor3 = "Text"},
                             Name = "Outline"
-                        }
-                    ),
-                    -- New Active Glow Border
-                    ad(
-                        ag.Window.ElementConfig.UICorner,
-                        "SquircleOutline",
-                        {
-                            Size = UDim2.new(1, 0, 1, 0),
-                            ImageTransparency = 1,
-                            ThemeTag = {ImageColor3 = "Accent"},
-                            Name = "ActiveOutline"
                         }
                     ),
                     ab(
@@ -11408,10 +11397,10 @@ function a.MS()
                             ab(
                                 "UIPadding",
                                 {
-                                    PaddingLeft = UDim.new(0, 16),
-                                    PaddingRight = UDim.new(0, 16),
-                                    PaddingTop = UDim.new(0, 12),
-                                    PaddingBottom = UDim.new(0, 12)
+                                    PaddingLeft = UDim.new(0, 14),
+                                    PaddingRight = UDim.new(0, 14),
+                                    PaddingTop = UDim.new(0, 10),
+                                    PaddingBottom = UDim.new(0, 10)
                                 }
                             ),
                             iconImg,
@@ -11438,7 +11427,7 @@ function a.MS()
                 ab(
                 "Frame",
                 {
-                    Size = UDim2.new(1, 0, 0, 44), -- Increased height for bigger buttons
+                    Size = UDim2.new(1, 0, 0, 36 + 8), -- Height + top padding compensation
                     BackgroundTransparency = 1,
                     Name = "NavBar",
                     Parent = contentHolder
@@ -11493,7 +11482,7 @@ function a.MS()
                     ab(
                         "UIPadding",
                         {
-                            PaddingTop = UDim.new(0, 12) -- Added space between tabs and content
+                            PaddingTop = UDim.new(0, 8)
                         }
                     )
                 }
@@ -11534,7 +11523,7 @@ function a.MS()
 
                 ac(
                     mainFrame,
-                    0.4, -- Slower transition
+                    0.35,
                     {Size = UDim2.new(1, 0, 0, totalH)},
                     Enum.EasingStyle.Quint,
                     Enum.EasingDirection.Out
@@ -11596,50 +11585,49 @@ function a.MS()
 
                 aa.AddSignal(pFrame.UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"), Resize)
 
-                local btnScale = ab("UIScale", {Scale = 1})
-
-                -- Improved Pill Background
+                -- Visual Pill Background (The Fill)
                 local pill =
                     ad(
-                    14, -- Larger Corner Radius
+                    8,
                     "Squircle",
                     {
                         Name = "Pill",
                         Size = UDim2.new(1, 0, 1, 0),
                         ThemeTag = {ImageColor3 = "Accent"},
-                        ImageTransparency = (i == 1 and 0.15 or 1),
+                        ImageTransparency = (i == 1 and 0 or 1), -- Active: Solid/Vis, Inactive: Transparent
                         ZIndex = 1
                     }
                 )
 
-                -- Outline for inactive state visual
-                local pillOutline =
+                -- The Border (The Stroke)
+                local border =
                     ad(
-                    14,
+                    8,
                     "SquircleOutline",
                     {
-                        Name = "Outline",
+                        Name = "Border",
                         Size = UDim2.new(1, 0, 1, 0),
-                        ThemeTag = {ImageColor3 = "Text"},
-                        ImageTransparency = (i == 1 and 1 or 0.85),
+                        ThemeTag = {ImageColor3 = "Text"}, -- Matches text for inactive
+                        ImageTransparency = (i == 1 and 1 or 0.8), -- Active: Hidden (fill takes over), Inactive: Visible
                         ZIndex = 2
                     }
                 )
-                pillOutline.Parent = pill.Parent -- Fix parenting logic usually done by ad wrapper
 
                 local content = {}
                 if sInfo.Icon then
                     local icon = aa.Image(sInfo.Icon, "Icon", 0, ag.Window.Folder, "Button", true)
-                    icon.Size = UDim2.new(0, 18, 0, 18) -- Bigger icons
+                    icon.Size = UDim2.new(0, 16, 0, 16)
                     icon.LayoutOrder = 1
                     icon.Name = "BtnIcon"
 
+                    -- Text contrast: White on Active, Gray/Theme on Inactive
+                    local iconColor = i == 1 and "White" or "Text"
                     if i == 1 then
-                        aa.AddThemeObject(icon.ImageLabel, {ImageColor3 = "WindowBackground"})
+                        icon.ImageLabel.ImageColor3 = Color3.new(1, 1, 1) -- Force white for contrast
                     else
                         aa.AddThemeObject(icon.ImageLabel, {ImageColor3 = "Text"})
-                        icon.ImageLabel.ImageTransparency = 0.4
                     end
+                    icon.ImageLabel.ImageTransparency = (i == 1 and 0 or 0.4)
 
                     table.insert(content, icon)
                 end
@@ -11651,19 +11639,23 @@ function a.MS()
                         Text = pName,
                         BackgroundTransparency = 1,
                         FontFace = Font.new(aa.Font, i == 1 and Enum.FontWeight.Bold or Enum.FontWeight.Medium),
-                        TextSize = 15,
+                        TextSize = 14,
                         AutomaticSize = "XY",
-                        ThemeTag = {TextColor3 = (i == 1 and "WindowBackground" or "Text")},
+                        ThemeTag = {TextColor3 = "Text"}, -- Initial, overwritten by manual setting
+                        TextColor3 = i == 1 and Color3.new(1, 1, 1) or nil, -- Contrast for active
                         TextTransparency = (i == 1 and 0 or 0.4),
                         LayoutOrder = 2
                     }
                 )
+                if i ~= 1 then
+                    aa.AddThemeObject(lbl, {TextColor3 = "Text"})
+                end
                 table.insert(content, lbl)
 
                 if sInfo.Badge then
                     local badge =
                         ad(
-                        6,
+                        4,
                         "Squircle",
                         {
                             AutomaticSize = "XY",
@@ -11675,7 +11667,7 @@ function a.MS()
                                 "TextLabel",
                                 {
                                     Text = tostring(sInfo.Badge),
-                                    TextSize = 11,
+                                    TextSize = 10,
                                     ThemeTag = {TextColor3 = (i == 1 and "Accent" or "WindowBackground")},
                                     FontFace = Font.new(aa.Font, Enum.FontWeight.Bold),
                                     AutomaticSize = "XY",
@@ -11696,18 +11688,17 @@ function a.MS()
                     "TextButton",
                     {
                         Name = pName,
-                        Size = UDim2.new(0, 0, 0, 36), -- 30 -> 36 Height
+                        Size = UDim2.new(0, 0, 0, 36), -- Increased height from 30
                         AutomaticSize = "X",
                         BackgroundTransparency = 1,
                         Parent = navList
                     },
                     {
-                        btnScale,
                         pill,
-                        pillOutline,
+                        border,
                         ab(
                             "Frame",
-                            {BackgroundTransparency = 1, AutomaticSize = "XY", Size = UDim2.new(0, 0, 1, 0), ZIndex = 2},
+                            {BackgroundTransparency = 1, AutomaticSize = "XY", Size = UDim2.new(0, 0, 1, 0), ZIndex = 3},
                             {
                                 ab(
                                     "UIListLayout",
@@ -11715,40 +11706,51 @@ function a.MS()
                                         FillDirection = "Horizontal",
                                         VerticalAlignment = "Center",
                                         HorizontalAlignment = "Center",
-                                        Padding = UDim.new(0, 8) -- Increased padding
+                                        Padding = UDim.new(0, 8) -- Increased padding between icon/text
                                     }
                                 ),
-                                ab("UIPadding", {PaddingLeft = UDim.new(0, 18), PaddingRight = UDim.new(0, 18)}),
+                                ab("UIPadding", {PaddingLeft = UDim.new(0, 16), PaddingRight = UDim.new(0, 16)}), -- Increased click area
                                 unpack(content)
                             }
                         )
                     }
                 )
 
-                -- Attach parent properly for new RoundFrame construction style
-                pillOutline.Parent = btnContainer
-
                 local function updateVisuals(isActive, isHover)
-                    local targetTrans = isActive and 0.15 or (isHover and 0.9 or 1)
-                    local outlineTrans = isActive and 1 or (isHover and 0.6 or 0.85)
+                    -- Active: Accent Fill (Trans 0), No Border. White Text.
+                    -- Inactive: No Fill, Visible Border. Text Color.
+                    local pillTrans = isActive and 0 or (isHover and 0.9 or 1)
+                    local borderTrans = isActive and 1 or (isHover and 0.6 or 0.8)
 
-                    ac(pill, 0.2, {ImageTransparency = targetTrans}):Play()
-                    ac(pillOutline, 0.2, {ImageTransparency = outlineTrans}):Play()
+                    ac(pill, 0.2, {ImageTransparency = pillTrans}):Play()
+                    ac(border, 0.2, {ImageTransparency = borderTrans}):Play()
 
-                    local fg = isActive and "WindowBackground" or "Text"
-                    local fgTrans = (isActive or isHover) and 0 or 0.4
-                    local fontW = isActive and Enum.FontWeight.Bold or Enum.FontWeight.Medium
+                    -- Update Text Color
+                    if isActive then
+                        -- For active state, we generally want contrast (White on Accent)
+                        ac(lbl, 0.2, {TextColor3 = Color3.new(1, 1, 1), TextTransparency = 0}):Play()
+                    else
+                        -- Revert to theme
+                        local themeCol = aa.GetThemeProperty("Text", aa.Theme) or Color3.new(1, 1, 1)
+                        ac(lbl, 0.2, {TextColor3 = themeCol, TextTransparency = 0.4}):Play()
+                    end
 
-                    lbl.FontFace = Font.new(aa.Font, fontW)
-                    aa.UpdateTheme(lbl)
-                    aa.AddThemeObject(lbl, {TextColor3 = fg})
-                    ac(lbl, 0.2, {TextTransparency = fgTrans}):Play()
+                    lbl.FontFace = Font.new(aa.Font, isActive and Enum.FontWeight.Bold or Enum.FontWeight.Medium)
 
+                    -- Update Icon
                     if sInfo.Icon then
                         local icon = btnContainer:FindFirstChild("BtnIcon", true)
                         if icon then
-                            aa.AddThemeObject(icon.ImageLabel, {ImageColor3 = fg})
-                            ac(icon.ImageLabel, 0.2, {ImageTransparency = fgTrans}):Play()
+                            if isActive then
+                                ac(icon.ImageLabel, 0.2, {ImageColor3 = Color3.new(1, 1, 1), ImageTransparency = 0}):Play()
+                            else
+                                local themeCol = aa.GetThemeProperty("Text", aa.Theme) or Color3.new(1, 1, 1)
+                                ac(
+                                    icon.ImageLabel,
+                                    0.2,
+                                    {ImageColor3 = themeCol, ImageTransparency = 0.4}
+                                ):Play()
+                            end
                         end
                     end
                 end
@@ -11758,27 +11760,6 @@ function a.MS()
                 aa.AddSignal(
                     btnContainer.MouseButton1Click,
                     function()
-                        -- Click scale animation
-                        ac(
-                            btnScale,
-                            0.15,
-                            {Scale = 0.95},
-                            Enum.EasingStyle.Quad,
-                            Enum.EasingDirection.Out
-                        ):Play()
-                        task.delay(
-                            0.15,
-                            function()
-                                ac(
-                                    btnScale,
-                                    0.25,
-                                    {Scale = 1},
-                                    Enum.EasingStyle.Back,
-                                    Enum.EasingDirection.Out
-                                ):Play()
-                            end
-                        )
-
                         if sectionData.CurrentSection == pName then
                             return
                         end
@@ -11795,15 +11776,13 @@ function a.MS()
                             btnContainer.AbsolutePosition.X - navList.AbsolutePosition.X + navList.CanvasPosition.X
                         ac(
                             navList,
-                            0.35, -- Slower smoothing
+                            0.3,
                             {
                                 CanvasPosition = Vector2.new(
                                     btnX - navList.AbsoluteSize.X / 2 + btnContainer.AbsoluteSize.X / 2,
                                     0
                                 )
-                            },
-                            Enum.EasingStyle.Quint,
-                            Enum.EasingDirection.Out
+                            }
                         ):Play()
 
                         task.defer(Resize)
@@ -11813,15 +11792,6 @@ function a.MS()
                 aa.AddSignal(
                     btnContainer.MouseEnter,
                     function()
-                        -- Hover scale up
-                        ac(
-                            btnScale,
-                            0.2,
-                            {Scale = 1.05},
-                            Enum.EasingStyle.Quad,
-                            Enum.EasingDirection.Out
-                        ):Play()
-
                         if sectionData.CurrentSection ~= pName then
                             updateVisuals(false, true)
                         end
@@ -11830,15 +11800,6 @@ function a.MS()
                 aa.AddSignal(
                     btnContainer.MouseLeave,
                     function()
-                        -- Reset scale
-                        ac(
-                            btnScale,
-                            0.2,
-                            {Scale = 1},
-                            Enum.EasingStyle.Quad,
-                            Enum.EasingDirection.Out
-                        ):Play()
-
                         if sectionData.CurrentSection ~= pName then
                             updateVisuals(false, false)
                         end
@@ -11854,24 +11815,13 @@ function a.MS()
                 sectionData.Opened = true
                 contentHolder.Visible = true
 
-                -- Add Main Header Active Glow
-                ac(
-                    mainFrame.ActiveOutline,
-                    0.3,
-                    {ImageTransparency = 0.5},
-                    Enum.EasingStyle.Quad,
-                    Enum.EasingDirection.Out
-                ):Play()
-
-                -- Animated Chevron with bouncy finish
                 ac(
                     chevron.Arrow,
-                    0.4,
+                    0.25,
                     {Rotation = 180, ImageTransparency = 0},
-                    Enum.EasingStyle.Back,
+                    Enum.EasingStyle.Quint,
                     Enum.EasingDirection.Out
                 ):Play()
-
                 ac(divider, 0.25, {BackgroundTransparency = 0.85}, Enum.EasingStyle.Quad, Enum.EasingDirection.Out):Play(
 
                 )
@@ -11886,19 +11836,9 @@ function a.MS()
 
             function sectionData.Close()
                 sectionData.Opened = false
-
-                -- Remove Glow
-                ac(
-                    mainFrame.ActiveOutline,
-                    0.25,
-                    {ImageTransparency = 1},
-                    Enum.EasingStyle.Quad,
-                    Enum.EasingDirection.Out
-                ):Play()
-
                 ac(
                     mainFrame,
-                    0.35, -- Slower
+                    0.3,
                     {Size = UDim2.new(1, 0, 0, sectionData.HeaderSize)},
                     Enum.EasingStyle.Quint,
                     Enum.EasingDirection.Out
@@ -11906,7 +11846,7 @@ function a.MS()
 
                 ac(
                     chevron.Arrow,
-                    0.35,
+                    0.25,
                     {Rotation = 0, ImageTransparency = 0.5},
                     Enum.EasingStyle.Quint,
                     Enum.EasingDirection.Out
@@ -11919,7 +11859,7 @@ function a.MS()
                 end
 
                 task.delay(
-                    0.35,
+                    0.3,
                     function()
                         if not sectionData.Opened then
                             contentHolder.Visible = false
@@ -11944,22 +11884,7 @@ function a.MS()
             aa.AddSignal(
                 mainFrame.Top.MouseEnter,
                 function()
-                    -- Subtle movement on header hover
-                    ac(
-                        mainFrame.Top.UIPadding,
-                        0.25,
-                        {PaddingLeft = UDim.new(0, 20)},
-                        Enum.EasingStyle.Quint,
-                        Enum.EasingDirection.Out
-                    ):Play()
-
-                    if not sectionData.Opened then
-                        ac(mainFrame, 0.2, {ImageTransparency = 0.94}):Play()
-                        ac(mainFrame.Outline, 0.2, {ImageTransparency = 0.6}):Play()
-                    else
-                        ac(mainFrame, 0.2, {ImageTransparency = 0.94}):Play()
-                    end
-
+                    ac(mainFrame, 0.15, {ImageTransparency = 0.93}):Play()
                     if iconImg then
                         ac(iconImg.ImageLabel, 0.15, {ImageTransparency = 0}):Play()
                     end
@@ -11968,22 +11893,7 @@ function a.MS()
             aa.AddSignal(
                 mainFrame.Top.MouseLeave,
                 function()
-                    -- Return header position
-                    ac(
-                        mainFrame.Top.UIPadding,
-                        0.25,
-                        {PaddingLeft = UDim.new(0, 16)},
-                        Enum.EasingStyle.Quint,
-                        Enum.EasingDirection.Out
-                    ):Play()
-
-                    if not sectionData.Opened then
-                        ac(mainFrame, 0.2, {ImageTransparency = sectionData.Box and 0.96 or 1}):Play()
-                        ac(mainFrame.Outline, 0.2, {ImageTransparency = 0.8}):Play()
-                    else
-                        ac(mainFrame, 0.2, {ImageTransparency = 0.96}):Play()
-                    end
-
+                    ac(mainFrame, 0.15, {ImageTransparency = sectionData.Box and 0.96 or 1}):Play()
                     if iconImg then
                         ac(iconImg.ImageLabel, 0.15, {ImageTransparency = 0.2}):Play()
                     end
