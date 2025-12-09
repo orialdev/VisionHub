@@ -6324,13 +6324,13 @@ do
             function ag.UpdateShape(aE)
                 if af.Window.NewElements then
                     local aF
-                    if af.ParentConfig.ParentType == "Group" then
+                    if af.ParentConfig and af.ParentConfig.ParentType == "Group" then
                         aF = "Squircle"
                     else
                         aF = getElementPosition(aE.Elements, ag.Index)
                     end
 
-                    if aF and aC then
+                    if aF and aC and aD and at and ax and av and aB and az then
                         aD:SetType(aF)
                         at:SetType(aF)
                         ax:SetType(aF)
