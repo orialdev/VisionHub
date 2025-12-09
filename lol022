@@ -12135,11 +12135,10 @@ do
     end
     function a.U()
         local aa = (cloneref or clonereference or function(aa)
-            return aa
-        end)
+                return aa
+            end)
 
         aa(game:GetService "UserInputService")
-        local ab = aa(game:GetService "RunService") -- Added RunService
         local ae = game.Players.LocalPlayer:GetMouse()
 
         local af = a.load "b"
@@ -12148,6 +12147,7 @@ do
 
         local ak = a.load "y".New
         local al = a.load "u".New
+        local searchIcon = af.Icon "search" -- Preload search icon
 
         local am = {
             Tabs = {},
@@ -12156,7 +12156,8 @@ do
             TabCount = 0,
             ToolTipParent = nil,
             TabHighlight = nil,
-            OnChangeFunc = function(am) end
+            OnChangeFunc = function(am)
+            end
         }
 
         function am.Init(an, ao, ap, aq)
@@ -12178,11 +12179,14 @@ do
                 IconThemed = an.IconThemed,
                 Badge = an.Badge,
                 Locked = an.Locked,
-                Callback = an.Callback or function() end, -- NEW: Callback support
                 ShowTabTitle = an.ShowTabTitle,
                 Selected = false,
                 Visible = (an.Visible == nil) and true or an.Visible,
                 Index = nil,
+                LayoutOrder = an.LayoutOrder,
+                OnClick = an.OnClick, 
+                OnSelected = an.OnSelected,
+                OnDeselected = an.OnDeselected,
                 Parent = an.Parent,
                 UIElements = {},
                 Elements = {},
@@ -12191,7 +12195,8 @@ do
                 Gap = Window.NewElements and 1 or 6,
                 TabPaddingX = 4 + (Window.UIPadding / 2),
                 TabPaddingY = 3 + (Window.UIPadding / 2),
-                TitlePaddingY = 0
+                TitlePaddingY = 0,
+                SearchEnabled = an.Search or false
             }
 
             if ap.IconShape then
@@ -12204,7 +12209,6 @@ do
             local aq = am.TabCount
             ap.Index = aq
 
-            --// Tab Button Construction
             ap.UIElements.Main =
                 af.NewRoundFrame(
                 ap.UICorner,
@@ -12216,7 +12220,8 @@ do
                     Parent = an.Parent,
                     ThemeTag = {ImageColor3 = "TabBackground"},
                     ImageTransparency = 1,
-                    Visible = ap.Visible
+                    Visible = ap.Visible,
+                    LayoutOrder = ap.LayoutOrder or ap.Index -- Use custom layout order if provided
                 },
                 {
                     af.NewRoundFrame(
@@ -12315,7 +12320,8 @@ do
             local au
 
             if ap.Icon then
-                as = af.Image(
+                as =
+                    af.Image(
                     ap.Icon,
                     ap.Icon .. ":" .. ap.Title,
                     0,
@@ -12435,7 +12441,6 @@ do
                 ap.UIElements.Main.Frame.TextLabel.Size = UDim2.new(1, extra, 0, 0)
             end
 
-            --// Container Construction
             ap.UIElements.ContainerFrame =
                 ah(
                 "ScrollingFrame",
@@ -12471,6 +12476,73 @@ do
                 }
             )
 
+            -- Search Bar implementation for specific tab
+            local searchContainer
+            local searchInput
+            if ap.SearchEnabled then
+                searchContainer = ah("Frame", {
+                    Size = UDim2.new(1, 0, 0, 40),
+                    BackgroundTransparency = 1,
+                    Name = "LocalSearch",
+                    LayoutOrder = -1, -- Keep at top
+                    Visible = true,
+                    ZIndex = 5
+                }, {
+                    af.NewRoundFrame(10, "Squircle", {
+                        Size = UDim2.new(1, 0, 1, 0),
+                        ThemeTag = {ImageColor3 = "Input"},
+                        ImageTransparency = 0.5
+                    }, {
+                        ah("UIStroke", {
+                            ThemeTag = {Color = "Outline"},
+                            Thickness = 1,
+                            Transparency = 0.5
+                        }),
+                        ah("UIPadding", {PaddingLeft=UDim.new(0, 10), PaddingRight=UDim.new(0, 10)}),
+                        ah("ImageLabel", {
+                            Size = UDim2.new(0,16,0,16),
+                            AnchorPoint = Vector2.new(0, 0.5),
+                            Position = UDim2.new(0,0,0.5,0),
+                            BackgroundTransparency = 1,
+                            Image = searchIcon[1],
+                            ImageRectOffset = searchIcon[2].ImageRectPosition,
+                            ImageRectSize = searchIcon[2].ImageRectSize,
+                            ThemeTag = {ImageColor3 = "Text"},
+                            ImageTransparency = 0.5
+                        }),
+                        ah("TextBox", {
+                            Size = UDim2.new(1, -26, 1, 0),
+                            Position = UDim2.new(0, 26, 0, 0),
+                            BackgroundTransparency = 1,
+                            TextXAlignment = Enum.TextXAlignment.Left,
+                            PlaceholderText = "Search in " .. ap.Title,
+                            TextColor3 = Color3.fromRGB(200, 200, 200),
+                            ThemeTag = {TextColor3 = "Text", PlaceholderColor3 = "Placeholder"},
+                            Text = "",
+                            TextSize = 14,
+                            FontFace = Font.new(af.Font, Enum.FontWeight.Medium),
+                            ClearTextOnFocus = false
+                        })
+                    })
+                })
+                
+                searchInput = searchContainer.Squircle.TextBox
+                
+                af.AddSignal(searchInput:GetPropertyChangedSignal("Text"), function()
+                    local text = searchInput.Text:lower()
+                    for _, element in pairs(ap.Elements) do
+                        if element.ElementFrame then
+                            if text == "" or (element.Title and element.Title:lower():find(text)) or (element.Desc and element.Desc:lower():find(text)) then
+                                element.ElementFrame.Visible = true
+                            else
+                                element.ElementFrame.Visible = false
+                            end
+                        end
+                    end
+                    -- Update canvas size usually happens automatically via UIListLayout
+                end)
+            end
+
             ap.UIElements.ContainerFrameCanvas =
                 ah(
                 "Frame",
@@ -12482,6 +12554,7 @@ do
                     ZIndex = 5
                 },
                 {
+                    searchContainer, -- Add search bar to container canvas
                     ap.UIElements.ContainerFrame,
                     ah(
                         "Frame",
@@ -12541,91 +12614,41 @@ do
                     )
                 }
             )
+            
+            -- If search is enabled, adjust scrolling frame to make room for search bar
+            if ap.SearchEnabled then
+                ap.UIElements.ContainerFrame.Position = UDim2.new(0, 0, 0, 46) -- Move down
+                ap.UIElements.ContainerFrame.Size = UDim2.new(1, 0, 1, -46)
+            end
 
             am.Containers[aq] = ap.UIElements.ContainerFrameCanvas
             am.Tabs[aq] = ap
 
-            ap.ContainerFrame = ap.UIElements.ContainerFrameCanvas
+            ap.ContainerFrame = ContainerFrameCanvas
 
-            --// NEW FEATURES
-
-            -- 1. Enhanced Badge Setting
-            function ap.SetBadge(s, val, col)
+            function ap.SetBadge(s, val, bgColor, textColor)
                 ap.Badge = val
                 if not val or val == "" then
                     ap.UIElements.BadgeContainer.Visible = false
                 else
                     ap.UIElements.BadgeContainer.Visible = true
                     ap.UIElements.BadgeContainer.TextLabel.Text = tostring(val)
-                    
-                    if col then
-                        af.AddThemeObject(ap.UIElements.BadgeContainer, {ImageColor3 = col})
-                    else
-                        af.AddThemeObject(ap.UIElements.BadgeContainer, {ImageColor3 = "Accent"})
-                    end
+                    if textColor then ap.UIElements.BadgeContainer.TextLabel.TextColor3 = textColor end
+                    if bgColor then ap.UIElements.BadgeContainer.ImageColor3 = bgColor end
                 end
                 task.delay(0.05, RecalculateTitleSize)
             end
-
-            -- 2. Flash / Attention Animation
-            function ap.Flash(s, duration)
-                local t = 0
-                local flashSpeed = 2
-                local oldColor = ap.UIElements.Main.ImageColor3
-                
-                -- Simulate a connection since we are inside a method
-                local connection 
-                connection = ab.RenderStepped:Connect(function(dt)
-                    t = t + dt * flashSpeed
-                    local alpha = (math.sin(t * math.pi) + 1) / 2 -- Ping pong 0 to 1
-                    local accentColor = af.GetThemeProperty("Accent", WindUI.Theme) or Color3.new(1,1,1)
-                    
-                    if ap.Selected then 
-                        connection:Disconnect()
-                        ap.UIElements.Main.ImageColor3 = Color3.new(1,1,1) -- Reset transparency essentially handle by texture
-                        return
+            
+            -- Feature: Layout Alignment
+            function ap.SetLayoutAlignment(s, alignment)
+                if ap.UIElements.ContainerFrame and ap.UIElements.ContainerFrame.UIListLayout then
+                    if alignment == "Top" then
+                        ap.UIElements.ContainerFrame.UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Top
+                    elseif alignment == "Bottom" then
+                        ap.UIElements.ContainerFrame.UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
+                    else
+                        ap.UIElements.ContainerFrame.UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Center
                     end
-
-                    -- Subtle color shift on background
-                    ap.UIElements.Main.ImageColor3 = oldColor:Lerp(accentColor, alpha * 0.3)
-                end)
-
-                task.delay(duration or 3, function()
-                    if connection.Connected then connection:Disconnect() end
-                    if not ap.Selected then 
-                        aj(ap.UIElements.Main, 0.2, {ImageColor3 = oldColor}):Play()
-                    end
-                end)
-            end
-
-            -- 3. Update Title/Desc Dynamically
-            function ap.Update(s, data)
-                if data.Title then
-                    ap.Title = data.Title
-                    ap.UIElements.Main.Frame.TextLabel.Text = data.Title
-                    -- Update big header if visible
-                    if ap.ShowTabTitle then
-                       -- Navigate children to find the header label (complex due to structure)
-                       -- Simplified: Update internal memory, re-render logic if needed
-                    end
-                end
-                if data.Icon then
-                    -- Requires icon destruction logic re-run, skipping for brevity but functionality exists in SetIcon usually
-                end
-                RecalculateTitleSize()
-            end
-
-            -- 4. Set Content Alignment
-            function ap.SetLayout(s, alignType) 
-                -- "Start", "Center", "End" (Top/Center/Bottom)
-                local mapping = {
-                    ["Top"] = Enum.VerticalAlignment.Top,
-                    ["Center"] = Enum.VerticalAlignment.Center,
-                    ["Bottom"] = Enum.VerticalAlignment.Bottom
-                }
-                
-                if mapping[alignType] then
-                    ap.UIElements.ContainerFrame.UIListLayout.VerticalAlignment = mapping[alignType]
                 end
             end
 
@@ -12676,11 +12699,9 @@ do
             af.AddSignal(
                 ap.UIElements.Main.MouseButton1Click,
                 function()
+                    if ap.OnClick then af.SafeCallback(ap.OnClick) end
                     if not ap.Locked and ap.Visible then
                         am:SelectTab(aq)
-                        if ap.Callback then -- Trigger Callback on Click
-                            task.spawn(ap.Callback)
-                        end
                     end
                 end
             )
@@ -12689,7 +12710,6 @@ do
                 al(ap.UIElements.ContainerFrame, ap.UIElements.ContainerFrameCanvas, Window, 3)
             end
 
-            --// Description Tooltip Logic
             local av
             local aw
             local ax
@@ -12829,7 +12849,7 @@ do
                 return am:SelectTab(ap.Index)
             end
 
-            -- Empty State Handler
+            -- Empty state handler
             task.spawn(
                 function()
                     local aA =
@@ -12899,6 +12919,11 @@ do
 
         function am.SelectTab(an, ao)
             if am.Tabs[ao] and not am.Tabs[ao].Locked and am.Tabs[ao].Visible then
+                -- Trigger Deselected for old tab
+                if am.SelectedTab and am.Tabs[am.SelectedTab] and am.Tabs[am.SelectedTab].OnDeselected then
+                    af.SafeCallback(am.Tabs[am.SelectedTab].OnDeselected)
+                end
+
                 am.SelectedTab = ao
 
                 for ap, aq in next, am.Tabs do
@@ -12918,6 +12943,10 @@ do
                 end
 
                 local active = am.Tabs[ao]
+                
+                -- Trigger Selected callback for new tab
+                if active.OnSelected then af.SafeCallback(active.OnSelected) end
+
                 aj(active.UIElements.Main, 0.15, {ImageTransparency = 0.93}):Play()
                 aj(active.UIElements.Main.Frame.TextLabel, 0.15, {TextTransparency = 0}):Play()
 
@@ -12931,11 +12960,6 @@ do
                 end
 
                 active.Selected = true
-
-                -- Trigger Selected Callback
-                if active.Callback then
-                    task.spawn(active.Callback)
-                end
 
                 task.spawn(
                     function()
