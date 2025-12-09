@@ -11133,7 +11133,7 @@ do
                 return "MultiSection", {}
             end
 
-            -- 1. HEADER ICONS & ARROWS
+            -- Icon handling
             local iconImg
             function sectionData.SetIcon(s, icon)
                 sectionData.Icon = icon or nil
@@ -11141,8 +11141,7 @@ do
                     iconImg:Destroy()
                 end
                 if icon then
-                    iconImg =
-                        aa.Image(
+                    iconImg = aa.Image(
                         icon,
                         icon .. ":" .. sectionData.Title,
                         0,
@@ -11157,8 +11156,8 @@ do
                 end
             end
 
-            local chevron =
-                ab(
+            -- Chevron (Arrow)
+            local chevron = ab(
                 "Frame",
                 {
                     Size = UDim2.new(0, sectionData.IconSize, 0, sectionData.IconSize),
@@ -11189,9 +11188,8 @@ do
                 sectionData:SetIcon(sectionData.Icon)
             end
 
-            -- 2. TEXT & LAYOUT CONSTRUCTION
-            local textWrapper =
-                ab(
+            -- Text Wrapper (Title + Subtitle)
+            local textWrapper = ab(
                 "Frame",
                 {
                     Name = "TextContainer",
@@ -11208,15 +11206,13 @@ do
                             FillDirection = "Vertical",
                             Padding = UDim.new(0, 2),
                             VerticalAlignment = "Center",
-                            HorizontalAlignment = sectionData.TextXAlignment == "Center" and "Center" or
-                                "Left"
+                            HorizontalAlignment = sectionData.TextXAlignment == "Center" and "Center" or "Left"
                         }
                     )
                 }
             )
 
-            local titleLbl =
-                ab(
+            local titleLbl = ab(
                 "TextLabel",
                 {
                     Name = "Title",
@@ -11256,8 +11252,18 @@ do
                 )
             end
 
-            local divider =
-                ab(
+            local function UpdateTitleSize()
+                local wReduct = 0
+                if iconImg then
+                    wReduct = wReduct + (sectionData.IconSize + 10)
+                end
+                if chevron.Visible then
+                    wReduct = wReduct + (sectionData.IconSize + 10)
+                end
+                textWrapper.Size = UDim2.new(1, -wReduct, 0, 0)
+            end
+
+            local divider = ab(
                 "Frame",
                 {
                     Name = "Divider",
@@ -11269,9 +11275,7 @@ do
                 }
             )
 
-            -- 3. CONTAINER STRUCTURE
-            local contentHolder =
-                ab(
+            local contentHolder = ab(
                 "Frame",
                 {
                     BackgroundTransparency = 1,
@@ -11284,14 +11288,7 @@ do
                     Visible = false
                 },
                 {
-                    ab(
-                        "UIListLayout",
-                        {
-                            FillDirection = "Vertical",
-                            Padding = UDim.new(0, 0),
-                            SortOrder = "LayoutOrder"
-                        }
-                    ),
+                    ab("UIListLayout", {FillDirection = "Vertical", Padding = UDim.new(0, 0), SortOrder = "LayoutOrder"}),
                     ab(
                         "UIPadding",
                         {
@@ -11304,8 +11301,8 @@ do
                 }
             )
 
-            local mainFrame =
-                ad(
+            -- Main Section Frame
+            local mainFrame = ad(
                 ag.Window.ElementConfig.UICorner,
                 "Squircle",
                 {
@@ -11365,9 +11362,8 @@ do
                 }
             )
 
-            -- 4. NAVIGATION BAR (SEGMENTED CONTROL STYLE)
-            local navBar =
-                ab(
+            -- Horizontal Navigation Bar
+            local navBar = ab(
                 "Frame",
                 {
                     Size = UDim2.new(1, 0, 0, 36),
@@ -11377,8 +11373,7 @@ do
                 }
             )
 
-            local navList =
-                ab(
+            local navList = ab(
                 "ScrollingFrame",
                 {
                     Size = UDim2.new(1, 0, 1, 0),
@@ -11411,9 +11406,7 @@ do
                 }
             )
 
-            -- 5. PAGES CONTAINER
-            local pageContainer =
-                ab(
+            local pageContainer = ab(
                 "Frame",
                 {
                     Name = "Pages",
@@ -11432,7 +11425,6 @@ do
                 }
             )
 
-            -- Alignment fix for scrolling nav
             aa.AddSignal(
                 navList.UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"),
                 function()
@@ -11444,22 +11436,20 @@ do
                 end
             )
 
-            -- 6. PARSE DATA
+            -- Parse inputs into a standard structure
             local parsed = {}
             for _, v in ipairs(sectionData.Sections) do
-                table.insert(
-                    parsed,
-                    type(v) == "table" and {Name = v.Name or v[1] or "Section", Icon = v.Icon or v[2], Badge = v.Badge} or
-                        {Name = v}
-                )
+                table.insert(parsed, type(v) == "table" and {Name = v.Name or v[1] or "Section", Icon = v.Icon or v[2], Badge = v.Badge} or {Name = v})
             end
 
             local elementMod = ag.ElementsModule
 
-            -- Resize function to smooth animate height changes
+            -- Resize calculation
             local function Resize()
-                if not sectionData.Opened then return end
-                -- Calculate content height manually for smoother tweening than AutomaticSize
+                if not sectionData.Opened then
+                    return
+                end
+
                 local contentH = contentHolder.UIListLayout.AbsoluteContentSize.Y 
                                 + contentHolder.UIPadding.PaddingTop.Offset 
                                 + contentHolder.UIPadding.PaddingBottom.Offset
@@ -11469,12 +11459,11 @@ do
                 ac(mainFrame, 0.35, {Size = UDim2.new(1, 0, 0, totalH)}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
             end
 
-            -- 7. BUILD TABS AND PAGES
+            -- Build Sections
             for i, sInfo in ipairs(parsed) do
                 local pName = sInfo.Name
-                -- Page Frame
-                local pFrame =
-                    ab(
+                -- Container Page
+                local pFrame = ab(
                     "ScrollingFrame",
                     {
                         Name = pName,
@@ -11493,7 +11482,7 @@ do
                     }
                 )
 
-                -- Pass WindUI Logic to new Page
+                -- Standard proxy object for loading elements
                 local pgObj = {
                     UIElements = {ContainerFrame = pFrame},
                     ContainerFrame = pFrame,
@@ -11505,35 +11494,21 @@ do
                     Folder = ag.Window.Folder
                 }
 
-                elementMod.Load(
-                    pgObj,
-                    pFrame,
-                    elementMod.Elements,
-                    ag.Window,
-                    ag.WindUI,
-                    nil,
-                    elementMod,
-                    ag.UIScale,
-                    ag.Tab
-                )
+                elementMod.Load(pgObj, pFrame, elementMod.Elements, ag.Window, ag.WindUI, nil, elementMod, ag.UIScale, ag.Tab)
                 sectionData.Pages[pName] = pgObj
 
-                -- Listen for height changes inside pages
+                -- When page height changes, resize parent
                 aa.AddSignal(pFrame.UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"), Resize)
 
-                -- Navigation Button (Pill Design)
-                local pill =
-                    ad(
-                    12,
-                    "Squircle",
-                    {
-                        Name = "Pill",
-                        Size = UDim2.new(1, 0, 1, 0),
-                        ThemeTag = {ImageColor3 = "Accent"},
-                        ImageTransparency = (i == 1 and 0.15 or 1), -- Selected starts visible
-                        ZIndex = 1
-                    }
-                )
+                -- Build Navigation Button
+                -- Pill Background (Active indicator)
+                local pill = ad(12, "Squircle", {
+                    Name = "Pill",
+                    Size = UDim2.new(1, 0, 1, 0),
+                    ThemeTag = {ImageColor3 = "Accent"},
+                    ImageTransparency = (i == 1 and 0.15 or 1),
+                    ZIndex = 1
+                })
 
                 local content = {}
                 if sInfo.Icon then
@@ -11541,20 +11516,21 @@ do
                     icon.Size = UDim2.new(0, 16, 0, 16)
                     icon.LayoutOrder = 1
                     icon.Name = "BtnIcon"
-                    -- Manually override colors for active state
+                    
                     if i == 1 then
                         aa.AddThemeObject(icon.ImageLabel, {ImageColor3 = "WindowBackground"})
                     else
                         aa.AddThemeObject(icon.ImageLabel, {ImageColor3 = "Text"})
                         icon.ImageLabel.ImageTransparency = 0.4
                     end
+                    
                     table.insert(content, icon)
                 end
 
                 local lbl = ab("TextLabel", {
                     Text = pName,
                     BackgroundTransparency = 1,
-                    FontFace = Font.new(aa.Font, i==1 and Enum.FontWeight.Bold or Enum.FontWeight.Medium),
+                    FontFace = Font.new(aa.Font, i == 1 and Enum.FontWeight.Bold or Enum.FontWeight.Medium),
                     TextSize = 14,
                     AutomaticSize = "XY",
                     ThemeTag = {TextColor3 = (i == 1 and "WindowBackground" or "Text")},
@@ -11577,27 +11553,35 @@ do
                             AutomaticSize = "XY",
                             BackgroundTransparency = 1
                         }),
-                        ab("UIPadding", {Padding = UDim.new(0, 2), PaddingLeft = UDim.new(0,5), PaddingRight = UDim.new(0,5)})
+                        ab("UIPadding", {Padding = UDim.new(0, 2), PaddingLeft = UDim.new(0, 5), PaddingRight = UDim.new(0, 5)})
                     })
                     table.insert(content, badge)
                 end
 
-                local btnContainer = ab("TextButton", {
-                    Name = pName,
-                    Size = UDim2.new(0,0,0,30),
-                    AutomaticSize = "X",
-                    BackgroundTransparency = 1,
-                    Parent = navList
-                }, {
-                    pill,
-                    ab("Frame", {BackgroundTransparency = 1, AutomaticSize = "XY", Size = UDim2.new(0,0,1,0), ZIndex = 2}, {
-                        ab("UIListLayout", {FillDirection = "Horizontal", VerticalAlignment = "Center", HorizontalAlignment = "Center", Padding = UDim.new(0,6)}),
-                        ab("UIPadding", {PaddingLeft = UDim.new(0, 14), PaddingRight = UDim.new(0, 14)}),
-                        unpack(content)
-                    })
-                })
+                local btnContainer = ab(
+                    "TextButton",
+                    {
+                        Name = pName,
+                        Size = UDim2.new(0, 0, 0, 30),
+                        AutomaticSize = "X",
+                        BackgroundTransparency = 1,
+                        Parent = navList
+                    },
+                    {
+                        pill,
+                        ab("Frame", {
+                            BackgroundTransparency = 1, 
+                            AutomaticSize = "XY", 
+                            Size = UDim2.new(0, 0, 1, 0),
+                            ZIndex = 2
+                        }, {
+                            ab("UIListLayout", {FillDirection = "Horizontal", VerticalAlignment = "Center", HorizontalAlignment = "Center", Padding = UDim.new(0, 6)}),
+                            ab("UIPadding", {PaddingLeft = UDim.new(0, 14), PaddingRight = UDim.new(0, 14)}),
+                            unpack(content)
+                        })
+                    }
+                )
 
-                -- 8. BUTTON ANIMATION LOGIC
                 local function updateVisuals(isActive, isHover)
                     local targetTrans = isActive and 0.15 or (isHover and 0.9 or 1)
                     ac(pill, 0.2, {ImageTransparency = targetTrans}):Play()
@@ -11622,24 +11606,25 @@ do
 
                 sectionData.SectionButtons[pName] = updateVisuals
 
+                -- Interaction
                 aa.AddSignal(btnContainer.MouseButton1Click, function()
                     if sectionData.CurrentSection == pName then return end
                     sectionData.CurrentSection = pName
 
-                    -- Hide all pages, Show current
+                    -- Toggle visibility pages
                     for k, v in pairs(sectionData.Pages) do
                         v.ContainerFrame.Visible = (k == pName)
                     end
-                    -- Update buttons visual
+                    -- Update buttons visual state
                     for k, fn in pairs(sectionData.SectionButtons) do
                         fn(k == pName, false)
                     end
 
-                    -- Auto scroll nav
+                    -- Auto Scroll
                     local btnX = btnContainer.AbsolutePosition.X - navList.AbsolutePosition.X + navList.CanvasPosition.X
-                    ac(navList, 0.3, {CanvasPosition = Vector2.new(btnX - navList.AbsoluteSize.X / 2 + btnContainer.AbsoluteSize.X / 2, 0)}):Play()
-                    
-                    -- Resize window
+                    ac(navList, 0.3, {CanvasPosition = Vector2.new(btnX - navList.AbsoluteSize.X/2 + btnContainer.AbsoluteSize.X/2, 0)}):Play()
+
+                    -- Update total size
                     task.defer(Resize)
                 end)
 
@@ -11653,7 +11638,8 @@ do
 
             sectionData.CurrentSection = parsed[1].Name
 
-            -- 9. EXPANSION LOGIC
+            UpdateTitleSize()
+
             function sectionData.Open()
                 sectionData.Opened = true
                 contentHolder.Visible = true
@@ -11661,7 +11647,6 @@ do
                 ac(chevron.Arrow, 0.25, {Rotation = 180, ImageTransparency = 0}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
                 ac(divider, 0.25, {BackgroundTransparency = 0.85}, Enum.EasingStyle.Quad, Enum.EasingDirection.Out):Play()
                 
-                -- Dynamic Accent Color for Arrow
                 local themeAccent = aa.GetThemeProperty("Accent", aa.Theme)
                 if themeAccent then ac(chevron.Arrow, 0.2, {ImageColor3 = themeAccent}):Play() end
 
@@ -11683,11 +11668,17 @@ do
 
             aa.AddSignal(contentHolder.UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"), Resize)
 
-            aa.AddSignal(mainFrame.Top.MouseButton1Click, function()
-                if sectionData.Opened then sectionData.Close() else sectionData.Open() end
-            end)
+            aa.AddSignal(
+                mainFrame.Top.MouseButton1Click,
+                function()
+                    if sectionData.Opened then
+                        sectionData.Close()
+                    else
+                        sectionData.Open()
+                    end
+                end
+            )
             
-            -- Main Header Hover Effect
             aa.AddSignal(mainFrame.Top.MouseEnter, function()
                 ac(mainFrame, 0.15, {ImageTransparency = 0.93}):Play()
                 if iconImg then ac(iconImg.ImageLabel, 0.15, {ImageTransparency = 0}):Play() end
@@ -11697,11 +11688,17 @@ do
                 if iconImg then ac(iconImg.ImageLabel, 0.15, {ImageTransparency = 0.2}):Play() end
             end)
 
-            task.spawn(function()
-                task.wait()
-                mainFrame.AutomaticSize = Enum.AutomaticSize.None
-                if sectionData.Opened then sectionData.Open() else sectionData.Close() end
-            end)
+            task.spawn(
+                function()
+                    task.wait()
+                    mainFrame.AutomaticSize = Enum.AutomaticSize.None
+                    if sectionData.Opened then
+                        sectionData.Open()
+                    else
+                        sectionData.Close()
+                    end
+                end
+            )
 
             setmetatable(sectionData.Pages, {__index = sectionData})
             return sectionData.__type, sectionData.Pages
