@@ -1,18 +1,3 @@
---[[
-     _      ___         ____  ______
-    | | /| / (_)__  ___/ / / / /  _/
-    | |/ |/ / / _ \/ _  / /_/ // /  
-    |__/|__/_/_//_/\_,_/\____/___/
-    
-    v1.6.62  |  2025-12-06  |  Roblox UI Library for scripts
-    
-    To view the source code, see the `src/` folder on the official GitHub repository.
-    
-    Author: Footagesus (Footages, .ftgs, oftgs)
-    Github: https://github.com/Footagesus/WindUI
-    Discord: https://discord.gg/ftgs-development-hub-1300692552005189632
-    License: MIT
-]]
 local a
 a = {
     cache = {},
@@ -10716,16 +10701,16 @@ do
             local al = {
                 __type = "Section",
                 Title = ak.Title or "Section",
-                Desc = ak.Desc or nil, -- Added Description support
+                Desc = ak.Desc or nil,
                 Icon = ak.Icon,
                 TextXAlignment = ak.TextXAlignment or "Left",
-                TextSize = ak.TextSize or 18, -- Slightly smaller for better hierarchy
-                Box = true, -- Forced Box style for better design, or keep ak.Box
+                TextSize = ak.TextSize or 18,
+                Box = true,
                 FontWeight = ak.FontWeight or Enum.FontWeight.SemiBold,
                 TextTransparency = ak.TextTransparency or 0,
                 Opened = ak.Opened or false,
                 UIElements = {},
-                HeaderSize = 46, -- Increased slightly for breathing room
+                HeaderSize = 46,
                 IconSize = 20,
                 Padding = 12,
                 Elements = {},
@@ -10746,7 +10731,6 @@ do
                 end
             end
 
-            -- Chevron Icon
             local an =
                 ae(
                 "Frame",
@@ -10765,7 +10749,7 @@ do
                             ImageRectSize = aa.Icon "chevron-down"[2].ImageRectSize,
                             ImageRectOffset = aa.Icon "chevron-down"[2].ImageRectPosition,
                             ThemeTag = {
-                                ImageColor3 = "Icon" -- Will change to Accent on open
+                                ImageColor3 = "Icon"
                             },
                             ImageTransparency = .5
                         }
@@ -10777,7 +10761,6 @@ do
                 al:SetIcon(al.Icon)
             end
 
-            -- Title Label
             local ao =
                 ae(
                 "TextLabel",
@@ -10798,7 +10781,6 @@ do
                 }
             )
 
-            -- Description Label (New)
             local descLabel
             if al.Desc then
                 descLabel = ae(
@@ -10821,7 +10803,6 @@ do
                 )
             end
 
-            -- Text Container (Holds Title + Desc)
             local textContainer = ae(
                 "Frame",
                 {
@@ -10851,14 +10832,13 @@ do
                 textContainer.Size = UDim2.new(1, ap, 0, 0)
             end
 
-            -- Divider Line (New)
             local divider = ae(
                 "Frame",
                 {
                     Size = UDim2.new(1, -24, 0, 1),
                     Position = UDim2.new(0.5, 0, 0, al.HeaderSize - 1),
                     AnchorPoint = Vector2.new(0.5, 0),
-                    BackgroundTransparency = 1, -- Starts invisible
+                    BackgroundTransparency = 1,
                     ThemeTag = {
                         BackgroundColor3 = "Outline"
                     },
@@ -10866,7 +10846,6 @@ do
                 }
             )
 
-            -- Main Section Frame
             local ap =
                 aa.NewRoundFrame(
                 ak.Window.ElementConfig.UICorner,
@@ -10877,13 +10856,12 @@ do
                     Parent = ak.Parent,
                     ClipsDescendants = true,
                     AutomaticSize = "Y",
-                    ImageTransparency = 0.96, -- Subtle background
+                    ImageTransparency = 0.96,
                     ThemeTag = {
                         ImageColor3 = "Text"
                     }
                 },
                 {
-                    -- Outline (New)
                     aa.NewRoundFrame(
                         ak.Window.ElementConfig.UICorner,
                         "SquircleOutline",
@@ -10896,7 +10874,6 @@ do
                             Name = "Outline"
                         }
                     ),
-                    -- Header Button
                     ae(
                         "TextButton",
                         {
@@ -10932,7 +10909,6 @@ do
                         }
                     ),
                     divider,
-                    -- Content Container
                     ae(
                         "Frame",
                         {
@@ -10950,7 +10926,7 @@ do
                                     PaddingLeft = UDim.new(0, ak.Window.ElementConfig.UIPadding),
                                     PaddingRight = UDim.new(0, ak.Window.ElementConfig.UIPadding),
                                     PaddingBottom = UDim.new(0, ak.Window.ElementConfig.UIPadding),
-                                    PaddingTop = UDim.new(0, 8) -- Add spacing from divider
+                                    PaddingTop = UDim.new(0, 8)
                                 }
                             ),
                             ae(
@@ -11006,7 +10982,6 @@ do
                 if al.Expandable then
                     al.Opened = true
                     
-                    -- Animate Height
                     af(
                         ap,
                         0.35,
@@ -11022,13 +10997,10 @@ do
                         Enum.EasingDirection.Out
                     ):Play()
 
-                    -- Animate Chevron Rotation & Color
                     af(an.ImageLabel, 0.25, {Rotation = 180, ImageTransparency = 0}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
                     
-                    -- Show Divider
                     af(divider, 0.25, {BackgroundTransparency = 0.85}, Enum.EasingStyle.Quad, Enum.EasingDirection.Out):Play()
                     
-                    -- Highlight Chevron with Accent
                     local themeAccent = aa.GetThemeProperty("Accent", aa.Theme)
                     if themeAccent then
                          af(an.ImageLabel, 0.2, {ImageColor3 = themeAccent}):Play()
@@ -11040,7 +11012,6 @@ do
                 if al.Expandable then
                     al.Opened = false
                     
-                    -- Animate Height
                     af(
                         ap,
                         0.3,
@@ -11051,13 +11022,10 @@ do
                         Enum.EasingDirection.Out
                     ):Play()
 
-                    -- Reset Chevron
                     af(an.ImageLabel, 0.25, {Rotation = 0, ImageTransparency = 0.5}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
                     
-                    -- Hide Divider
                     af(divider, 0.2, {BackgroundTransparency = 1}, Enum.EasingStyle.Quad, Enum.EasingDirection.Out):Play()
 
-                    -- Reset Chevron Color
                     local themeIcon = aa.GetThemeProperty("Icon", aa.Theme)
                     if themeIcon then
                         af(an.ImageLabel, 0.2, {ImageColor3 = themeIcon}):Play()
@@ -11065,7 +11033,6 @@ do
                 end
             end
 
-            -- Header Interaction Logic
             aa.AddSignal(
                 ap.Top.MouseButton1Click,
                 function()
@@ -11079,14 +11046,13 @@ do
                 end
             )
 
-            -- Hover Effects
             aa.AddSignal(
                 ap.Top.MouseEnter,
                 function()
                     if al.Expandable then
-                        af(ap, 0.15, {ImageTransparency = 0.93}):Play() -- Darken background slightly
+                        af(ap, 0.15, {ImageTransparency = 0.93}):Play()
                         if am then
-                             af(am.ImageLabel, 0.15, {ImageTransparency = 0}):Play() -- Highlight Icon
+                             af(am.ImageLabel, 0.15, {ImageTransparency = 0}):Play()
                         end
                     end
                 end
@@ -11095,19 +11061,18 @@ do
             aa.AddSignal(
                 ap.Top.MouseLeave,
                 function()
-                    af(ap, 0.15, {ImageTransparency = 0.96}):Play() -- Reset background
+                    af(ap, 0.15, {ImageTransparency = 0.96}):Play()
                     if am then
-                        af(am.ImageLabel, 0.15, {ImageTransparency = 0.2}):Play() -- Reset Icon
+                        af(am.ImageLabel, 0.15, {ImageTransparency = 0.2}):Play()
                    end
                 end
             )
 
-            -- Auto-resize logic
             aa.AddSignal(
                 ap.Content.UIListLayout:GetPropertyChangedSignal "AbsoluteContentSize",
                 function()
                     if al.Opened then
-                        al:Open() -- Recalculate height
+                        al:Open()
                     end
                 end
             )
@@ -11151,11 +11116,11 @@ do
                 Sections = ag.Sections or {},
                 Opened = (ag.Opened == nil and true) or ag.Opened,
                 TextXAlignment = ag.TextXAlignment or "Left",
-                TextSize = ag.TextSize or 18, -- Match Section
-                Box = true, -- Forced Box visual to match Section
+                TextSize = ag.TextSize or 18,
+                Box = true,
                 FontWeight = ag.FontWeight or Enum.FontWeight.SemiBold,
                 TextTransparency = ag.TextTransparency or 0,
-                HeaderSize = 46, -- Match Section Header height
+                HeaderSize = 46,
                 IconSize = 20,
                 Pages = {},
                 SectionButtons = {},
@@ -11168,6 +11133,7 @@ do
                 return "MultiSection", {}
             end
 
+            -- Setup Header Icon
             local iconImg
             function sectionData.SetIcon(s, icon)
                 sectionData.Icon = icon or nil
@@ -11191,7 +11157,7 @@ do
                 end
             end
 
-            -- Chevron Icon (Arrow)
+            -- Setup Chevron
             local chevron =
                 ab(
                 "Frame",
@@ -11207,7 +11173,7 @@ do
                         "ImageLabel",
                         {
                             Name = "Arrow",
-                            Size = UDim2.new(1, 0, 1, 0), -- Match Section sizing logic
+                            Size = UDim2.new(1, 0, 1, 0),
                             Position = UDim2.new(0, 0, 0, 0),
                             BackgroundTransparency = 1,
                             Image = aa.Icon "chevron-down"[1],
@@ -11224,7 +11190,7 @@ do
                 sectionData:SetIcon(sectionData.Icon)
             end
 
-            -- Text Wrapper to hold Title and Description vertically
+            -- Header Text
             local textWrapper =
                 ab(
                 "Frame",
@@ -11270,13 +11236,11 @@ do
                 }
             )
 
-            local subLbl
             if sectionData.Subtitle then
-                subLbl =
-                    ab(
+                ab(
                     "TextLabel",
                     {
-                        Name = "Desc", -- Renamed to match Section structure
+                        Name = "Desc",
                         BackgroundTransparency = 1,
                         TextXAlignment = sectionData.TextXAlignment,
                         AutomaticSize = "Y",
@@ -11293,6 +11257,7 @@ do
                 )
             end
 
+            -- Dynamic Title Resizing
             local function UpdateTitleSize()
                 local wReduct = 0
                 if iconImg then
@@ -11304,7 +11269,6 @@ do
                 textWrapper.Size = UDim2.new(1, -wReduct, 0, 0)
             end
 
-            -- Divider Line (Exactly like Section)
             local divider =
                 ab(
                 "Frame",
@@ -11313,7 +11277,7 @@ do
                     Size = UDim2.new(1, -24, 0, 1),
                     Position = UDim2.new(0.5, 0, 0, sectionData.HeaderSize - 1),
                     AnchorPoint = Vector2.new(0.5, 0),
-                    BackgroundTransparency = 1, -- Invisible initially
+                    BackgroundTransparency = 1,
                     ThemeTag = {BackgroundColor3 = "Outline"}
                 }
             )
@@ -11336,14 +11300,14 @@ do
                         "UIListLayout",
                         {
                             FillDirection = "Vertical",
-                            Padding = UDim.new(0, 0), -- Adjusted padding logic
+                            Padding = UDim.new(0, 0),
                             SortOrder = "LayoutOrder"
                         }
                     ),
                     ab(
                         "UIPadding",
                         {
-                            PaddingTop = UDim.new(0, 8), -- Space from divider
+                            PaddingTop = UDim.new(0, 8),
                             PaddingBottom = UDim.new(0, ag.Window.ElementConfig.UIPadding),
                             PaddingLeft = UDim.new(0, ag.Window.ElementConfig.UIPadding),
                             PaddingRight = UDim.new(0, ag.Window.ElementConfig.UIPadding)
@@ -11352,7 +11316,6 @@ do
                 }
             )
 
-            -- Main Container (Visual Match with Section)
             local mainFrame =
                 ad(
                 ag.Window.ElementConfig.UICorner,
@@ -11363,11 +11326,10 @@ do
                     Parent = ag.Parent,
                     ClipsDescendants = true,
                     AutomaticSize = "Y",
-                    ImageTransparency = 0.96, -- Subtle background
+                    ImageTransparency = 0.96,
                     ThemeTag = {ImageColor3 = "Text"}
                 },
                 {
-                    -- Outline
                     ad(
                         ag.Window.ElementConfig.UICorner,
                         "SquircleOutline",
@@ -11378,7 +11340,6 @@ do
                             Name = "Outline"
                         }
                     ),
-                    -- Header Button
                     ab(
                         "TextButton",
                         {
@@ -11416,7 +11377,7 @@ do
                 }
             )
 
-            -- Navigation Bar (Internal tabs for MultiSection)
+            -- Enhanced Navigation Bar
             local navBar =
                 ab(
                 "Frame",
@@ -11462,7 +11423,6 @@ do
                 }
             )
 
-            -- Pages Container
             local pageContainer =
                 ab(
                 "Frame",
@@ -11477,7 +11437,7 @@ do
                     ab(
                         "UIPadding",
                         {
-                            PaddingTop = UDim.new(0, 8) -- Separation from Navbar
+                            PaddingTop = UDim.new(0, 8)
                         }
                     )
                 }
@@ -11494,8 +11454,10 @@ do
                 end
             )
 
+            -- Advanced Section Parsing
             local parsed = {}
             for _, v in ipairs(sectionData.Sections) do
+                -- Accepts { Name = "X", Icon = "X", Badge = "New" }
                 table.insert(
                     parsed,
                     type(v) == "table" and {Name = v.Name or v[1] or "Section", Icon = v.Icon or v[2], Badge = v.Badge} or
@@ -11505,13 +11467,12 @@ do
 
             local elementMod = ag.ElementsModule
 
+            -- Resize Calculation
             local function Resize()
                 if not sectionData.Opened then
                     return
                 end
 
-                -- Recalculate content height based on current visibility
-                -- We look at contentHolder which contains NavBar + Padding + Pages
                 local contentH = contentHolder.UIListLayout.AbsoluteContentSize.Y 
                                 + contentHolder.UIPadding.PaddingTop.Offset 
                                 + contentHolder.UIPadding.PaddingBottom.Offset
@@ -11527,8 +11488,10 @@ do
                 ):Play()
             end
 
+            -- Setup Buttons and Pages
             for i, sInfo in ipairs(parsed) do
                 local pName = sInfo.Name
+                -- Container
                 local pFrame =
                     ab(
                     "ScrollingFrame",
@@ -11567,6 +11530,7 @@ do
                     Folder = ag.Window.Folder
                 }
 
+                -- Bind loading to existing logic
                 elementMod.Load(
                     pgObj,
                     pFrame,
@@ -11692,6 +11656,7 @@ do
                     }
                 )
 
+                -- Visual update logic
                 local function updateVisuals(isActive, isHover)
                     local targetTrans = isActive and 0.15 or (isHover and 0.9 or 1)
                     ac(pill, 0.2, {ImageTransparency = targetTrans}):Play()
@@ -11716,6 +11681,7 @@ do
 
                 sectionData.SectionButtons[pName] = updateVisuals
 
+                -- Button Click with Auto-Scroll
                 aa.AddSignal(
                     btnContainer.MouseButton1Click,
                     function()
@@ -11731,7 +11697,7 @@ do
                             fn(k == pName, false)
                         end
 
-                        -- Centering Logic
+                        -- Auto Scroll to center
                         local btnX =
                             btnContainer.AbsolutePosition.X - navList.AbsolutePosition.X + navList.CanvasPosition.X
                         ac(
@@ -11773,13 +11739,12 @@ do
 
             function sectionData.Open()
                 sectionData.Opened = true
-                contentHolder.Visible = true -- Ensure content is visible before resizing
+                contentHolder.Visible = true
                 
-                -- Divider and Icon Animation
                 ac(chevron.Arrow, 0.25, {Rotation = 180, ImageTransparency = 0}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
                 ac(divider, 0.25, {BackgroundTransparency = 0.85}, Enum.EasingStyle.Quad, Enum.EasingDirection.Out):Play()
                 
-                -- Tint icon
+                -- Theme Sync for Active Accent
                 local themeAccent = aa.GetThemeProperty("Accent", aa.Theme)
                 if themeAccent then
                      ac(chevron.Arrow, 0.2, {ImageColor3 = themeAccent}):Play()
@@ -11801,7 +11766,6 @@ do
                 ac(chevron.Arrow, 0.25, {Rotation = 0, ImageTransparency = 0.5}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
                 ac(divider, 0.2, {BackgroundTransparency = 1}, Enum.EasingStyle.Quad, Enum.EasingDirection.Out):Play()
 
-                -- Reset Tint
                 local themeIcon = aa.GetThemeProperty("Icon", aa.Theme)
                 if themeIcon then
                     ac(chevron.Arrow, 0.2, {ImageColor3 = themeIcon}):Play()
@@ -11812,7 +11776,6 @@ do
                 end)
             end
 
-            -- Update content sizing logic on addition
             aa.AddSignal(contentHolder.UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"), Resize)
 
             aa.AddSignal(
@@ -11826,7 +11789,7 @@ do
                 end
             )
             
-            -- Main Header Hover Effect (Visual Parity)
+            -- Header Hover
             aa.AddSignal(
                 mainFrame.Top.MouseEnter,
                 function()
