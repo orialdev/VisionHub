@@ -12608,6 +12608,28 @@ do
                 end
             end
 
+            -- Lock the tab
+            function ap.Lock(s)
+                ap.Locked = true
+                ap.UIElements.Main.Frame.TextLabel.TextTransparency = 0.7
+                if ap.UIElements.Icon then
+                    ap.UIElements.Icon.ImageLabel.ImageTransparency = 0.7
+                end
+            end
+
+            -- Unlock the tab
+            function ap.Unlock(s)
+                ap.Locked = false
+                ap.UIElements.Main.Frame.TextLabel.TextTransparency = 0.4
+                if ap.UIElements.Icon then
+                    ap.UIElements.Icon.ImageLabel.ImageTransparency = 0
+                end
+            end
+
+            if ap.Locked then
+                ap:Lock()
+            end
+
             -- ===== [ NEW METHODS END ] ===== --
 
             af.AddSignal(
@@ -12841,7 +12863,6 @@ do
             if am.Tabs[ao] and not am.Tabs[ao].Locked and am.Tabs[ao].Visible then
                 am.SelectedTab = ao
 
-                -- Unselect all other tabs
                 for ap, aq in next, am.Tabs do
                     if not aq.Locked then
                         aj(aq.UIElements.Main, 0.15, {ImageTransparency = 1}):Play()
@@ -12850,7 +12871,6 @@ do
                         if aq.UIElements.Icon and not aq.IconColor then
                             aj(aq.UIElements.Icon.ImageLabel, 0.15, {ImageTransparency = 0.4}):Play()
                         end
-                        -- Dim Badge if exists
                         if aq.UIElements.BadgeContainer then
                             aj(aq.UIElements.BadgeContainer, 0.15, {ImageTransparency = 0.4}):Play()
                             aj(aq.UIElements.BadgeContainer.TextLabel, 0.15, {TextTransparency = 0.4}):Play()
@@ -12859,7 +12879,6 @@ do
                     end
                 end
 
-                -- Highlight Active Tab
                 local active = am.Tabs[ao]
                 aj(active.UIElements.Main, 0.15, {ImageTransparency = 0.93}):Play()
                 aj(active.UIElements.Main.Frame.TextLabel, 0.15, {TextTransparency = 0}):Play()
@@ -12868,7 +12887,6 @@ do
                     aj(active.UIElements.Icon.ImageLabel, 0.15, {ImageTransparency = 0.1}):Play()
                 end
                 
-                -- Brighten Badge if exists
                 if active.UIElements.BadgeContainer then
                     aj(active.UIElements.BadgeContainer, 0.15, {ImageTransparency = 0}):Play()
                     aj(active.UIElements.BadgeContainer.TextLabel, 0.15, {TextTransparency = 0}):Play()
@@ -12876,7 +12894,6 @@ do
 
                 active.Selected = true
 
-                -- Switch Container View
                 task.spawn(
                     function()
                         for ar, as in next, am.Containers do
