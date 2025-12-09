@@ -12184,7 +12184,7 @@ do
                 Visible = (an.Visible == nil) and true or an.Visible,
                 Index = nil,
                 LayoutOrder = an.LayoutOrder,
-                OnClick = an.OnClick, 
+                OnClick = an.OnClick,
                 OnSelected = an.OnSelected,
                 OnDeselected = an.OnDeselected,
                 Parent = an.Parent,
@@ -12480,67 +12480,93 @@ do
             local searchContainer
             local searchInput
             if ap.SearchEnabled then
-                searchContainer = ah("Frame", {
-                    Size = UDim2.new(1, 0, 0, 40),
-                    BackgroundTransparency = 1,
-                    Name = "LocalSearch",
-                    LayoutOrder = -1, -- Keep at top
-                    Visible = true,
-                    ZIndex = 5
-                }, {
-                    af.NewRoundFrame(10, "Squircle", {
-                        Size = UDim2.new(1, 0, 1, 0),
-                        ThemeTag = {ImageColor3 = "Input"},
-                        ImageTransparency = 0.5
-                    }, {
-                        ah("UIStroke", {
-                            ThemeTag = {Color = "Outline"},
-                            Thickness = 1,
-                            Transparency = 0.5
-                        }),
-                        ah("UIPadding", {PaddingLeft=UDim.new(0, 10), PaddingRight=UDim.new(0, 10)}),
-                        ah("ImageLabel", {
-                            Size = UDim2.new(0,16,0,16),
-                            AnchorPoint = Vector2.new(0, 0.5),
-                            Position = UDim2.new(0,0,0.5,0),
-                            BackgroundTransparency = 1,
-                            Image = searchIcon[1],
-                            ImageRectOffset = searchIcon[2].ImageRectPosition,
-                            ImageRectSize = searchIcon[2].ImageRectSize,
-                            ThemeTag = {ImageColor3 = "Text"},
-                            ImageTransparency = 0.5
-                        }),
-                        ah("TextBox", {
-                            Size = UDim2.new(1, -26, 1, 0),
-                            Position = UDim2.new(0, 26, 0, 0),
-                            BackgroundTransparency = 1,
-                            TextXAlignment = Enum.TextXAlignment.Left,
-                            PlaceholderText = "Search in " .. ap.Title,
-                            TextColor3 = Color3.fromRGB(200, 200, 200),
-                            ThemeTag = {TextColor3 = "Text", PlaceholderColor3 = "Placeholder"},
-                            Text = "",
-                            TextSize = 14,
-                            FontFace = Font.new(af.Font, Enum.FontWeight.Medium),
-                            ClearTextOnFocus = false
-                        })
-                    })
-                })
-                
+                searchContainer =
+                    ah(
+                    "Frame",
+                    {
+                        Size = UDim2.new(1, 0, 0, 40),
+                        BackgroundTransparency = 1,
+                        Name = "LocalSearch",
+                        LayoutOrder = -1, -- Keep at top
+                        Visible = true,
+                        ZIndex = 5
+                    },
+                    {
+                        af.NewRoundFrame(
+                            10,
+                            "Squircle",
+                            {
+                                Name = "Squircle", -- Fixed: Explicitly naming the round frame
+                                Size = UDim2.new(1, 0, 1, 0),
+                                ThemeTag = {ImageColor3 = "Input"},
+                                ImageTransparency = 0.5
+                            },
+                            {
+                                ah(
+                                    "UIStroke",
+                                    {
+                                        ThemeTag = {Color = "Outline"},
+                                        Thickness = 1,
+                                        Transparency = 0.5
+                                    }
+                                ),
+                                ah("UIPadding", {PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 10)}),
+                                ah(
+                                    "ImageLabel",
+                                    {
+                                        Size = UDim2.new(0, 16, 0, 16),
+                                        AnchorPoint = Vector2.new(0, 0.5),
+                                        Position = UDim2.new(0, 0, 0.5, 0),
+                                        BackgroundTransparency = 1,
+                                        Image = searchIcon[1],
+                                        ImageRectOffset = searchIcon[2].ImageRectPosition,
+                                        ImageRectSize = searchIcon[2].ImageRectSize,
+                                        ThemeTag = {ImageColor3 = "Text"},
+                                        ImageTransparency = 0.5
+                                    }
+                                ),
+                                ah(
+                                    "TextBox",
+                                    {
+                                        Size = UDim2.new(1, -26, 1, 0),
+                                        Position = UDim2.new(0, 26, 0, 0),
+                                        BackgroundTransparency = 1,
+                                        TextXAlignment = Enum.TextXAlignment.Left,
+                                        PlaceholderText = "Search in " .. ap.Title,
+                                        TextColor3 = Color3.fromRGB(200, 200, 200),
+                                        ThemeTag = {TextColor3 = "Text", PlaceholderColor3 = "Placeholder"},
+                                        Text = "",
+                                        TextSize = 14,
+                                        FontFace = Font.new(af.Font, Enum.FontWeight.Medium),
+                                        ClearTextOnFocus = false
+                                    }
+                                )
+                            }
+                        )
+                    }
+                )
+
                 searchInput = searchContainer.Squircle.TextBox
-                
-                af.AddSignal(searchInput:GetPropertyChangedSignal("Text"), function()
-                    local text = searchInput.Text:lower()
-                    for _, element in pairs(ap.Elements) do
-                        if element.ElementFrame then
-                            if text == "" or (element.Title and element.Title:lower():find(text)) or (element.Desc and element.Desc:lower():find(text)) then
-                                element.ElementFrame.Visible = true
-                            else
-                                element.ElementFrame.Visible = false
+
+                af.AddSignal(
+                    searchInput:GetPropertyChangedSignal("Text"),
+                    function()
+                        local text = searchInput.Text:lower()
+                        for _, element in pairs(ap.Elements) do
+                            if element.ElementFrame then
+                                if
+                                    text == "" or (element.Title and element.Title:lower():find(text)) or
+                                        (element.Desc and element.Desc:lower():find(text))
+                                 then
+                                    element.ElementFrame.Visible = true
+                                else
+                                    element.ElementFrame.Visible = false
+                                end
                             end
                         end
+                        -- Update canvas size usually happens automatically via UIListLayout
                     end
-                    -- Update canvas size usually happens automatically via UIListLayout
-                end)
+                )
             end
 
             ap.UIElements.ContainerFrameCanvas =
@@ -12614,7 +12640,7 @@ do
                     )
                 }
             )
-            
+
             -- If search is enabled, adjust scrolling frame to make room for search bar
             if ap.SearchEnabled then
                 ap.UIElements.ContainerFrame.Position = UDim2.new(0, 0, 0, 46) -- Move down
@@ -12633,12 +12659,16 @@ do
                 else
                     ap.UIElements.BadgeContainer.Visible = true
                     ap.UIElements.BadgeContainer.TextLabel.Text = tostring(val)
-                    if textColor then ap.UIElements.BadgeContainer.TextLabel.TextColor3 = textColor end
-                    if bgColor then ap.UIElements.BadgeContainer.ImageColor3 = bgColor end
+                    if textColor then
+                        ap.UIElements.BadgeContainer.TextLabel.TextColor3 = textColor
+                    end
+                    if bgColor then
+                        ap.UIElements.BadgeContainer.ImageColor3 = bgColor
+                    end
                 end
                 task.delay(0.05, RecalculateTitleSize)
             end
-            
+
             -- Feature: Layout Alignment
             function ap.SetLayoutAlignment(s, alignment)
                 if ap.UIElements.ContainerFrame and ap.UIElements.ContainerFrame.UIListLayout then
@@ -12699,7 +12729,9 @@ do
             af.AddSignal(
                 ap.UIElements.Main.MouseButton1Click,
                 function()
-                    if ap.OnClick then af.SafeCallback(ap.OnClick) end
+                    if ap.OnClick then
+                        af.SafeCallback(ap.OnClick)
+                    end
                     if not ap.Locked and ap.Visible then
                         am:SelectTab(aq)
                     end
@@ -12943,9 +12975,11 @@ do
                 end
 
                 local active = am.Tabs[ao]
-                
+
                 -- Trigger Selected callback for new tab
-                if active.OnSelected then af.SafeCallback(active.OnSelected) end
+                if active.OnSelected then
+                    af.SafeCallback(active.OnSelected)
+                end
 
                 aj(active.UIElements.Main, 0.15, {ImageTransparency = 0.93}):Play()
                 aj(active.UIElements.Main.Frame.TextLabel, 0.15, {TextTransparency = 0}):Play()
