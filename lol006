@@ -11107,7 +11107,6 @@ do
         local ae = {}
 
         function ae.New(af, ag)
-            -- Main Data Structure
             local sectionData = {
                 __type = "MultiSection",
                 Title = ag.Title or "Multi Section",
@@ -11118,382 +11117,466 @@ do
                 Opened = (ag.Opened == nil and true) or ag.Opened,
                 TextXAlignment = ag.TextXAlignment or "Left",
                 TextSize = ag.TextSize or 18,
+                Box = true,
                 FontWeight = ag.FontWeight or Enum.FontWeight.SemiBold,
                 TextTransparency = ag.TextTransparency or 0,
                 HeaderSize = 46,
                 IconSize = 20,
                 Pages = {},
-                PageLayouts = {},
                 SectionButtons = {},
                 CurrentSection = nil,
                 Expandable = true,
-                Badges = {},
+                UIElements = {}
             }
 
             if #sectionData.Sections == 0 then
                 return "MultiSection", {}
             end
 
-            -- -- [ ICON SETUP ] -- --
             local iconImg
-            function sectionData.SetIcon(s, icon)
+            local function updateIcon()
                 if iconImg then iconImg:Destroy() end
-                if icon then
-                    iconImg = aa.Image(icon, icon .. ":" .. sectionData.Title, 0, ag.Window.Folder, "Section", true, sectionData.IconThemed)
+                if sectionData.Icon then
+                    iconImg = aa.Image(
+                        sectionData.Icon,
+                        sectionData.Icon .. ":" .. sectionData.Title,
+                        0,
+                        ag.Window.Folder,
+                        "Section",
+                        true,
+                        sectionData.IconThemed
+                    )
                     iconImg.Size = UDim2.new(0, sectionData.IconSize, 0, sectionData.IconSize)
                     iconImg.ImageLabel.ImageTransparency = 0.2
                     iconImg.LayoutOrder = 0
                 end
             end
-            if sectionData.Icon then sectionData:SetIcon(sectionData.Icon) end
+            updateIcon()
 
-            local chevron = ab("Frame", {
-                Size = UDim2.new(0, sectionData.IconSize, 0, sectionData.IconSize),
-                BackgroundTransparency = 1, LayoutOrder = 99
-            }, {
-                ab("ImageLabel", {
-                    Name = "Arrow", Size = UDim2.new(1,0,1,0), BackgroundTransparency = 1,
-                    Image = aa.Icon("chevron-down")[1], ImageRectSize = aa.Icon("chevron-down")[2].ImageRectSize,
-                    ImageRectOffset = aa.Icon("chevron-down")[2].ImageRectPosition,
-                    ThemeTag = {ImageColor3 = "Icon"}, ImageTransparency = 0.5
-                })
-            })
+            local chevron = ab(
+                "Frame",
+                {
+                    Size = UDim2.new(0, sectionData.IconSize, 0, sectionData.IconSize),
+                    BackgroundTransparency = 1,
+                    Visible = true,
+                    Name = "ChevronHolder",
+                    LayoutOrder = 99
+                },
+                {
+                    ab("ImageLabel", {
+                        Name = "Arrow",
+                        Size = UDim2.new(1, 0, 1, 0),
+                        Position = UDim2.new(0, 0, 0, 0),
+                        BackgroundTransparency = 1,
+                        Image = aa.Icon("chevron-down")[1],
+                        ImageRectSize = aa.Icon("chevron-down")[2].ImageRectSize,
+                        ImageRectOffset = aa.Icon("chevron-down")[2].ImageRectPosition,
+                        ThemeTag = {ImageColor3 = "Icon"},
+                        ImageTransparency = 0.5,
+                        Rotation = sectionData.Opened and 180 or 0
+                    })
+                }
+            )
 
-            -- -- [ HEADER / TITLE SETUP ] -- --
-            local textWrapper = ab("Frame", {
-                BackgroundTransparency = 1, AutomaticSize = "Y", Size = UDim2.new(1,0,0,0), LayoutOrder = 1
-            }, {
-                ab("UIListLayout", {SortOrder = "LayoutOrder", FillDirection = "Vertical", Padding = UDim.new(0, 2), HorizontalAlignment = "Left"})
-            })
+            local titleLabel = ab(
+                "TextLabel",
+                {
+                    Name = "Title",
+                    Text = sectionData.Title,
+                    FontFace = Font.new(aa.Font, sectionData.FontWeight),
+                    TextSize = sectionData.TextSize,
+                    TextTransparency = sectionData.TextTransparency,
+                    TextColor3 = Color3.fromRGB(255, 255, 255),
+                    ThemeTag = {TextColor3 = "Text"},
+                    BackgroundTransparency = 1,
+                    AutomaticSize = Enum.AutomaticSize.XY,
+                    TextXAlignment = Enum.TextXAlignment.Left
+                }
+            )
 
-            ab("TextLabel", {
-                Text = sectionData.Title, BackgroundTransparency = 1, TextXAlignment = "Left", AutomaticSize = "Y",
-                TextSize = sectionData.TextSize, TextTransparency = sectionData.TextTransparency,
-                ThemeTag = {TextColor3 = "Text"}, FontFace = Font.new(aa.Font, sectionData.FontWeight),
-                Size = UDim2.new(1,0,0,0), TextWrapped = true, LayoutOrder = 1, Parent = textWrapper
-            })
-
+            local descLabel
             if sectionData.Subtitle then
-                ab("TextLabel", {
-                    Text = sectionData.Subtitle, BackgroundTransparency = 1, TextXAlignment = "Left", AutomaticSize = "Y",
-                    TextSize = 13, TextTransparency = 0.4, ThemeTag = {TextColor3 = "Text"},
-                    FontFace = Font.new(aa.Font, Enum.FontWeight.Medium), Size = UDim2.new(1,0,0,0),
-                    TextWrapped = true, LayoutOrder = 2, Parent = textWrapper
+                descLabel = ab("TextLabel", {
+                    Name = "Subtitle",
+                    Text = sectionData.Subtitle,
+                    FontFace = Font.new(aa.Font, Enum.FontWeight.Medium),
+                    TextSize = 13,
+                    TextTransparency = 0.45,
+                    ThemeTag = {TextColor3 = "Text"},
+                    BackgroundTransparency = 1,
+                    AutomaticSize = Enum.AutomaticSize.XY,
+                    TextXAlignment = Enum.TextXAlignment.Left
                 })
             end
 
-            -- Update width of title text to avoid overlap with icon/chevron
-            local function UpdateTitleSize()
-                local wReduct = 24 -- Padding default
-                if iconImg then wReduct = wReduct + (sectionData.IconSize + 10) end
-                if chevron.Visible then wReduct = wReduct + (sectionData.IconSize + 10) end
-                textWrapper.Size = UDim2.new(1, -wReduct, 0, 0)
-            end
+            local textWrapper = ab("Frame", {
+                Name = "TextContainer",
+                BackgroundTransparency = 1,
+                AutomaticSize = Enum.AutomaticSize.XY,
+                LayoutOrder = 1
+            }, {
+                ab("UIListLayout", {
+                    FillDirection = Enum.FillDirection.Vertical,
+                    Padding = UDim.new(0, 2),
+                    SortOrder = Enum.SortOrder.LayoutOrder,
+                    HorizontalAlignment = (sectionData.TextXAlignment == "Center" and Enum.HorizontalAlignment.Center or Enum.HorizontalAlignment.Left)
+                }),
+                titleLabel,
+                descLabel
+            })
+
+            local contentFrame = ab("Frame", {
+                Name = "Content",
+                BackgroundTransparency = 1,
+                Size = UDim2.new(1, 0, 0, 0),
+                AutomaticSize = Enum.AutomaticSize.Y,
+                ClipsDescendants = true,
+                Visible = sectionData.Opened
+            }, {
+                ab("UIListLayout", {
+                    FillDirection = Enum.FillDirection.Vertical,
+                    Padding = UDim.new(0, 8),
+                    SortOrder = Enum.SortOrder.LayoutOrder
+                }),
+                ab("UIPadding", {
+                    PaddingLeft = UDim.new(0, ag.Window.ElementConfig.UIPadding),
+                    PaddingRight = UDim.new(0, ag.Window.ElementConfig.UIPadding),
+                    PaddingBottom = UDim.new(0, ag.Window.ElementConfig.UIPadding),
+                    PaddingTop = UDim.new(0, 6)
+                })
+            })
+
+            -- Navbar 
+            local navBar = ab("ScrollingFrame", {
+                Name = "Navbar",
+                Size = UDim2.new(1, 0, 0, 32),
+                CanvasSize = UDim2.new(0, 0, 0, 0),
+                AutomaticCanvasSize = Enum.AutomaticSize.X,
+                BackgroundTransparency = 1,
+                ScrollBarThickness = 0,
+                ScrollingDirection = Enum.ScrollingDirection.X,
+                Parent = contentFrame
+            }, {
+                ab("UIListLayout", {
+                    FillDirection = Enum.FillDirection.Horizontal,
+                    Padding = UDim.new(0, 6),
+                    VerticalAlignment = Enum.VerticalAlignment.Center,
+                    SortOrder = Enum.SortOrder.LayoutOrder
+                })
+            })
+
+            local pagesHolder = ab("Frame", {
+                Name = "PageContainer",
+                Size = UDim2.new(1, 0, 0, 0),
+                AutomaticSize = Enum.AutomaticSize.Y,
+                BackgroundTransparency = 1,
+                Parent = contentFrame
+            })
 
             local divider = ab("Frame", {
-                Size = UDim2.new(1, -24, 0, 1), Position = UDim2.new(0.5, 0, 0, sectionData.HeaderSize - 1),
-                AnchorPoint = Vector2.new(0.5, 0), BackgroundTransparency = 1, ThemeTag = {BackgroundColor3 = "Outline"}
+                Size = UDim2.new(1, -24, 0, 1),
+                BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+                ThemeTag = {BackgroundColor3 = "Outline"},
+                BackgroundTransparency = sectionData.Opened and 0.85 or 1,
+                AnchorPoint = Vector2.new(0.5, 0),
+                Position = UDim2.new(0.5, 0, 0, sectionData.HeaderSize - 1)
             })
 
-            -- -- [ CONTAINERS ] -- --
-            local contentHolder = ab("Frame", {
-                BackgroundTransparency = 1, Size = UDim2.new(1,0,0,0), AutomaticSize = "Y",
-                Position = UDim2.new(0,0,0, sectionData.HeaderSize), ClipsDescendants = true, Visible = false
-            }, {
-                ab("UIListLayout", {FillDirection = "Vertical", Padding = UDim.new(0, 0), SortOrder = "LayoutOrder"}),
-                ab("UIPadding", {
-                    PaddingTop = UDim.new(0, 8), PaddingBottom = UDim.new(0, ag.Window.ElementConfig.UIPadding),
-                    PaddingLeft = UDim.new(0, ag.Window.ElementConfig.UIPadding), PaddingRight = UDim.new(0, ag.Window.ElementConfig.UIPadding)
-                })
-            })
-
-            -- Main Wrapper
-            local mainFrame = ad(ag.Window.ElementConfig.UICorner, "Squircle", {
-                Size = UDim2.new(1, 0, 0, 0), BackgroundTransparency = 1, Parent = ag.Parent,
-                ClipsDescendants = true, AutomaticSize = "Y", ImageTransparency = 0.96, ThemeTag = {ImageColor3 = "Text"}
+            local sectionFrame = ad(ag.Window.ElementConfig.UICorner, "Squircle", {
+                Parent = ag.Parent,
+                Size = UDim2.new(1, 0, 0, sectionData.HeaderSize),
+                ImageTransparency = 0.96,
+                ThemeTag = {ImageColor3 = "Text"},
+                ClipsDescendants = true
             }, {
                 ad(ag.Window.ElementConfig.UICorner, "SquircleOutline", {
-                    Size = UDim2.new(1,0,1,0), ImageTransparency = 0.85, ThemeTag = {ImageColor3 = "Text"}
+                    Size = UDim2.new(1, 0, 1, 0),
+                    ImageTransparency = 0.85,
+                    ThemeTag = {ImageColor3 = "Text"},
+                    Name = "Outline"
                 }),
-                ab("TextButton", { -- Header Button (Click to Expand/Collapse)
-                    Size = UDim2.new(1, 0, 0, sectionData.HeaderSize), BackgroundTransparency = 1, AutomaticSize = "Y", Text = "", Name = "Top", ZIndex = 2
+                ab("TextButton", {
+                    Name = "HeaderBtn",
+                    Size = UDim2.new(1, 0, 0, sectionData.HeaderSize),
+                    BackgroundTransparency = 1,
+                    Text = ""
                 }, {
-                    ab("UIPadding", {PaddingLeft = UDim.new(0,14), PaddingRight = UDim.new(0,14), PaddingTop = UDim.new(0,10), PaddingBottom = UDim.new(0,10)}),
-                    ab("UIListLayout", {Padding = UDim.new(0,10), FillDirection = "Horizontal", VerticalAlignment = "Center", HorizontalAlignment = "Left"}),
-                    iconImg, textWrapper, chevron
+                    ab("UIPadding", {
+                        PaddingLeft = UDim.new(0, 14),
+                        PaddingRight = UDim.new(0, 14),
+                        PaddingTop = UDim.new(0, 10),
+                        PaddingBottom = UDim.new(0, 10)
+                    }),
+                    ab("UIListLayout", {
+                        FillDirection = Enum.FillDirection.Horizontal,
+                        VerticalAlignment = Enum.VerticalAlignment.Center,
+                        HorizontalAlignment = Enum.HorizontalAlignment.Left,
+                        Padding = UDim.new(0, 10)
+                    }),
+                    iconImg,
+                    textWrapper,
+                    ab("Frame", {
+                        Name = "FlexSpacer",
+                        Size = UDim2.new(1, - (textWrapper.AbsoluteSize.X + sectionData.IconSize + 24), 0, 0),
+                        BackgroundTransparency = 1
+                    }),
+                    chevron
                 }),
                 divider,
-                contentHolder
+                contentFrame
             })
 
-            -- Navigation Bar (Tabs)
-            local navScroll = ab("ScrollingFrame", {
-                Size = UDim2.new(1, 0, 0, 36), BackgroundTransparency = 1, Parent = contentHolder,
-                CanvasSize = UDim2.new(0,0,0,0), AutomaticCanvasSize = "X", ScrollBarThickness = 0, ScrollingDirection = "X",
-            }, {
-                ab("UIListLayout", {FillDirection = "Horizontal", HorizontalAlignment = "Left", VerticalAlignment = "Center", Padding = UDim.new(0,8)}),
-                ab("UIPadding", {PaddingLeft = UDim.new(0,4), PaddingRight = UDim.new(0,4)})
-            })
-
-            local pageContainer = ab("Frame", {
-                Size = UDim2.new(1, 0, 0, 0), AutomaticSize = "Y", BackgroundTransparency = 1, Parent = contentHolder
-            }, { ab("UIPadding", {PaddingTop = UDim.new(0,8)}) })
-
-            -- -- [ RESIZING LOGIC ] -- --
-            local function RecalculateHeight()
-                if not sectionData.Opened then return end
-                
-                -- Get height of active page
-                local activePageH = 0
-                if sectionData.CurrentSection and sectionData.PageLayouts[sectionData.CurrentSection] then
-                    activePageH = sectionData.PageLayouts[sectionData.CurrentSection].AbsoluteContentSize.Y
-                end
-
-                local extraPadding = contentHolder.UIPadding.PaddingTop.Offset + contentHolder.UIPadding.PaddingBottom.Offset + 8 -- gap between nav and page
-                local navH = 36 
-                
-                local totalContentH = navH + activePageH + extraPadding
-                local finalH = sectionData.HeaderSize + (totalContentH / ag.UIScale)
-
-                ac(mainFrame, 0.35, {Size = UDim2.new(1,0,0, finalH)}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
+            local elements = ag.ElementsModule
+            local parsedSections = {}
+            for i, v in ipairs(sectionData.Sections) do
+                local sData = (type(v) == "table") and v or {Name = v}
+                table.insert(parsedSections, {
+                    Name = sData.Name or "Section",
+                    Icon = sData.Icon,
+                    Badge = sData.Badge
+                })
             end
 
-            -- -- [ BUILD TABS ] -- --
-            local elementMod = ag.ElementsModule
-            local firstSectionName = nil
+            local function recalculateHeight()
+                if not sectionData.Opened then
+                    ac(sectionFrame, 0.35, {Size = UDim2.new(1, 0, 0, sectionData.HeaderSize)}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
+                    return
+                end
 
-            for i, rawData in ipairs(sectionData.Sections) do
-                local sName = (type(rawData) == "table" and rawData.Name or rawData[1]) or rawData
-                local sIcon = (type(rawData) == "table" and (rawData.Icon or rawData[2])) or nil
-                local sBadge = (type(rawData) == "table" and rawData.Badge) or nil
-                if not firstSectionName then firstSectionName = sName end
+                local activePage = sectionData.Pages[sectionData.CurrentSection]
+                if not activePage then return end
 
-                -- Create Page Container
-                local pFrame = ab("Frame", {
-                    Name = sName, Size = UDim2.new(1,0,0,0), AutomaticSize = "Y", BackgroundTransparency = 1, 
-                    Parent = pageContainer, Visible = (i == 1), GroupTransparency = (i == 1 and 0 or 1)
+                local navHeight = navBar.Visible and (32 + 8) or 0
+                local pageHeight = activePage.ContainerFrame.UIListLayout.AbsoluteContentSize.Y
+                local mainPadding = ag.Window.ElementConfig.UIPadding
+
+                local totalContentHeight = navHeight + pageHeight + contentFrame.UIPadding.PaddingTop.Offset + contentFrame.UIPadding.PaddingBottom.Offset
+                local totalFrameHeight = sectionData.HeaderSize + (totalContentHeight / ag.UIScale)
+
+                ac(sectionFrame, 0.35, {Size = UDim2.new(1, 0, 0, totalFrameHeight)}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
+            end
+
+            for i, sect in ipairs(parsedSections) do
+                local pageName = sect.Name
+                local pageScroll = ab("ScrollingFrame", {
+                    Name = pageName,
+                    Size = UDim2.new(1, 0, 0, 0),
+                    AutomaticCanvasSize = Enum.AutomaticSize.Y,
+                    CanvasSize = UDim2.new(0, 0, 0, 0),
+                    BackgroundTransparency = 1,
+                    ScrollBarThickness = 0,
+                    ScrollingEnabled = false,
+                    Parent = pagesHolder,
+                    Visible = (i == 1)
                 }, {
-                    ab("UIListLayout", {SortOrder = "LayoutOrder", Padding = UDim.new(0, ag.Tab.Gap), HorizontalAlignment = "Center"})
+                    ab("UIListLayout", {
+                        SortOrder = Enum.SortOrder.LayoutOrder,
+                        Padding = UDim.new(0, ag.Tab.Gap),
+                        HorizontalAlignment = Enum.HorizontalAlignment.Center
+                    })
                 })
-                
-                -- Detect new elements adding to page
-                sectionData.PageLayouts[sName] = pFrame.UIListLayout
-                aa.AddSignal(pFrame.UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"), function()
-                    if sectionData.CurrentSection == sName then RecalculateHeight() end
-                end)
 
-                -- Pass frame to Element Loader
-                local pgObj = {UIElements = {ContainerFrame = pFrame}, ContainerFrame = pFrame, Window = ag.Window, Tab = ag.Tab, Elements = {}, Index = i}
-                elementMod.Load(pgObj, pFrame, elementMod.Elements, ag.Window, ag.WindUI, nil, elementMod, ag.UIScale, ag.Tab)
-                sectionData.Pages[sName] = pgObj
+                aa.AddSignal(pageScroll.UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"), recalculateHeight)
 
-                -- Create Button (Pill)
-                local pill = ad(12, "Squircle", {
-                    Name = "Bg", Size = UDim2.new(1,0,1,0), ThemeTag = {ImageColor3 = "Accent"}, ImageTransparency = (i == 1 and 0.15 or 1)
-                })
-                
-                local btnContent = {
-                    ab("UIListLayout", {FillDirection="Horizontal", VerticalAlignment="Center", HorizontalAlignment="Center", Padding=UDim.new(0,6)}),
-                    ab("UIPadding", {PaddingLeft=UDim.new(0,14), PaddingRight=UDim.new(0,14)})
+                local sectionInterface = {
+                    UIElements = {ContainerFrame = pageScroll},
+                    ContainerFrame = pageScroll,
+                    Window = ag.Window,
+                    Tab = ag.Tab,
+                    Elements = {},
+                    Folder = ag.Window.Folder
                 }
 
-                -- Button Icon
-                local btnIcon
-                if sIcon then
-                    local ico = aa.Image(sIcon, "Icon", 0, ag.Window.Folder, "Button", true)
-                    ico.Size = UDim2.new(0,16,0,16)
-                    aa.AddThemeObject(ico.ImageLabel, {ImageColor3 = (i==1 and "WindowBackground" or "Text")})
-                    ico.ImageLabel.ImageTransparency = (i==1 and 0 or 0.4)
-                    table.insert(btnContent, ico)
-                    btnIcon = ico.ImageLabel
-                end
+                elements.Load(
+                    sectionInterface,
+                    pageScroll,
+                    elements.Elements,
+                    ag.Window,
+                    ag.WindUI,
+                    nil,
+                    elements,
+                    ag.UIScale,
+                    ag.Tab
+                )
 
-                -- Button Text
-                local btnText = ab("TextLabel", {
-                    Text = sName, BackgroundTransparency = 1, FontFace = Font.new(aa.Font, i==1 and Enum.FontWeight.Bold or Enum.FontWeight.Medium),
-                    TextSize = 14, AutomaticSize = "XY", ThemeTag = {TextColor3 = (i==1 and "WindowBackground" or "Text")}, TextTransparency = (i==1 and 0 or 0.4)
+                sectionData.Pages[pageName] = sectionInterface
+
+                local btnContent = {}
+                local pill = ad(10, "Squircle", {
+                    Size = UDim2.new(1, 0, 1, 0),
+                    ThemeTag = {ImageColor3 = "Accent"},
+                    ImageTransparency = (i == 1 and 0.15 or 1),
+                    ZIndex = 1
                 })
-                table.insert(btnContent, btnText)
 
-                -- Badge Logic
-                local badgeLabel, badgeBg
-                if true then -- Always build badge structure, toggle visibility later
-                    badgeBg = ad(4, "Squircle", {AutomaticSize="XY", ThemeTag={ImageColor3=(i==1 and "WindowBackground" or "Accent")}, Visible=(sBadge~=nil)})
-                    badgeLabel = ab("TextLabel", {
-                        Text=tostring(sBadge or ""), TextSize=10, ThemeTag={TextColor3=(i==1 and "Accent" or "WindowBackground")},
-                        FontFace=Font.new(aa.Font, Enum.FontWeight.Bold), AutomaticSize="XY", BackgroundTransparency=1, Parent=badgeBg
-                    }, {ab("UIPadding", {Padding=UDim.new(0,2), PaddingLeft=UDim.new(0,5), PaddingRight=UDim.new(0,5)})})
-                    table.insert(btnContent, badgeBg)
-                    sectionData.Badges[sName] = {Bg=badgeBg, Lbl=badgeLabel}
+                local btnIcon
+                if sect.Icon then
+                    btnIcon = aa.Image(sect.Icon, "Icon", 0, ag.Window.Folder, "Button", true)
+                    btnIcon.Size = UDim2.new(0, 16, 0, 16)
+                    btnIcon.LayoutOrder = 1
+
+                    if i == 1 then
+                        aa.AddThemeObject(btnIcon.ImageLabel, {ImageColor3 = "WindowBackground"})
+                        btnIcon.ImageLabel.ImageTransparency = 0
+                    else
+                        aa.AddThemeObject(btnIcon.ImageLabel, {ImageColor3 = "Text"})
+                        btnIcon.ImageLabel.ImageTransparency = 0.4
+                    end
+                    table.insert(btnContent, btnIcon)
                 end
 
-                local btn = ab("TextButton", {
-                    Name = sName, Size = UDim2.new(0,0,0,30), AutomaticSize = "X", BackgroundTransparency = 1, Parent = navScroll
-                }, { pill, ab("Frame", {BackgroundTransparency=1,Size=UDim2.new(1,0,1,0),ZIndex=2}, btnContent) })
+                local btnLabel = ab("TextLabel", {
+                    Text = pageName,
+                    BackgroundTransparency = 1,
+                    FontFace = Font.new(aa.Font, i == 1 and Enum.FontWeight.Bold or Enum.FontWeight.Medium),
+                    TextSize = 14,
+                    AutomaticSize = Enum.AutomaticSize.XY,
+                    ThemeTag = {TextColor3 = (i == 1 and "WindowBackground" or "Text")},
+                    TextTransparency = (i == 1 and 0 or 0.4),
+                    LayoutOrder = 2
+                })
+                table.insert(btnContent, btnLabel)
 
-                -- Interaction Function
-                local function UpdateVisuals(isActive, isHover)
-                    -- BG
-                    ac(pill, 0.2, {ImageTransparency = isActive and 0.15 or (isHover and 0.9 or 1)}):Play()
-                    
-                    local fgColor = isActive and "WindowBackground" or "Text"
-                    local fgTrans = (isActive or isHover) and 0 or 0.4
-                    
-                    -- Text
-                    btnText.FontFace = Font.new(aa.Font, isActive and Enum.FontWeight.Bold or Enum.FontWeight.Medium)
-                    aa.AddThemeObject(btnText, {TextColor3 = fgColor})
-                    ac(btnText, 0.2, {TextTransparency = fgTrans}):Play()
-
-                    -- Icon
-                    if btnIcon then
-                        aa.AddThemeObject(btnIcon, {ImageColor3 = fgColor})
-                        ac(btnIcon, 0.2, {ImageTransparency = fgTrans}):Play()
-                    end
-
-                    -- Badge
-                    if sectionData.Badges[sName] and sectionData.Badges[sName].Bg.Visible then
-                        local b = sectionData.Badges[sName]
-                        aa.AddThemeObject(b.Bg, {ImageColor3 = (isActive and "WindowBackground" or "Accent")})
-                        aa.AddThemeObject(b.Lbl, {TextColor3 = (isActive and "Accent" or "WindowBackground")})
-                    end
+                if sect.Badge then
+                    local badgeFrame = ad(6, "Squircle", {
+                        AutomaticSize = Enum.AutomaticSize.XY,
+                        ThemeTag = {ImageColor3 = (i == 1 and "WindowBackground" or "Accent")},
+                        LayoutOrder = 3
+                    }, {
+                        ab("UIPadding", {Padding = UDim.new(0, 2), PaddingLeft = UDim.new(0, 6), PaddingRight = UDim.new(0, 6)}),
+                        ab("TextLabel", {
+                            Text = tostring(sect.Badge),
+                            TextSize = 11,
+                            ThemeTag = {TextColor3 = (i == 1 and "Accent" or "WindowBackground")},
+                            FontFace = Font.new(aa.Font, Enum.FontWeight.Bold),
+                            AutomaticSize = Enum.AutomaticSize.XY,
+                            BackgroundTransparency = 1
+                        })
+                    })
+                    table.insert(btnContent, badgeFrame)
                 end
 
-                sectionData.SectionButtons[sName] = {Btn=btn, Update=UpdateVisuals}
+                local navButton = ab("TextButton", {
+                    Name = pageName,
+                    Size = UDim2.new(0, 0, 1, 0),
+                    AutomaticSize = Enum.AutomaticSize.X,
+                    BackgroundTransparency = 1,
+                    Parent = navBar
+                }, {
+                    pill,
+                    ab("Frame", {
+                        BackgroundTransparency = 1,
+                        Size = UDim2.new(1, 0, 1, 0),
+                        ZIndex = 2
+                    }, {
+                        ab("UIListLayout", {
+                            FillDirection = Enum.FillDirection.Horizontal,
+                            VerticalAlignment = Enum.VerticalAlignment.Center,
+                            HorizontalAlignment = Enum.HorizontalAlignment.Center,
+                            Padding = UDim.new(0, 6)
+                        }),
+                        ab("UIPadding", {PaddingLeft = UDim.new(0, 12), PaddingRight = UDim.new(0, 12)}),
+                        unpack(btnContent)
+                    })
+                })
 
-                -- Events
-                aa.AddSignal(btn.MouseButton1Click, function()
-                    if sectionData.CurrentSection == sName then return end
-                    
-                    -- Update Logic
-                    local prevSection = sectionData.CurrentSection
-                    sectionData.CurrentSection = sName
-
-                    -- Animate Button Visuals
-                    for name, data in pairs(sectionData.SectionButtons) do
-                        data.Update(name == sName, false)
+                sectionData.SectionButtons[pageName] = {
+                    Button = navButton,
+                    Pill = pill,
+                    Label = btnLabel,
+                    Icon = btnIcon,
+                    Select = function()
+                        ac(pill, 0.25, {ImageTransparency = 0.15}):Play()
+                        btnLabel.FontFace = Font.new(aa.Font, Enum.FontWeight.Bold)
+                        aa.AddThemeObject(btnLabel, {TextColor3 = "WindowBackground"})
+                        ac(btnLabel, 0.25, {TextTransparency = 0}):Play()
+                        if btnIcon then
+                            aa.AddThemeObject(btnIcon.ImageLabel, {ImageColor3 = "WindowBackground"})
+                            ac(btnIcon.ImageLabel, 0.25, {ImageTransparency = 0}):Play()
+                        end
+                    end,
+                    Deselect = function()
+                        ac(pill, 0.25, {ImageTransparency = 1}):Play()
+                        btnLabel.FontFace = Font.new(aa.Font, Enum.FontWeight.Medium)
+                        aa.AddThemeObject(btnLabel, {TextColor3 = "Text"})
+                        ac(btnLabel, 0.25, {TextTransparency = 0.4}):Play()
+                        if btnIcon then
+                            aa.AddThemeObject(btnIcon.ImageLabel, {ImageColor3 = "Text"})
+                            ac(btnIcon.ImageLabel, 0.25, {ImageTransparency = 0.4}):Play()
+                        end
+                    end,
+                    Hover = function(state)
+                        if sectionData.CurrentSection ~= pageName then
+                            ac(pill, 0.2, {ImageTransparency = state and 0.9 or 1}):Play()
+                            ac(btnLabel, 0.2, {TextTransparency = state and 0.2 or 0.4}):Play()
+                        end
                     end
+                }
 
-                    -- Page Transition
-                    if prevSection and sectionData.Pages[prevSection] then
-                        local oldP = sectionData.Pages[prevSection].ContainerFrame
-                        ac(oldP, 0.2, {GroupTransparency = 1}):Play()
-                        oldP.Visible = false
-                    end
-                    
-                    local newP = sectionData.Pages[sName].ContainerFrame
-                    newP.Visible = true
-                    newP.GroupTransparency = 1
-                    ac(newP, 0.25, {GroupTransparency = 0}):Play()
-
-                    -- Scroll Center
-                    local btnX = btn.AbsolutePosition.X - navScroll.AbsolutePosition.X + navScroll.CanvasPosition.X
-                    local centerOffset = (navScroll.AbsoluteSize.X / 2) - (btn.AbsoluteSize.X / 2)
-                    ac(navScroll, 0.35, {CanvasPosition = Vector2.new(math.max(0, btnX - centerOffset), 0)}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
-
-                    -- Height Resize
-                    RecalculateHeight()
+                aa.AddSignal(navButton.MouseEnter, function() sectionData.SectionButtons[pageName].Hover(true) end)
+                aa.AddSignal(navButton.MouseLeave, function() sectionData.SectionButtons[pageName].Hover(false) end)
+                aa.AddSignal(navButton.MouseButton1Click, function()
+                    sectionData.Pages.Select(pageName)
                 end)
-
-                aa.AddSignal(btn.MouseEnter, function() if sectionData.CurrentSection ~= sName then UpdateVisuals(false, true) end end)
-                aa.AddSignal(btn.MouseLeave, function() if sectionData.CurrentSection ~= sName then UpdateVisuals(false, false) end end)
             end
 
-            -- Initial State
-            sectionData.CurrentSection = firstSectionName
-            UpdateTitleSize()
+            sectionData.CurrentSection = parsedSections[1].Name
 
-            -- Open/Close Logic
-            function sectionData.Open()
-                sectionData.Opened = true
-                contentHolder.Visible = true
-                
-                ac(chevron.Arrow, 0.25, {Rotation = 180, ImageTransparency = 0}):Play()
-                ac(divider, 0.25, {BackgroundTransparency = 0.85}):Play()
-                
-                local acc = aa.GetThemeProperty("Accent", aa.Theme)
-                if acc then ac(chevron.Arrow, 0.2, {ImageColor3 = acc}):Play() end
+            function sectionData.Pages.Select(name)
+                if not sectionData.SectionButtons[name] then return end
+                if sectionData.CurrentSection == name and sectionData.Pages[name].ContainerFrame.Visible then return end
 
-                RecalculateHeight()
-            end
-
-            function sectionData.Close()
-                sectionData.Opened = false
-                -- Close anim
-                ac(mainFrame, 0.3, {Size = UDim2.new(1, 0, 0, sectionData.HeaderSize)}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
-                ac(chevron.Arrow, 0.25, {Rotation = 0, ImageTransparency = 0.5}):Play()
-                ac(divider, 0.2, {BackgroundTransparency = 1}):Play()
-                
-                local iconCol = aa.GetThemeProperty("Icon", aa.Theme)
-                if iconCol then ac(chevron.Arrow, 0.2, {ImageColor3 = iconCol}):Play() end
-
-                task.delay(0.3, function() if not sectionData.Opened then contentHolder.Visible = false end end)
-            end
-
-            aa.AddSignal(mainFrame.Top.MouseButton1Click, function()
-                if sectionData.Opened then sectionData.Close() else sectionData.Open() end
-            end)
-
-            aa.AddSignal(mainFrame.Top.MouseEnter, function() ac(mainFrame, 0.15, {ImageTransparency = 0.93}):Play() end)
-            aa.AddSignal(mainFrame.Top.MouseLeave, function() ac(mainFrame, 0.15, {ImageTransparency = sectionData.Box and 0.96 or 1}):Play() end)
-
-            task.spawn(function()
-                task.wait()
-                mainFrame.AutomaticSize = Enum.AutomaticSize.None
-                if sectionData.Opened then sectionData.Open() else sectionData.Close() end
-            end)
-
-            -- -- [ PUBLIC API OBJECT ] -- --
-            local API = {}
-            setmetatable(API, {
-                __index = function(_, k)
-                    return sectionData.Pages[k] -- Allow accessing pages directly
+                if sectionData.SectionButtons[sectionData.CurrentSection] then
+                    sectionData.SectionButtons[sectionData.CurrentSection].Deselect()
+                    sectionData.Pages[sectionData.CurrentSection].ContainerFrame.Visible = false
                 end
-            })
 
-            function API:Select(pageName)
-                local btnData = sectionData.SectionButtons[pageName]
-                if btnData then
-                    -- Trigger the existing click handler
-                    pcall(function() 
-                        for _, sig in pairs(aa.GetSignals and aa.GetSignals(btnData.Btn) or {}) do 
-                            -- Difficult to invoke pure Roblox signal without locating strict variable, 
-                            -- relying on the internal list seems brittle.
-                            -- Better: Manually trigger the visual update logic used in click handler:
+                sectionData.CurrentSection = name
+                sectionData.SectionButtons[name].Select()
+                sectionData.Pages[name].ContainerFrame.Visible = true
+
+                local btn = sectionData.SectionButtons[name].Button
+                local center = btn.AbsolutePosition.X - navBar.AbsolutePosition.X + (btn.AbsoluteSize.X / 2)
+                local scrollX = center - (navBar.AbsoluteSize.X / 2)
+                local currentCanvasX = navBar.CanvasPosition.X
+
+                ac(navBar, 0.35, {
+                    CanvasPosition = Vector2.new(currentCanvasX + scrollX, 0)
+                }, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
+
+                recalculateHeight()
+            end
+
+            local function toggle()
+                if not sectionData.Expandable then return end
+                sectionData.Opened = not sectionData.Opened
+
+                ac(chevron.Arrow, 0.3, {Rotation = sectionData.Opened and 180 or 0}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
+                ac(divider, 0.3, {BackgroundTransparency = sectionData.Opened and 0.85 or 1}, Enum.EasingStyle.Quad, Enum.EasingDirection.Out):Play()
+
+                if sectionData.Opened then
+                    contentFrame.Visible = true
+                end
+
+                recalculateHeight()
+
+                if not sectionData.Opened then
+                    task.delay(0.35, function()
+                        if not sectionData.Opened then
+                            contentFrame.Visible = false
                         end
-                        -- Force visual update logic manually since we can't reliably fire the specific roblox signal
-                        -- This block effectively replicates the MouseButton1Click logic above
-                        if sectionData.CurrentSection == pageName then return end
-                        local prevSection = sectionData.CurrentSection
-                        sectionData.CurrentSection = pageName
-                        for name, data in pairs(sectionData.SectionButtons) do data.Update(name == pageName, false) end
-                        
-                        if prevSection and sectionData.Pages[prevSection] then
-                            sectionData.Pages[prevSection].ContainerFrame.Visible = false
-                        end
-                        local newP = sectionData.Pages[pageName].ContainerFrame
-                        newP.Visible = true
-                        RecalculateHeight()
                     end)
                 end
             end
 
-            function API:SetBadge(pageName, value)
-                local bData = sectionData.Badges[pageName]
-                if bData then
-                    if value then
-                        bData.Lbl.Text = tostring(value)
-                        bData.Bg.Visible = true
-                    else
-                        bData.Bg.Visible = false
-                    end
-                end
-            end
+            aa.AddSignal(sectionFrame.HeaderBtn.MouseButton1Click, toggle)
 
-            function API:GetSection(pageName)
-                return sectionData.Pages[pageName]
-            end
+            task.delay(0.05, recalculateHeight)
 
-            return sectionData.__type, API
+            setmetatable(sectionData.Pages, {__index = sectionData})
+            sectionData.Pages.SelectSection = sectionData.Pages.Select
+
+            return sectionData.__type, sectionData.Pages
         end
 
         return ae
