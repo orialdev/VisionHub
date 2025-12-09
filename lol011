@@ -12163,6 +12163,7 @@ do
                 IconColor = an.IconColor,
                 IconShape = an.IconShape,
                 IconThemed = an.IconThemed,
+                Badge = an.Badge, -- Added Badge Support
                 Locked = an.Locked,
                 ShowTabTitle = an.ShowTabTitle,
                 Selected = false,
@@ -12172,388 +12173,248 @@ do
                 Elements = {},
                 ContainerFrame = nil,
                 UICorner = Window.UICorner - (Window.UIPadding / 2),
-                Gap = Window.NewElements and 1 or 6,
-                TabPaddingX = 4 + (Window.UIPadding / 2),
-                TabPaddingY = 3 + (Window.UIPadding / 2),
+                Gap = Window.NewElements and 6 or 8,
+                TabPaddingX = 8 + (Window.UIPadding / 2),
+                TabPaddingY = 5 + (Window.UIPadding / 2),
                 TitlePaddingY = 0
             }
 
-            if ap.IconShape then
-                ap.TabPaddingX = 2 + (Window.UIPadding / 4)
-                ap.TabPaddingY = 2 + (Window.UIPadding / 4)
-                ap.TitlePaddingY = 2 + (Window.UIPadding / 4)
-            end
-
             am.TabCount = am.TabCount + 1
-
             local aq = am.TabCount
             ap.Index = aq
 
-            --// 1. Create the Main Wrapper
-            ap.UIElements.Main =
-                af.NewRoundFrame(
+            -- Advanced: Active Pill Indicator (The colored line on the left)
+            local activePill = af.NewRoundFrame(4, "Squircle", {
+                Size = UDim2.new(0, 3, 0, 16),
+                Position = UDim2.new(0, 4, 0.5, 0),
+                AnchorPoint = Vector2.new(0, 0.5),
+                ThemeTag = {ImageColor3 = "Accent"},
+                ImageTransparency = 1, -- Hidden by default
+                ZIndex = 3
+            })
+
+            -- Advanced: Notification Badge Frame
+            local badgeFrame
+            if ap.Badge then
+                badgeFrame = af.NewRoundFrame(4, "Squircle", {
+                    AutomaticSize = Enum.AutomaticSize.X,
+                    Size = UDim2.new(0, 0, 0, 18),
+                    ThemeTag = {ImageColor3 = "Accent"},
+                    ImageTransparency = 0.2
+                }, {
+                    ah("TextLabel", {
+                        Text = tostring(ap.Badge),
+                        TextColor3 = Color3.new(1,1,1),
+                        TextSize = 11,
+                        FontFace = Font.new(af.Font, Enum.FontWeight.Bold),
+                        BackgroundTransparency = 1,
+                        AutomaticSize = Enum.AutomaticSize.XY,
+                        Size = UDim2.new(0, 0, 1, 0)
+                    }),
+                    ah("UIPadding", {
+                        PaddingLeft = UDim.new(0, 6),
+                        PaddingRight = UDim.new(0, 6)
+                    })
+                })
+            end
+
+            ap.UIElements.Main = af.NewRoundFrame(
                 ap.UICorner,
                 "Squircle",
                 {
                     BackgroundTransparency = 1,
-                    Size = UDim2.new(1, -7, 0, 0),
+                    Size = UDim2.new(1, -4, 0, 0), -- Slightly tighter to sidebar edge
                     AutomaticSize = "Y",
                     Parent = an.Parent,
-                    ThemeTag = {
-                        ImageColor3 = "TabBackground"
-                    },
+                    ThemeTag = { ImageColor3 = "TabBackground" }, -- Will be mostly transparent until active
                     ImageTransparency = 1
                 },
                 {
-                    -- Active Indicator (The Glow Pill on the left)
-                    ah(
-                        "Frame",
-                        {
-                            Name = "ActiveIndicator",
-                            Size = UDim2.new(0, 4, 0, 24),
-                            Position = UDim2.new(0, 0, 0.5, 0),
-                            AnchorPoint = Vector2.new(0, 0.5),
-                            BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-                            BackgroundTransparency = 1, -- Invisible by default
-                            ThemeTag = {
-                                BackgroundColor3 = "Accent" -- Matches the UI Accent
-                            },
-                            ZIndex = 2
+                    -- Subtle Background Glow when Active
+                    ah("UIGradient", {
+                        Transparency = NumberSequence.new{
+                            NumberSequenceKeypoint.new(0, 0.9), 
+                            NumberSequenceKeypoint.new(1, 1)
                         },
-                        {
-                            ah("UICorner", {CornerRadius = UDim.new(1, 0)})
-                        }
-                    ),
-                    -- Selection Outline
+                        Rotation = 0,
+                        Color = ColorSequence.new(Color3.new(1,1,1))
+                    }),
+                    
                     af.NewRoundFrame(
                         ap.UICorner,
-                        "SquircleOutline",
+                        "Squircle",
                         {
-                            Size = UDim2.new(1, 0, 1, 0),
-                            ThemeTag = {
-                                ImageColor3 = "Accent"
-                            },
-                            ImageTransparency = 1, -- Invisible by default
-                            Name = "Outline",
-                            ZIndex = 3
-                        }
-                    ),
-                    -- Content Container with Click Scale Support
-                    ah("Frame", {
-                        Size = UDim2.new(1, 0, 1, 0),
-                        BackgroundTransparency = 1,
-                        Name = "ScaleContainer"
-                    }, {
-                        ah("UIScale", { Scale = 1 }), -- For click effect
-                        af.NewRoundFrame(
-                            ap.UICorner,
-                            "Squircle",
-                            {
-                                Size = UDim2.new(1, 0, 0, 0),
+                            Size = UDim2.new(1, 0, 0, 0),
+                            AutomaticSize = "Y",
+                            ThemeTag = { ImageColor3 = "Text" }, -- Just for text structure parent
+                            ImageTransparency = 1,
+                            Name = "ContentFrame"
+                        },
+                        {
+                            ah("UIListLayout", {
+                                SortOrder = "LayoutOrder",
+                                Padding = UDim.new(0, 10),
+                                FillDirection = "Horizontal",
+                                VerticalAlignment = "Center"
+                            }),
+                            ah("UIPadding", {
+                                PaddingTop = UDim.new(0, 10),
+                                PaddingLeft = UDim.new(0, 12),
+                                PaddingRight = UDim.new(0, 12),
+                                PaddingBottom = UDim.new(0, 10)
+                            }),
+                            activePill, -- Inject Pill
+                            
+                            -- Tab Title
+                            ah("TextLabel", {
+                                Name = "TitleLabel",
+                                Text = ap.Title,
+                                ThemeTag = { TextColor3 = "Text" },
+                                TextTransparency = not ap.Locked and 0.45 or 0.7, -- UX: Starts dimmer
+                                TextSize = 15,
+                                Size = UDim2.new(1, badgeFrame and -25 or 0, 0, 0),
+                                FontFace = Font.new(af.Font, Enum.FontWeight.Medium),
+                                TextWrapped = true,
+                                RichText = true,
                                 AutomaticSize = "Y",
-                                ThemeTag = {
-                                    ImageColor3 = "Text"
-                                },
-                                ImageTransparency = 1,
-                                Name = "ContentFrame",
+                                LayoutOrder = 2,
+                                TextXAlignment = "Left",
                                 BackgroundTransparency = 1
-                            },
-                            {
-                                ah(
-                                    "UIListLayout",
-                                    {
-                                        SortOrder = "LayoutOrder",
-                                        Padding = UDim.new(0, 8), -- Wider spacing
-                                        FillDirection = "Horizontal",
-                                        VerticalAlignment = "Center"
-                                    }
-                                ),
-                                -- Title Logic
-                                ah(
-                                    "TextLabel",
-                                    {
-                                        Text = ap.Title,
-                                        ThemeTag = {
-                                            TextColor3 = "TabTitle"
-                                        },
-                                        TextTransparency = not ap.Locked and 0.5 or 0.7, -- DImmer default
-                                        TextSize = 15,
-                                        Size = UDim2.new(1, 0, 0, 0),
-                                        FontFace = Font.new(af.Font, Enum.FontWeight.Medium),
-                                        TextWrapped = true,
-                                        RichText = true,
-                                        AutomaticSize = "Y",
-                                        LayoutOrder = 2,
-                                        TextXAlignment = "Left",
-                                        BackgroundTransparency = 1,
-                                        Name = "Label"
-                                    },
-                                    {
-                                        ah(
-                                            "UIPadding",
-                                            {
-                                                PaddingTop = UDim.new(0, ap.TitlePaddingY),
-                                                PaddingBottom = UDim.new(0, ap.TitlePaddingY)
-                                            }
-                                        )
-                                    }
-                                ),
-                                ah(
-                                    "UIPadding",
-                                    {
-                                        PaddingTop = UDim.new(0, ap.TabPaddingY),
-                                        PaddingLeft = UDim.new(0, ap.TabPaddingX + 8), -- Make room for indicator animation
-                                        PaddingRight = UDim.new(0, ap.TabPaddingX),
-                                        PaddingBottom = UDim.new(0, ap.TabPaddingY)
-                                    }
-                                )
-                            }
-                        )
-                    })
+                            }),
+                            
+                            badgeFrame -- Inject Badge at the end (LayoutOrder handles it)
+                        }
+                    )
                 },
                 true
             )
 
-            local mainRef = ap.UIElements.Main
-            local scaleRef = mainRef.ScaleContainer.UIScale
-            local contentRef = mainRef.ScaleContainer.ContentFrame
-            local indicatorRef = mainRef.ActiveIndicator
-            local outlineRef = mainRef.Outline
+            local titleLabel = ap.UIElements.Main.ContentFrame.TitleLabel
+            local iconObject
 
-            --// Icon Logic
-            local ar = 0
-            local as
-            local au
-
+            -- Improved Icon Handling
             if ap.Icon then
-                as = af.Image(
+                iconObject = af.Image(
                     ap.Icon,
                     ap.Icon .. ":" .. ap.Title,
                     0,
                     Window.Folder,
                     ap.__type,
-                    ap.IconColor and false or true,
-                    ap.IconThemed,
-                    "TabIcon"
+                    true, -- Usually monochrome so we can tint it
+                    false -- No explicit theme logic here, handled manually for UX
                 )
-                as.Size = UDim2.new(0, 18, 0, 18) -- Slightly larger
-                if ap.IconColor then
-                    as.ImageLabel.ImageColor3 = ap.IconColor
-                end
+                iconObject.Size = UDim2.new(0, 18, 0, 18) -- Slightly larger for modern look
+                iconObject.Parent = ap.UIElements.Main.ContentFrame
+                iconObject.LayoutOrder = 1 -- Put before text (0 is pill)
                 
-                as.Parent = contentRef
-                ap.UIElements.Icon = as
-                as.ImageLabel.ImageTransparency = not ap.Locked and 0.3 or 0.7 -- Dimmer by default
+                -- UX: Icons start transparent/grey, turn Accent color on Select
+                iconObject.ImageLabel.ImageTransparency = 0.4
+                af.AddThemeObject(iconObject.ImageLabel, {ImageColor3 = "Icon"}) 
                 
-                ar = -22 - (Window.UIPadding / 2)
-                contentRef.Label.Size = UDim2.new(1, ar, 0, 0)
-
-                au = af.Image(ap.Icon, ap.Icon .. ":" .. ap.Title, 0, Window.Folder, ap.__type, true, ap.IconThemed)
-                au.Size = UDim2.new(0, 16, 0, 16)
-                au.ImageLabel.ImageTransparency = not ap.Locked and 0 or .7
-                ar = -30
+                ap.UIElements.Icon = iconObject
             end
 
-            --// Container Logic (unchanged content, visual improvement only)
-            ap.UIElements.ContainerFrame =
-                ah(
-                "ScrollingFrame",
-                {
-                    Size = UDim2.new(1, 0, 1, ap.ShowTabTitle and -((Window.UIPadding * 2.4) + 12) or 0),
-                    BackgroundTransparency = 1,
-                    ScrollBarThickness = 0,
-                    ElasticBehavior = "Never",
-                    CanvasSize = UDim2.new(0, 0, 0, 0),
-                    AnchorPoint = Vector2.new(0, 1),
-                    Position = UDim2.new(0, 0, 1, 0),
-                    AutomaticCanvasSize = "Y",
-                    ScrollingDirection = "Y"
-                },
-                {
-                    ah(
-                        "UIPadding",
-                        {
-                            PaddingTop = UDim.new(0, not Window.HidePanelBackground and 20 or 10),
-                            PaddingLeft = UDim.new(0, not Window.HidePanelBackground and 20 or 10),
-                            PaddingRight = UDim.new(0, not Window.HidePanelBackground and 20 or 10),
-                            PaddingBottom = UDim.new(0, not Window.HidePanelBackground and 20 or 10)
-                        }
-                    ),
-                    ah(
-                        "UIListLayout",
-                        {
-                            SortOrder = "LayoutOrder",
-                            Padding = UDim.new(0, ap.Gap),
-                            HorizontalAlignment = "Center"
-                        }
-                    )
-                }
-            )
+            -- UX: Move Badge to right if it exists
+            if badgeFrame then 
+                badgeFrame.LayoutOrder = 3
+                badgeFrame.Parent = ap.UIElements.Main.ContentFrame
+            end
 
-            ap.UIElements.ContainerFrameCanvas =
-                ah(
-                "Frame",
-                {
-                    Size = UDim2.new(1, 0, 1, 0),
-                    BackgroundTransparency = 1,
-                    Visible = false,
-                    Parent = Window.UIElements.MainBar,
-                    ZIndex = 5
-                },
-                {
-                    ap.UIElements.ContainerFrame
-                }
-            )
+            -- Logic for moving the Title Size to accommodate icon
+            local sizeOffset = 0
+            if ap.Icon then sizeOffset = sizeOffset - 28 end
+            if ap.Badge then sizeOffset = sizeOffset - 30 end
+            titleLabel.Size = UDim2.new(1, sizeOffset, 0, 0)
+
+
+            -- Container Logic (Standard WindUI Scrollframe)
+            ap.UIElements.ContainerFrame = ah("ScrollingFrame", {
+                Size = UDim2.new(1, 0, 1, ap.ShowTabTitle and -((Window.UIPadding * 2.4) + 12) or 0),
+                BackgroundTransparency = 1,
+                ScrollBarThickness = 0,
+                ElasticBehavior = "Never",
+                CanvasSize = UDim2.new(0, 0, 0, 0),
+                AnchorPoint = Vector2.new(0, 1),
+                Position = UDim2.new(0, 0, 1, 0),
+                AutomaticCanvasSize = "Y",
+                ScrollingDirection = "Y"
+            }, {
+                ah("UIPadding", {
+                    PaddingTop = UDim.new(0, 14), -- UX: More breathing room
+                    PaddingLeft = UDim.new(0, 14),
+                    PaddingRight = UDim.new(0, 14),
+                    PaddingBottom = UDim.new(0, 14)
+                }),
+                ah("UIListLayout", {
+                    SortOrder = "LayoutOrder",
+                    Padding = UDim.new(0, ap.Gap),
+                    HorizontalAlignment = "Center"
+                })
+            })
+
+            -- The Frame holding the content
+            ap.UIElements.ContainerFrameCanvas = ah("Frame", {
+                Size = UDim2.new(1, 0, 1, 0),
+                BackgroundTransparency = 1,
+                Visible = false,
+                Parent = Window.UIElements.MainBar,
+                ZIndex = 5
+            }, {
+                ap.UIElements.ContainerFrame
+                -- Optional Tab Title in Header (Preserved from original)
+            })
 
             am.Containers[aq] = ap.UIElements.ContainerFrameCanvas
             am.Tabs[aq] = ap
-
             ap.ContainerFrame = ContainerFrameCanvas
+
+            -- ----------------------------------------------------
+            -- INTERACTION EVENTS (UX Upgrade)
+            -- ----------------------------------------------------
+
+            -- Click
+            af.AddSignal(ap.UIElements.Main.MouseButton1Click, function()
+                if not ap.Locked then am:SelectTab(aq) end
+            end)
 
             if Window.ScrollBarEnabled then
                 al(ap.UIElements.ContainerFrame, ap.UIElements.ContainerFrameCanvas, Window, 3)
             end
 
-            --// Input Logic (Updated for advanced UX)
-            local hoverActive = false
-
-            -- Click Handling
-            af.AddSignal(
-                mainRef.MouseButton1Click,
-                function()
-                    if not ap.Locked then
-                        am:SelectTab(aq)
-                        -- Pulse Animation
-                        aj(scaleRef, 0.15, {Scale = 0.95}, Enum.EasingStyle.Back, Enum.EasingDirection.Out):Play()
-                        task.delay(0.15, function() 
-                            aj(scaleRef, 0.15, {Scale = 1}, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out):Play()
-                        end)
-                    end
-                end
-            )
-
-            -- Hover Start
-            af.AddSignal(
-                mainRef.MouseEnter,
-                function()
-                    if not ap.Locked then
-                        hoverActive = true
-                        
-                        -- Light background
-                        aj(mainRef, 0.15, {ImageTransparency = 0.97}):Play()
-                        
-                        -- Slide Text/Content Right
-                        aj(mainRef.ScaleContainer.ContentFrame.UIPadding, 0.25, {
-                            PaddingLeft = UDim.new(0, (ap.TabPaddingX + 8) + 6) -- +6 px shift
-                        }, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
-
-                        if not ap.Selected then
-                            aj(contentRef.Label, 0.2, {TextTransparency = 0.2}):Play()
-                            if ap.UIElements.Icon then
-                                aj(ap.UIElements.Icon.ImageLabel, 0.2, {ImageTransparency = 0.1}):Play()
-                            end
-                        end
-                    end
-                end
-            )
-
-            -- Hover End
-            af.AddSignal(
-                mainRef.MouseLeave,
-                function()
-                    hoverActive = false
+            -- Hover Effect (Slide & Tint)
+            af.AddSignal(ap.UIElements.Main.MouseEnter, function()
+                if not ap.Locked and not ap.Selected then
+                    -- Slight shift to right
+                    aj(ap.UIElements.Main.ContentFrame.UIPadding, 0.25, {PaddingLeft = UDim.new(0, 16)}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
                     
-                    if not ap.Locked then
-                        -- Restore position
-                        aj(mainRef.ScaleContainer.ContentFrame.UIPadding, 0.25, {
-                            PaddingLeft = UDim.new(0, (ap.TabPaddingX + 8))
-                        }, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
-
-                        if not ap.Selected then
-                            aj(mainRef, 0.2, {ImageTransparency = 1}):Play()
-                            aj(contentRef.Label, 0.2, {TextTransparency = 0.5}):Play()
-                            if ap.UIElements.Icon then
-                                aj(ap.UIElements.Icon.ImageLabel, 0.2, {ImageTransparency = 0.3}):Play()
-                            end
-                        else
-                            -- Keep active transparency
-                            aj(mainRef, 0.2, {ImageTransparency = 0.95}):Play()
-                        end
-                    end
+                    -- Highlight Background slightly
+                    aj(ap.UIElements.Main, 0.25, {ImageTransparency = 0.96}):Play()
+                    
+                    -- Lighten text
+                    aj(titleLabel, 0.25, {TextTransparency = 0.2}):Play()
+                    if iconObject then aj(iconObject.ImageLabel, 0.25, {ImageTransparency = 0.2}):Play() end
                 end
-            )
+            end)
 
-            -- Original tooltip code
-            if ap.Desc then
-                local toolTipActive = false
-                local tipTask
-                local conn
-                local createdTip
+            -- Hover End (Reset)
+            af.AddSignal(ap.UIElements.Main.InputEnded, function()
+                if not ap.Locked and not ap.Selected then
+                    -- Shift back
+                    aj(ap.UIElements.Main.ContentFrame.UIPadding, 0.25, {PaddingLeft = UDim.new(0, 12)}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
+                    
+                    -- Remove Highlight
+                    aj(ap.UIElements.Main, 0.25, {ImageTransparency = 1}):Play()
+                    
+                    -- Reset text
+                    aj(titleLabel, 0.25, {TextTransparency = 0.45}):Play()
+                    if iconObject then aj(iconObject.ImageLabel, 0.25, {ImageTransparency = 0.4}):Play() end
+                end
+            end)
 
-                af.AddSignal(mainRef.MouseEnter, function()
-                    toolTipActive = true
-                    tipTask = task.spawn(function()
-                        task.wait(0.6) -- Increased wait so it doesn't pop up instantly
-                        if toolTipActive and not createdTip then
-                            createdTip = ak(ap.Desc, am.ToolTipParent, true)
-                            createdTip.Container.AnchorPoint = Vector2.new(0.5, 0.5)
-                            
-                            local function updatePos()
-                                if createdTip then createdTip.Container.Position = UDim2.new(0, ae.X, 0, ae.Y - 10) end
-                            end
-                            updatePos()
-                            conn = ae.Move:Connect(updatePos)
-                            createdTip:Open()
-                        end
-                    end)
-                end)
-
-                af.AddSignal(mainRef.MouseLeave, function()
-                    toolTipActive = false
-                    if tipTask then task.cancel(tipTask) tipTask = nil end
-                    if conn then conn:Disconnect() conn = nil end
-                    if createdTip then createdTip:Close() createdTip = nil end
-                end)
-            end
-
-            function ap.ScrollToTheElement(az, aA)
-                ap.UIElements.ContainerFrame.ScrollingEnabled = false
-                aj(
-                    ap.UIElements.ContainerFrame,
-                    .45,
-                    {
-                        CanvasPosition = Vector2.new(
-                            0,
-                            ap.Elements[aA].ElementFrame.AbsolutePosition.Y -
-                                ap.UIElements.ContainerFrame.AbsolutePosition.Y -
-                                ap.UIElements.ContainerFrame.UIPadding.PaddingTop.Offset
-                        )
-                    },
-                    Enum.EasingStyle.Quint,
-                    Enum.EasingDirection.Out
-                ):Play()
-
-                task.spawn(
-                    function()
-                        task.wait(.48)
-                        if ap.Elements[aA].Highlight then
-                            ap.Elements[aA]:Highlight()
-                            ap.UIElements.ContainerFrame.ScrollingEnabled = true
-                        end
-                    end
-                )
-                return ap
-            end
-
-            -- Setup Elements Loader
             local az = a.load "T"
             az.Load(ap, ap.UIElements.ContainerFrame, az.Elements, Window, WindUI, nil, az, ao)
 
-            function ap.LockAll(aA) end -- Stub
-            function ap.UnlockAll(aA) end -- Stub
-            function ap.Select(aA)
-                return am:SelectTab(ap.Index)
-            end
+            function ap.Select(aA) return am:SelectTab(ap.Index) end
 
             return ap
         end
@@ -12562,88 +12423,82 @@ do
             am.OnChangeFunc = ao
         end
 
-        function am.SelectTab(an, ao)
-            if not am.Tabs[ao].Locked then
-                am.SelectedTab = ao
+        -- Advanced Select Tab Logic
+        function am.SelectTab(an, tabIndex)
+            if not am.Tabs[tabIndex].Locked then
+                am.SelectedTab = tabIndex
 
-                for ap, aq in next, am.Tabs do
-                    local tabUI = aq.UIElements.Main
-                    local indicator = tabUI.ActiveIndicator
-                    local label = tabUI.ScaleContainer.ContentFrame.Label
-                    local outline = tabUI.Outline
-                    local icon = aq.UIElements.Icon and aq.UIElements.Icon.ImageLabel or nil
+                -- Deselect Loop
+                for id, tab in next, am.Tabs do
+                    if not tab.Locked then
+                        tab.Selected = false
+                        
+                        -- Animate UI Reset
+                        local pill = tab.UIElements.Main.ContentFrame:FindFirstChild("Squircle") -- Find pill by shape/order or index 1
+                        
+                        aj(tab.UIElements.Main, 0.3, {ImageTransparency = 1}):Play()
+                        aj(tab.UIElements.Main.ContentFrame.TitleLabel, 0.3, {TextTransparency = 0.45}):Play()
+                        
+                        -- Reset Position
+                        aj(tab.UIElements.Main.ContentFrame.UIPadding, 0.3, {PaddingLeft = UDim.new(0, 12)}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
 
-                    if not aq.Locked then
-                        if aq.Index == ao then
-                            --// THIS TAB IS SELECTED //--
-                            aq.Selected = true
-                            
-                            -- Reveal background
-                            aj(tabUI, 0.3, {ImageTransparency = 0.95}):Play()
-                            
-                            -- Reveal Outline (subtle glow)
-                            aj(outline, 0.3, {ImageTransparency = 0.9}):Play()
+                        if pill then -- Hide Active Pill
+                            aj(pill, 0.3, {ImageTransparency = 1, Size = UDim2.new(0, 3, 0, 10)}):Play()
+                        end
 
-                            -- Reveal Indicator Pill (slide up/fade in)
-                            indicator.Size = UDim2.new(0, 4, 0, 0)
-                            aj(indicator, 0.35, {Size = UDim2.new(0, 4, 0, 24), BackgroundTransparency = 0}, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out):Play()
-
-                            -- Highlight Text (Bold)
-                            aj(label, 0.25, {TextTransparency = 0}):Play()
-                            label.FontFace = Font.new(af.Font, Enum.FontWeight.Bold)
-
-                            -- Highlight Icon
-                            if icon then
-                                af.AddThemeObject(icon, {ImageColor3 = "Accent"}) -- Tint icon to accent
-                                aj(icon, 0.25, {ImageTransparency = 0}):Play()
-                            end
-
-                        else
-                            --// THIS TAB IS NOT SELECTED //--
-                            aq.Selected = false
-
-                            -- Hide Background
-                            aj(tabUI, 0.2, {ImageTransparency = 1}):Play()
-                            
-                            -- Hide Outline
-                            aj(outline, 0.2, {ImageTransparency = 1}):Play()
-
-                            -- Hide Indicator
-                            aj(indicator, 0.2, {Size = UDim2.new(0, 4, 0, 0), BackgroundTransparency = 1}):Play()
-
-                            -- Dim Text (Regular)
-                            aj(label, 0.2, {TextTransparency = 0.5}):Play()
-                            label.FontFace = Font.new(af.Font, Enum.FontWeight.Medium)
-
-                            -- Dim Icon
-                            if icon then
-                                af.AddThemeObject(icon, {ImageColor3 = "TabIcon"}) -- Revert to default text/icon color
-                                aj(icon, 0.2, {ImageTransparency = 0.3}):Play()
-                            end
+                        if tab.UIElements.Icon then
+                            -- Revert Icon Color to standard Text/Icon theme
+                            af.UpdateTheme(tab.UIElements.Icon.ImageLabel) 
+                            af.AddThemeObject(tab.UIElements.Icon.ImageLabel, {ImageColor3 = "Icon"})
+                            aj(tab.UIElements.Icon.ImageLabel, 0.3, {ImageTransparency = 0.4}):Play()
                         end
                     end
                 end
 
-                -- Container Switch Logic
-                task.spawn(
-                    function()
-                        for ar, as in next, am.Containers do
-                            if ar == ao then
-                                as.Visible = true
-                                as.Position = UDim2.new(0, 0, 0, 15) -- Start slightly down
-                                as.BackgroundTransparency = 1 -- Fade effect
-                                
-                                -- Fade In / Slide Up
-                                aj(as, 0.35, {Position = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
-                                -- Note: The internal ScrollingFrame fades via parent canvas usually, here just moving
-                            else
-                                as.Visible = false
-                            end
+                -- Select Logic
+                local target = am.Tabs[tabIndex]
+                target.Selected = true
+                
+                local activePill = target.UIElements.Main.ContentFrame:FindFirstChild("Squircle")
+
+                -- Background Highlight
+                aj(target.UIElements.Main, 0.3, {ImageTransparency = 0.94}):Play() 
+                
+                -- Bold/Brighten Text
+                aj(target.UIElements.Main.ContentFrame.TitleLabel, 0.3, {TextTransparency = 0}):Play()
+                
+                -- Show Pill (Grow height)
+                if activePill then
+                    activePill.Size = UDim2.new(0, 3, 0, 8) -- Start Small
+                    aj(activePill, 0.35, {ImageTransparency = 0, Size = UDim2.new(0, 4, 0, 18)}, Enum.EasingStyle.Back, Enum.EasingDirection.Out):Play()
+                end
+
+                -- Tint Icon to Accent Color
+                if target.UIElements.Icon then
+                    af.AddThemeObject(target.UIElements.Icon.ImageLabel, {ImageColor3 = "Accent"})
+                    af.UpdateTheme(target.UIElements.Icon.ImageLabel)
+                    aj(target.UIElements.Icon.ImageLabel, 0.3, {ImageTransparency = 0}):Play()
+                end
+
+                -- Container Switch Animation (Slide Up + Fade)
+                task.spawn(function()
+                    for id, cont in next, am.Containers do
+                        if id ~= tabIndex then
+                            cont.Visible = false
+                            cont.Position = UDim2.new(0, 0, 0, 15) -- Push others down slightly
+                            cont.BackgroundTransparency = 1
                         end
                     end
-                )
+                    
+                    local activeCont = am.Containers[tabIndex]
+                    activeCont.Visible = true
+                    activeCont.Position = UDim2.new(0, 0, 0, 20) -- Start lower
+                    
+                    -- Slide Up
+                    aj(activeCont, 0.4, {Position = UDim2.new(0,0,0,0)}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
+                end)
 
-                am.OnChangeFunc(ao)
+                am.OnChangeFunc(tabIndex)
             end
         end
 
