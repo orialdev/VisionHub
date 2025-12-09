@@ -11133,7 +11133,6 @@ do
                 return "MultiSection", {}
             end
 
-            -- Setup Header Icon
             local iconImg
             function sectionData.SetIcon(s, icon)
                 sectionData.Icon = icon or nil
@@ -11157,7 +11156,6 @@ do
                 end
             end
 
-            -- Setup Chevron
             local chevron =
                 ab(
                 "Frame",
@@ -11190,7 +11188,6 @@ do
                 sectionData:SetIcon(sectionData.Icon)
             end
 
-            -- Header Text
             local textWrapper =
                 ab(
                 "Frame",
@@ -11236,8 +11233,10 @@ do
                 }
             )
 
+            local subLbl
             if sectionData.Subtitle then
-                ab(
+                subLbl =
+                    ab(
                     "TextLabel",
                     {
                         Name = "Desc",
@@ -11257,7 +11256,6 @@ do
                 )
             end
 
-            -- Dynamic Title Resizing
             local function UpdateTitleSize()
                 local wReduct = 0
                 if iconImg then
@@ -11377,7 +11375,6 @@ do
                 }
             )
 
-            -- Enhanced Navigation Bar
             local navBar =
                 ab(
                 "Frame",
@@ -11454,10 +11451,8 @@ do
                 end
             )
 
-            -- Advanced Section Parsing
             local parsed = {}
             for _, v in ipairs(sectionData.Sections) do
-                -- Accepts { Name = "X", Icon = "X", Badge = "New" }
                 table.insert(
                     parsed,
                     type(v) == "table" and {Name = v.Name or v[1] or "Section", Icon = v.Icon or v[2], Badge = v.Badge} or
@@ -11467,7 +11462,6 @@ do
 
             local elementMod = ag.ElementsModule
 
-            -- Resize Calculation
             local function Resize()
                 if not sectionData.Opened then
                     return
@@ -11488,10 +11482,8 @@ do
                 ):Play()
             end
 
-            -- Setup Buttons and Pages
             for i, sInfo in ipairs(parsed) do
                 local pName = sInfo.Name
-                -- Container
                 local pFrame =
                     ab(
                     "ScrollingFrame",
@@ -11530,7 +11522,6 @@ do
                     Folder = ag.Window.Folder
                 }
 
-                -- Bind loading to existing logic
                 elementMod.Load(
                     pgObj,
                     pFrame,
@@ -11546,7 +11537,6 @@ do
 
                 aa.AddSignal(pFrame.UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"), Resize)
 
-                -- Visual Pill Button
                 local pill =
                     ad(
                     12,
@@ -11656,7 +11646,6 @@ do
                     }
                 )
 
-                -- Visual update logic
                 local function updateVisuals(isActive, isHover)
                     local targetTrans = isActive and 0.15 or (isHover and 0.9 or 1)
                     ac(pill, 0.2, {ImageTransparency = targetTrans}):Play()
@@ -11681,7 +11670,6 @@ do
 
                 sectionData.SectionButtons[pName] = updateVisuals
 
-                -- Button Click with Auto-Scroll
                 aa.AddSignal(
                     btnContainer.MouseButton1Click,
                     function()
@@ -11697,7 +11685,6 @@ do
                             fn(k == pName, false)
                         end
 
-                        -- Auto Scroll to center
                         local btnX =
                             btnContainer.AbsolutePosition.X - navList.AbsolutePosition.X + navList.CanvasPosition.X
                         ac(
@@ -11744,7 +11731,6 @@ do
                 ac(chevron.Arrow, 0.25, {Rotation = 180, ImageTransparency = 0}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
                 ac(divider, 0.25, {BackgroundTransparency = 0.85}, Enum.EasingStyle.Quad, Enum.EasingDirection.Out):Play()
                 
-                -- Theme Sync for Active Accent
                 local themeAccent = aa.GetThemeProperty("Accent", aa.Theme)
                 if themeAccent then
                      ac(chevron.Arrow, 0.2, {ImageColor3 = themeAccent}):Play()
@@ -11789,7 +11775,6 @@ do
                 end
             )
             
-            -- Header Hover
             aa.AddSignal(
                 mainFrame.Top.MouseEnter,
                 function()
