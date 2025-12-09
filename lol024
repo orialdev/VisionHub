@@ -12147,7 +12147,12 @@ do
 
         local ak = a.load "y".New
         local al = a.load "u".New
-        local searchIcon = af.Icon "search" -- Preload search icon
+        
+        -- Use inline fetching for search icon to avoid premature loading issues
+        local function getSearchIcon()
+            local iconData = af.Icon "search"
+            if iconData then return iconData else return {"", {ImageRectPosition = Vector2.new(0,0), ImageRectSize = Vector2.new(0,0)}} end
+        end
 
         local am = {
             Tabs = {},
@@ -12221,7 +12226,7 @@ do
                     ThemeTag = {ImageColor3 = "TabBackground"},
                     ImageTransparency = 1,
                     Visible = ap.Visible,
-                    LayoutOrder = ap.LayoutOrder or ap.Index -- Use custom layout order if provided
+                    LayoutOrder = ap.LayoutOrder or ap.Index
                 },
                 {
                     af.NewRoundFrame(
@@ -12479,7 +12484,10 @@ do
             -- Search Bar implementation for specific tab
             local searchContainer
             local searchInput
+            
             if ap.SearchEnabled then
+                local sIconData = getSearchIcon()
+                
                 searchContainer =
                     ah(
                     "Frame",
@@ -12487,7 +12495,7 @@ do
                         Size = UDim2.new(1, 0, 0, 40),
                         BackgroundTransparency = 1,
                         Name = "LocalSearch",
-                        LayoutOrder = -1, -- Keep at top
+                        LayoutOrder = -1,
                         Visible = true,
                         ZIndex = 5
                     },
@@ -12496,7 +12504,7 @@ do
                             10,
                             "Squircle",
                             {
-                                Name = "Squircle", -- Fixed: Explicitly naming the round frame
+                                Name = "Squircle", -- Added Name explicitly here to fix the bug
                                 Size = UDim2.new(1, 0, 1, 0),
                                 ThemeTag = {ImageColor3 = "Input"},
                                 ImageTransparency = 0.5
@@ -12518,9 +12526,9 @@ do
                                         AnchorPoint = Vector2.new(0, 0.5),
                                         Position = UDim2.new(0, 0, 0.5, 0),
                                         BackgroundTransparency = 1,
-                                        Image = searchIcon[1],
-                                        ImageRectOffset = searchIcon[2].ImageRectPosition,
-                                        ImageRectSize = searchIcon[2].ImageRectSize,
+                                        Image = sIconData[1],
+                                        ImageRectOffset = sIconData[2].ImageRectPosition,
+                                        ImageRectSize = sIconData[2].ImageRectSize,
                                         ThemeTag = {ImageColor3 = "Text"},
                                         ImageTransparency = 0.5
                                     }
@@ -12546,28 +12554,92 @@ do
                     }
                 )
 
-                searchInput = searchContainer.Squircle.TextBox
-
-                af.AddSignal(
-                    searchInput:GetPropertyChangedSignal("Text"),
-                    function()
-                        local text = searchInput.Text:lower()
-                        for _, element in pairs(ap.Elements) do
-                            if element.ElementFrame then
-                                if
-                                    text == "" or (element.Title and element.Title:lower():find(text)) or
-                                        (element.Desc and element.Desc:lower():find(text))
-                                 then
-                                    element.ElementFrame.Visible = true
-                                else
-                                    element.ElementFrame.Visible = false
+                -- Check if child exists before assignment to prevent error if instant construction failed
+                if searchContainer:FindFirstChild("Squircle") then
+                    searchInput = searchContainer.Squircle.TextBox
+                    
+                    af.AddSignal(
+                        searchInput:GetPropertyChangedSignal("Text"),
+                        function()
+                            local text = searchInput.Text:lower()
+                            for _, element in pairs(ap.Elements) do
+                                if element.ElementFrame then
+                                    if
+                                        text == "" or (element.Title and element.Title:lower():find(text)) or
+                                            (element.Desc and element.Desc:lower():find(text))
+                                     then
+                                        element.ElementFrame.Visible = true
+                                    else
+                                        element.ElementFrame.Visible = false
+                                    end
                                 end
                             end
                         end
-                        -- Update canvas size usually happens automatically via UIListLayout
-                    end
-                )
+                    )
+                end
             end
+
+            local containerChildren = {}
+            if searchContainer then
+                table.insert(containerChildren, searchContainer)
+            end
+            table.insert(containerChildren, ap.UIElements.ContainerFrame)
+            table.insert(containerChildren, ah(
+                "Frame",
+                {
+                    Size = UDim2.new(1, 0, 0, ((Window.UIPadding * 2.4) + 12)),
+                    BackgroundTransparency = 1,
+                    Visible = ap.ShowTabTitle or false,
+                    Name = "TabTitle"
+                },
+                {
+                    au,
+                    ah(
+                        "TextLabel",
+                        {
+                            Text = ap.Title,
+                            ThemeTag = {TextColor3 = "Text"},
+                            TextSize = 20,
+                            TextTransparency = .1,
+                            Size = UDim2.new(1, titleWidthOffset, 1, 0),
+                            FontFace = Font.new(af.Font, Enum.FontWeight.SemiBold),
+                            TextTruncate = "AtEnd",
+                            RichText = true,
+                            LayoutOrder = 2,
+                            TextXAlignment = "Left",
+                            BackgroundTransparency = 1
+                        }
+                    ),
+                    ah(
+                        "UIPadding",
+                        {
+                            PaddingTop = UDim.new(0, 20),
+                            PaddingLeft = UDim.new(0, 20),
+                            PaddingRight = UDim.new(0, 20),
+                            PaddingBottom = UDim.new(0, 20)
+                        }
+                    ),
+                    ah(
+                        "UIListLayout",
+                        {
+                            SortOrder = "LayoutOrder",
+                            Padding = UDim.new(0, 10),
+                            FillDirection = "Horizontal",
+                            VerticalAlignment = "Center"
+                        }
+                    )
+                }
+            ))
+            table.insert(containerChildren, ah(
+                "Frame",
+                {
+                    Size = UDim2.new(1, 0, 0, 1),
+                    BackgroundTransparency = .9,
+                    ThemeTag = {BackgroundColor3 = "Text"},
+                    Position = UDim2.new(0, 0, 0, ((Window.UIPadding * 2.4) + 12)),
+                    Visible = ap.ShowTabTitle or false
+                }
+            ))
 
             ap.UIElements.ContainerFrameCanvas =
                 ah(
@@ -12579,71 +12651,11 @@ do
                     Parent = Window.UIElements.MainBar,
                     ZIndex = 5
                 },
-                {
-                    searchContainer, -- Add search bar to container canvas
-                    ap.UIElements.ContainerFrame,
-                    ah(
-                        "Frame",
-                        {
-                            Size = UDim2.new(1, 0, 0, ((Window.UIPadding * 2.4) + 12)),
-                            BackgroundTransparency = 1,
-                            Visible = ap.ShowTabTitle or false,
-                            Name = "TabTitle"
-                        },
-                        {
-                            au,
-                            ah(
-                                "TextLabel",
-                                {
-                                    Text = ap.Title,
-                                    ThemeTag = {TextColor3 = "Text"},
-                                    TextSize = 20,
-                                    TextTransparency = .1,
-                                    Size = UDim2.new(1, titleWidthOffset, 1, 0),
-                                    FontFace = Font.new(af.Font, Enum.FontWeight.SemiBold),
-                                    TextTruncate = "AtEnd",
-                                    RichText = true,
-                                    LayoutOrder = 2,
-                                    TextXAlignment = "Left",
-                                    BackgroundTransparency = 1
-                                }
-                            ),
-                            ah(
-                                "UIPadding",
-                                {
-                                    PaddingTop = UDim.new(0, 20),
-                                    PaddingLeft = UDim.new(0, 20),
-                                    PaddingRight = UDim.new(0, 20),
-                                    PaddingBottom = UDim.new(0, 20)
-                                }
-                            ),
-                            ah(
-                                "UIListLayout",
-                                {
-                                    SortOrder = "LayoutOrder",
-                                    Padding = UDim.new(0, 10),
-                                    FillDirection = "Horizontal",
-                                    VerticalAlignment = "Center"
-                                }
-                            )
-                        }
-                    ),
-                    ah(
-                        "Frame",
-                        {
-                            Size = UDim2.new(1, 0, 0, 1),
-                            BackgroundTransparency = .9,
-                            ThemeTag = {BackgroundColor3 = "Text"},
-                            Position = UDim2.new(0, 0, 0, ((Window.UIPadding * 2.4) + 12)),
-                            Visible = ap.ShowTabTitle or false
-                        }
-                    )
-                }
+                containerChildren
             )
 
-            -- If search is enabled, adjust scrolling frame to make room for search bar
             if ap.SearchEnabled then
-                ap.UIElements.ContainerFrame.Position = UDim2.new(0, 0, 0, 46) -- Move down
+                ap.UIElements.ContainerFrame.Position = UDim2.new(0, 0, 0, 46)
                 ap.UIElements.ContainerFrame.Size = UDim2.new(1, 0, 1, -46)
             end
 
@@ -12669,7 +12681,6 @@ do
                 task.delay(0.05, RecalculateTitleSize)
             end
 
-            -- Feature: Layout Alignment
             function ap.SetLayoutAlignment(s, alignment)
                 if ap.UIElements.ContainerFrame and ap.UIElements.ContainerFrame.UIListLayout then
                     if alignment == "Top" then
