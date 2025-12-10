@@ -15172,38 +15172,67 @@ end
                 f.Text = m
             end
             
-            -- [[ New TopBar Features ]]
+            -- [[ Advanced TopBar Features ]]
             
             function as.UpdateTitle(self, newTitle, newAuthor)
-                if newTitle then
-                    as:SetTitle(newTitle)
-                end
-                if newAuthor then
-                    as:SetAuthor(newAuthor)
-                end
+                if newTitle then as:SetTitle(newTitle) end
+                if newAuthor then as:SetAuthor(newAuthor) end
             end
 
+            -- Adds a customizable button to the topbar
             function as.TopbarButton(v, btnProps)
-                -- { Name="Help", Icon="help-circle", Callback=function..., Color=... }
                 local props = btnProps or v
                 local name = props.Name or props.Title or "Button"
                 local icon = props.Icon or "star"
                 local callback = props.Callback or function() end
                 
-                -- Auto calculate LayoutOrder to act like left-most buttons on the Right container
-                -- Standard controls use 997, 998, 999. Custom ones start at 1? No, logic above seems to rely on 'r' 
-                -- We use low integer orders.
+                -- Layout Order Logic: 1=First user button, system controls > 990
                 local order = #as.TopBarButtons + 1
                 
                 return as:CreateTopbarButton(
-                    name, 
-                    icon, 
-                    callback, 
-                    order, 
-                    nil, -- Parent automatically handled
-                    nil, -- extra
+                    name, icon, callback, order, nil, nil, 
                     props.Color or Color3.fromRGB(200, 200, 200)
                 )
+            end
+
+            -- Adds a simple label (e.g. for Stats/FPS)
+            function as.TopbarLabel(v, labelProps)
+                local props = labelProps or v
+                local text = props.Text or "Label"
+                local color = props.Color or Color3.fromRGB(150, 150, 150)
+                
+                local lbl = ak("TextLabel", {
+                    Text = text,
+                    TextColor3 = color,
+                    BackgroundTransparency = 1,
+                    AutomaticSize = Enum.AutomaticSize.X,
+                    Size = UDim2.new(0, 0, 1, 0),
+                    FontFace = Font.new(aj.Font, Enum.FontWeight.Bold), -- Standard WindUI weight for small headers
+                    TextSize = 13,
+                    ThemeTag = { TextColor3 = "WindowTopbarTitle", TextTransparency = 0.4 },
+                    LayoutOrder = 1, -- Force to the far left of the 'Right' container
+                    Parent = as.UIElements.Main.Main.Topbar.Right
+                })
+                
+                return {
+                    Label = lbl,
+                    SetText = function(self, t) lbl.Text = t end,
+                    Update = function(self, t) lbl.Text = t end
+                }
+            end
+
+            -- Adds a vertical divider to separate sections in the topbar
+            function as.TopbarDivider()
+                return ak("Frame", {
+                    Size = UDim2.new(0, 1, 0, 16),
+                    AnchorPoint = Vector2.new(0, 0.5),
+                    Position = UDim2.new(0, 0, 0.5, 0),
+                    BackgroundColor3 = Color3.fromRGB(80, 80, 80),
+                    ThemeTag = { BackgroundColor3 = "Outline", BackgroundTransparency = 0.5 },
+                    LayoutOrder = 2, -- Generally sits after labels
+                    Parent = as.UIElements.Main.Main.Topbar.Right,
+                    BackgroundTransparency = 0.5
+                })
             end
 
             function as.SetBackgroundImage(l, m)
@@ -15717,6 +15746,49 @@ end
                 return u.New(x, ar.WindUI.UIScale)
             end
 
+            function as.SelectTab(v, x)
+                u:SelectTab(x)
+            end
+
+            function as.Section(v, x)
+                return r.New(x, as.UIElements.SideBar.Frame, as.Folder, ar.WindUI.UIScale, as)
+            end
+
+            function as.IsResizable(v, x)
+                as.Resizable = x
+                as.CanResize = x
+            end
+
+            function as.Divider(v)
+                local x =
+                    ak(
+                    "Frame",
+                    {
+                        Size = UDim2.new(1, 0, 0, 1),
+                        Position = UDim2.new(0.5, 0, 0, 0),
+                        AnchorPoint = Vector2.new(0.5, 0),
+                        BackgroundTransparency = .9,
+                        ThemeTag = {
+                            BackgroundColor3 = "Text"
+                        }
+                    }
+                )
+                local B =
+                    ak(
+                    "Frame",
+                    {
+                        Parent = as.UIElements.SideBar.Frame,
+                        Size = UDim2.new(1, -7, 0, 5),
+                        BackgroundTransparency = 1
+                    },
+                    {
+                        x
+                    }
+                )
+
+                return B
+            end
+
             function as.SidebarLabel(v, text)
                 if not text then text = v end
                 local labelframe = ak("Frame", {
@@ -15807,49 +15879,6 @@ end
                 end)
 
                 return sBtn
-            end
-
-            function as.SelectTab(v, x)
-                u:SelectTab(x)
-            end
-
-            function as.Section(v, x)
-                return r.New(x, as.UIElements.SideBar.Frame, as.Folder, ar.WindUI.UIScale, as)
-            end
-
-            function as.IsResizable(v, x)
-                as.Resizable = x
-                as.CanResize = x
-            end
-
-            function as.Divider(v)
-                local x =
-                    ak(
-                    "Frame",
-                    {
-                        Size = UDim2.new(1, 0, 0, 1),
-                        Position = UDim2.new(0.5, 0, 0, 0),
-                        AnchorPoint = Vector2.new(0.5, 0),
-                        BackgroundTransparency = .9,
-                        ThemeTag = {
-                            BackgroundColor3 = "Text"
-                        }
-                    }
-                )
-                local B =
-                    ak(
-                    "Frame",
-                    {
-                        Parent = as.UIElements.SideBar.Frame,
-                        Size = UDim2.new(1, -7, 0, 5),
-                        BackgroundTransparency = 1
-                    },
-                    {
-                        x
-                    }
-                )
-
-                return B
             end
 
             local v = a.load "l".Init(as, nil)
