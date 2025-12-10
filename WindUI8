@@ -13963,6 +13963,7 @@ function a.Y()
                 IgnoreAlerts = ar.IgnoreAlerts or false,
                 HidePanelBackground = ar.HidePanelBackground or false,
                 AutoScale = ar.AutoScale ~= false,
+                CanExpandSidebar = ar.CanExpandSidebar ~= false, -- New Feature: Disable Sidebar Expansion
                 OpenButton = ar.OpenButton,
                 Position = UDim2.new(0.5, 0, 0.5, 0),
                 UICorner = nil,
@@ -14111,20 +14112,6 @@ function a.Y()
                 }
             )
 
-            -- Updated: Separator Line / Visual Logic
-            local sidebarSeparator =
-                ak(
-                "Frame",
-                {
-                    Name = "Separator",
-                    Size = UDim2.new(0, 1, 1, 0),
-                    Position = UDim2.new(1, 0, 0, 0),
-                    BackgroundColor3 = Color3.new(1, 1, 1),
-                    BackgroundTransparency = 0.92,
-                    ThemeTag = {BackgroundColor3 = "Text"}
-                }
-            )
-
             as.UIElements.SideBar =
                 ak(
                 "ScrollingFrame",
@@ -14196,7 +14183,6 @@ function a.Y()
                     Visible = true
                 },
                 {
-                    sidebarSeparator,
                     ak(
                         "Frame",
                         {
@@ -14653,7 +14639,8 @@ function a.Y()
                     ImageColor3 = Color3.new(1, 1, 1),
                     Size = UDim2.new(0, 0, 0, 4),
                     Position = UDim2.new(0.5, 0, 1, 4),
-                    AnchorPoint = Vector2.new(0.5, 0)
+                    AnchorPoint = Vector2.new(0.5, 0),
+                    Visible = as.CanExpandSidebar
                 },
                 {
                     ak(
@@ -15102,7 +15089,9 @@ function a.Y()
                 function(j, l)
                     if not as.Closed then
                         if j and l == d.Frame then
-                            al(d, .1, {ImageTransparency = .35}):Play()
+                            if as.CanExpandSidebar then
+                                al(d, .1, {ImageTransparency = .35}):Play()
+                            end
                         else
                             al(d, .2, {ImageTransparency = .8}):Play()
                         end
@@ -15368,14 +15357,18 @@ function a.Y()
                         task.spawn(
                             function()
                                 task.wait(.3)
-                                al(
-                                    d,
-                                    .45,
-                                    {Size = UDim2.new(0, 200, 0, 4), ImageTransparency = .8},
-                                    Enum.EasingStyle.Exponential,
-                                    Enum.EasingDirection.Out
-                                ):Play()
-                                j:Set(true)
+                                if as.CanExpandSidebar then
+                                    al(
+                                        d,
+                                        .45,
+                                        {Size = UDim2.new(0, 200, 0, 4), ImageTransparency = .8},
+                                        Enum.EasingStyle.Exponential,
+                                        Enum.EasingDirection.Out
+                                    ):Play()
+                                    j:Set(true)
+                                else
+                                    d.Visible = false
+                                end
                                 task.wait(.45)
                                 if as.Resizable then
                                     al(
@@ -16092,6 +16085,24 @@ function a.Y()
                         F = 1
                         x = G
                         C = H
+                    end
+                end
+            )
+
+            -- Handle logic for the Expansion Bar
+            aj.AddSignal(
+                d.Frame.MouseEnter,
+                function()
+                    if as.CanExpandSidebar then
+                        al(d, 0.15, {ImageTransparency = 0.5}):Play()
+                    end
+                end
+            )
+            aj.AddSignal(
+                d.Frame.MouseLeave,
+                function()
+                    if as.CanExpandSidebar then
+                        al(d, 0.15, {ImageTransparency = 0.8}):Play()
                     end
                 end
             )
