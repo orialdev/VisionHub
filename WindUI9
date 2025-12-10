@@ -13963,7 +13963,6 @@ function a.Y()
                 IgnoreAlerts = ar.IgnoreAlerts or false,
                 HidePanelBackground = ar.HidePanelBackground or false,
                 AutoScale = ar.AutoScale ~= false,
-                CanExpandSidebar = ar.CanExpandSidebar ~= false, -- New Feature: Disable Sidebar Expansion
                 OpenButton = ar.OpenButton,
                 Position = UDim2.new(0.5, 0, 0.5, 0),
                 UICorner = nil,
@@ -13990,7 +13989,8 @@ function a.Y()
                 AllElements = {},
                 ElementConfig = {},
                 PendingFlags = {},
-                IsToggleDragging = false
+                IsToggleDragging = false,
+                IsSidebarOpen = true -- Added state tracker
             }
 
             as.UICorner = as.Radius
@@ -14639,8 +14639,7 @@ function a.Y()
                     ImageColor3 = Color3.new(1, 1, 1),
                     Size = UDim2.new(0, 0, 0, 4),
                     Position = UDim2.new(0.5, 0, 1, 4),
-                    AnchorPoint = Vector2.new(0.5, 0),
-                    Visible = as.CanExpandSidebar
+                    AnchorPoint = Vector2.new(0.5, 0)
                 },
                 {
                     ak(
@@ -15089,9 +15088,7 @@ function a.Y()
                 function(j, l)
                     if not as.Closed then
                         if j and l == d.Frame then
-                            if as.CanExpandSidebar then
-                                al(d, .1, {ImageTransparency = .35}):Play()
-                            end
+                            al(d, .1, {ImageTransparency = .35}):Play()
                         else
                             al(d, .2, {ImageTransparency = .8}):Play()
                         end
@@ -15357,18 +15354,14 @@ function a.Y()
                         task.spawn(
                             function()
                                 task.wait(.3)
-                                if as.CanExpandSidebar then
-                                    al(
-                                        d,
-                                        .45,
-                                        {Size = UDim2.new(0, 200, 0, 4), ImageTransparency = .8},
-                                        Enum.EasingStyle.Exponential,
-                                        Enum.EasingDirection.Out
-                                    ):Play()
-                                    j:Set(true)
-                                else
-                                    d.Visible = false
-                                end
+                                al(
+                                    d,
+                                    .45,
+                                    {Size = UDim2.new(0, 200, 0, 4), ImageTransparency = .8},
+                                    Enum.EasingStyle.Exponential,
+                                    Enum.EasingDirection.Out
+                                ):Play()
+                                j:Set(true)
                                 task.wait(.45)
                                 if as.Resizable then
                                     al(
@@ -15724,6 +15717,70 @@ function a.Y()
                 )
 
                 return B
+            end
+
+            function as.ToggleSidebar(p, state)
+                if state == nil then
+                    state = not as.IsSidebarOpen
+                end
+                as.IsSidebarOpen = state
+
+                local targetWidth = state and as.SideBarWidth or 0
+                local paddingOffset = state and (as.UIPadding / 2) or 0
+
+                -- Tween Sidebar Container
+                al(
+                    as.UIElements.SideBarContainer,
+                    0.5,
+                    {
+                        Size = UDim2.new(0, targetWidth, 1, as.UIElements.SideBarContainer.Size.Y.Offset)
+                    },
+                    Enum.EasingStyle.Quint,
+                    Enum.EasingDirection.Out
+                ):Play()
+
+                -- Tween Main Content Area
+                al(
+                    as.UIElements.MainBar,
+                    0.5,
+                    {
+                        Size = UDim2.new(1, -targetWidth, 1, -as.Topbar.Height)
+                    },
+                    Enum.EasingStyle.Quint,
+                    Enum.EasingDirection.Out
+                ):Play()
+
+                -- Handle User Button Visibility
+                if aA then
+                    if state and as.User.Enabled then
+                        aA.Visible = true
+                        al(aA, 0.4, {TextTransparency = 0, BackgroundTransparency = 1}, Enum.EasingStyle.Quad, Enum.EasingDirection.Out):Play()
+                        
+                        al(aA.UserIcon, 0.4, {ImageTransparency = 1}, Enum.EasingStyle.Quad, Enum.EasingDirection.Out):Play()
+                        al(aA.Outline, 0.4, {ImageTransparency = 1}, Enum.EasingStyle.Quad, Enum.EasingDirection.Out):Play()
+                        if aA.UserIcon:FindFirstChild("ImageLabel") then
+                             al(aA.UserIcon.ImageLabel, 0.4, {ImageTransparency = 0.93}, Enum.EasingStyle.Quad, Enum.EasingDirection.Out):Play()
+                        end
+                    elseif not state then
+                        -- Quick fade out
+                        al(aA, 0.2, {TextTransparency = 1, BackgroundTransparency = 1}, Enum.EasingStyle.Quad, Enum.EasingDirection.Out):Play()
+                        if aA.UserIcon:FindFirstChild("ImageLabel") then
+                             al(aA.UserIcon.ImageLabel, 0.2, {ImageTransparency = 1}, Enum.EasingStyle.Quad, Enum.EasingDirection.Out):Play()
+                        end
+                        -- Fully hide after tween
+                        task.delay(0.2, function()
+                            if not as.IsSidebarOpen then aA.Visible = false end
+                        end)
+                    end
+                end
+            end
+
+            function as.SetSidebarWidth(p, width)
+                as.SideBarWidth = width
+                if as.IsSidebarOpen then
+                    -- Re-apply current state to update size
+                    as:ToggleSidebar(true)
+                end
             end
 
             local v = a.load "l".Init(as, nil)
@@ -16085,24 +16142,6 @@ function a.Y()
                         F = 1
                         x = G
                         C = H
-                    end
-                end
-            )
-
-            -- Handle logic for the Expansion Bar
-            aj.AddSignal(
-                d.Frame.MouseEnter,
-                function()
-                    if as.CanExpandSidebar then
-                        al(d, 0.15, {ImageTransparency = 0.5}):Play()
-                    end
-                end
-            )
-            aj.AddSignal(
-                d.Frame.MouseLeave,
-                function()
-                    if as.CanExpandSidebar then
-                        al(d, 0.15, {ImageTransparency = 0.8}):Play()
                     end
                 end
             )
