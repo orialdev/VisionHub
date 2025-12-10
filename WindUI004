@@ -70,12 +70,12 @@ do
         local j = "https://raw.githubusercontent.com/Footagesus/Icons/main/Main-v2.lua"
 
         local l_content
-        if game.HttpGet then
+        if game.HttpGet then 
             l_content = game:HttpGet(j)
         else
             l_content = h:GetAsync(j)
         end
-        
+
         local l = loadstring(l_content)()
         l.SetIconsType("lucide")
 
@@ -750,6 +750,7 @@ do
                     r(
                         "ImageLabel",
                         {
+                            Name = "ImageLabel",
                             Size = UDim2.new(1, 0, 1, 0),
                             BackgroundTransparency = 1,
                             ScaleType = "Crop",
@@ -771,7 +772,10 @@ do
                 }
             )
             if p.Icon(v) then
-                L.ImageLabel:Destroy()
+                local oldImg = L:FindFirstChild("ImageLabel")
+                if oldImg then
+                    oldImg:Destroy()
+                end
 
                 local M =
                     l.Image {
@@ -800,7 +804,10 @@ do
 
                                 local O, P = pcall(getcustomasset, M)
                                 if O then
-                                    L.ImageLabel.Image = P
+                                    local img = L:FindFirstChild("ImageLabel")
+                                    if img then
+                                        img.Image = P
+                                    end
                                 else
                                     warn(
                                         string.format(
@@ -827,7 +834,10 @@ do
             elseif v == "" then
                 L.Visible = false
             else
-                L.ImageLabel.Image = v
+                local img = L:FindFirstChild("ImageLabel")
+                if img then
+                    img.Image = v
+                end
             end
 
             return L
