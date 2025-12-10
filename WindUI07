@@ -14641,7 +14641,7 @@ end
                 99,
                 "Squircle",
                 {
-                    ImageTransparency = 0.8,
+                    ImageTransparency = .8,
                     ImageColor3 = Color3.new(1, 1, 1),
                     Size = UDim2.new(0, 0, 0, 4),
                     Position = UDim2.new(0.5, 0, 1, 4),
@@ -15727,65 +15727,37 @@ end
             as.TabModule = p
 
             function as.Tab(v, x)
-                x.Parent = as.UIElements.SideBar.Frame.Frame
+                x.Parent = as.UIElements.SideBar.Frame
                 return u.New(x, ar.WindUI.UIScale)
             end
 
-            -- [[ New Sidebar Feature: SidebarLabel ]]
-            function as.SidebarLabel(v, text)
-                if not text then text = v end
-                local labelframe = ak("Frame", {
-                    Size = UDim2.new(1, 0, 0, 26),
-                    BackgroundTransparency = 1,
-                    Name = "LabelFrame",
-                    Parent = as.UIElements.SideBar.Frame.Frame -- parent to scrollable list
-                }, {
-                    ak("TextLabel", {
-                        Size = UDim2.new(1, -28, 1, 0),
-                        Position = UDim2.new(0, 14, 0, 0),
-                        BackgroundTransparency = 1,
-                        Text = text,
-                        TextColor3 = Color3.fromRGB(150, 150, 150),
-                        TextSize = 12,
-                        FontFace = Font.new(aj.Font, Enum.FontWeight.Bold),
-                        TextXAlignment = Enum.TextXAlignment.Left,
-                        ThemeTag = { TextColor3 = "Text", TextTransparency = 0.5 }
-                    })
-                })
-                return labelframe
-            end
-
-            -- [[ New Sidebar Feature: SidebarButton ]]
             function as.SidebarButton(v, btnProps)
-                -- { Title="Discord", Icon="disc", Callback=function()... }
-                local btnObj = {
-                    Title = btnProps.Title or "Button",
-                    Icon = btnProps.Icon,
-                    Callback = btnProps.Callback
-                }
-                
-                -- Create button visually similar to a tab but handled independently
+                local props = btnProps or v
+                local title = props.Title or "Button"
+                local icon = props.Icon
+                local callback = props.Callback
+
                 local sBtn = aj.NewRoundFrame(as.UICorner - (as.UIPadding / 2), "Squircle", {
                     Size = UDim2.new(1, -7, 0, 36),
                     BackgroundTransparency = 1,
-                    ImageTransparency = 1, -- Start transparent
+                    ImageTransparency = 1,
                     ThemeTag = {ImageColor3 = "TabBackground"},
-                    Parent = as.UIElements.SideBar.Frame.Frame, -- parent to scrollable list
+                    Parent = as.UIElements.SideBar.Frame,
                     ImageColor3 = Color3.new(1,1,1)
                 }, {
                     aj.NewRoundFrame(as.UICorner - (as.UIPadding / 2), "SquircleOutline", {
                         Size = UDim2.new(1,0,1,0),
                         ThemeTag = {ImageColor3 = "Text"},
-                        ImageTransparency = 0.9
+                        ImageTransparency = 0.9,
+                        Name = "Outline"
                     })
                 }, true)
 
-                -- Icon setup
                 local iconOff = 0
-                if btnObj.Icon then
-                    local ico = aj.Image(btnObj.Icon, btnObj.Title, 0, as.Folder, "SidebarButton", true)
+                if icon then
+                    local ico = aj.Image(icon, title, 0, as.Folder, "SidebarButton", true)
                     ico.Size = UDim2.new(0, 18, 0, 18)
-                    ico.Position = UDim2.new(0, 12, 0.5, 0)
+                    ico.Position = UDim2.new(0, 10, 0.5, 0)
                     ico.AnchorPoint = Vector2.new(0, 0.5)
                     ico.ImageLabel.ImageTransparency = 0.4
                     ico.Parent = sBtn
@@ -15793,7 +15765,7 @@ end
                 end
 
                 local lbl = ak("TextLabel", {
-                    Text = btnObj.Title,
+                    Text = title,
                     Size = UDim2.new(1, -iconOff - 24, 1, 0),
                     Position = UDim2.new(0, 12 + iconOff, 0, 0),
                     BackgroundTransparency = 1,
@@ -15805,65 +15777,27 @@ end
                     Parent = sBtn
                 })
 
-                -- Interaction
                 aj.AddSignal(sBtn.MouseEnter, function()
                     al(sBtn, 0.2, {ImageTransparency = 0.95}):Play()
                     al(lbl, 0.2, {TextTransparency = 0}):Play()
+                    if icon then
+                         al(sBtn:FindFirstChildOfClass("Frame").ImageLabel, 0.2, {ImageTransparency = 0}):Play()
+                    end
                 end)
                 aj.AddSignal(sBtn.MouseLeave, function()
                     al(sBtn, 0.2, {ImageTransparency = 1}):Play()
                     al(lbl, 0.2, {TextTransparency = 0.4}):Play()
+                    if icon then
+                         al(sBtn:FindFirstChildOfClass("Frame").ImageLabel, 0.2, {ImageTransparency = 0.4}):Play()
+                    end
                 end)
                 aj.AddSignal(sBtn.MouseButton1Click, function()
-                    if btnObj.Callback then
-                        aj.SafeCallback(btnObj.Callback)
+                    if callback then
+                        aj.SafeCallback(callback)
                     end
                 end)
 
                 return sBtn
-            end
-
-            function as.SelectTab(v, x)
-                u:SelectTab(x)
-            end
-
-            function as.Section(v, x)
-                return r.New(x, as.UIElements.SideBar.Frame, as.Folder, ar.WindUI.UIScale, as)
-            end
-
-            function as.IsResizable(v, x)
-                as.Resizable = x
-                as.CanResize = x
-            end
-
-            function as.Divider(v)
-                local x =
-                    ak(
-                    "Frame",
-                    {
-                        Size = UDim2.new(1, 0, 0, 1),
-                        Position = UDim2.new(0.5, 0, 0, 0),
-                        AnchorPoint = Vector2.new(0.5, 0),
-                        BackgroundTransparency = .9,
-                        ThemeTag = {
-                            BackgroundColor3 = "Text"
-                        }
-                    }
-                )
-                local B =
-                    ak(
-                    "Frame",
-                    {
-                        Parent = as.UIElements.SideBar.Frame.Frame,
-                        Size = UDim2.new(1, -7, 0, 5),
-                        BackgroundTransparency = 1
-                    },
-                    {
-                        x
-                    }
-                )
-
-                return B
             end
 
             local v = a.load "l".Init(as, nil)
