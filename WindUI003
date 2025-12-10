@@ -60,17 +60,24 @@ do
                 return b
             end)
 
-        local d = b(game:GetService "RunService")
-        local e = b(game:GetService "UserInputService")
-        local f = b(game:GetService "TweenService")
-        local g = b(game:GetService "LocalizationService")
-        local h = b(game:GetService "HttpService")
+        local d = b(game:GetService("RunService"))
+        local e = b(game:GetService("UserInputService"))
+        local f = b(game:GetService("TweenService"))
+        local g = b(game:GetService("LocalizationService"))
+        local h = b(game:GetService("HttpService"))
         local i = d.Heartbeat
 
         local j = "https://raw.githubusercontent.com/Footagesus/Icons/main/Main-v2.lua"
 
-        local l = loadstring(game.HttpGetAsync and game:HttpGetAsync(j) or h:GetAsync(j))()
-        l.SetIconsType "lucide"
+        local l_content
+        if game.HttpGet then
+            l_content = game:HttpGet(j)
+        else
+            l_content = h:GetAsync(j)
+        end
+        
+        local l = loadstring(l_content)()
+        l.SetIconsType("lucide")
 
         local m
 
@@ -86,7 +93,7 @@ do
             LocalizationObjects = {},
             FontObjects = {},
             Language = string.match(g.SystemLocaleId, "^[a-z]+"),
-            Request = http_request or (syn and syn.request) or request,
+            Request = http_request or (syn and syn.request) or request or (function(req) return {Body = h:GetAsync(req.Url)} end),
             DefaultProperties = {
                 ScreenGui = {
                     ResetOnSpawn = false,
@@ -13909,7 +13916,7 @@ end
 
         return ae
     end
-function a.Y()
+    function a.Y()
         local aa = (cloneref or clonereference or function(aa)
                 return aa
             end)
