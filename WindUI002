@@ -13946,7 +13946,7 @@ function a.Y()
                 ShadowTransparency = ar.ShadowTransparency or 0.7,
                 User = ar.User or {},
                 Footer = ar.Footer or {},
-                Topbar = ar.Topbar or {Height = 52, ButtonsType = "Default"}, -- Increased default height slightly for better spacing
+                Topbar = ar.Topbar or {Height = 52, ButtonsType = "Default"},
                 Size = ar.Size,
                 MinSize = ar.MinSize or Vector2.new(560, 350),
                 MaxSize = ar.MaxSize or Vector2.new(850, 560),
@@ -14670,7 +14670,7 @@ function a.Y()
                         Text = f,
                         FontFace = Font.new(aj.Font, Enum.FontWeight.Medium),
                         BackgroundTransparency = 1,
-                        TextTransparency = 0.45,
+                        TextTransparency = 0.35,
                         AutomaticSize = "XY",
                         Parent = as.UIElements.Main and as.UIElements.Main.Main.Topbar.Left.Title,
                         TextXAlignment = "Left",
@@ -14696,12 +14696,12 @@ function a.Y()
                 "TextLabel",
                 {
                     Text = as.Title,
-                    FontFace = Font.new(aj.Font, Enum.FontWeight.Bold), -- Bold for Title
+                    FontFace = Font.new(aj.Font, Enum.FontWeight.SemiBold),
                     BackgroundTransparency = 1,
                     AutomaticSize = "XY",
                     Name = "Title",
                     TextXAlignment = "Left",
-                    TextSize = 17, -- Slightly larger title
+                    TextSize = 16,
                     ThemeTag = {
                         TextColor3 = "WindowTopbarTitle"
                     }
@@ -14766,27 +14766,16 @@ function a.Y()
                             as.UIElements.MainBar,
                             aA,
                             aC,
-                            -- MODIFIED TOPBAR START
                             ak(
                                 "Frame",
                                 {
                                     Size = UDim2.new(1, 0, 0, as.Topbar.Height),
-                                    BackgroundTransparency = 1, -- Removed background color for cleaner look
-                                    Name = "Topbar",
-                                    ZIndex = 100
+                                    BackgroundTransparency = 1,
+                                    BackgroundColor3 = Color3.fromRGB(50, 50, 50),
+                                    Name = "Topbar"
                                 },
                                 {
                                     aB,
-                                    -- Add Bottom Separator/Divider
-                                    ak("Frame", {
-                                        Name = "BottomStroke",
-                                        Size = UDim2.new(1, 0, 0, 1),
-                                        Position = UDim2.new(0,0,1, -1),
-                                        ThemeTag = {
-                                            BackgroundColor3 = "Outline"
-                                        },
-                                        BackgroundTransparency = 0.8
-                                    }),
                                     ak(
                                         "Frame",
                                         {
@@ -14799,7 +14788,7 @@ function a.Y()
                                             ak(
                                                 "UIListLayout",
                                                 {
-                                                    Padding = UDim.new(0, as.UIPadding + 2), -- Adjusted spacing
+                                                    Padding = UDim.new(0, as.UIPadding + 4),
                                                     SortOrder = "LayoutOrder",
                                                     FillDirection = "Horizontal",
                                                     VerticalAlignment = "Center"
@@ -14831,7 +14820,7 @@ function a.Y()
                                             ak(
                                                 "UIPadding",
                                                 {
-                                                    PaddingLeft = UDim.new(0, 16) -- Better padding from left edge
+                                                    PaddingLeft = UDim.new(0, 4)
                                                 }
                                             )
                                         }
@@ -14894,18 +14883,17 @@ function a.Y()
                                     ak(
                                         "UIPadding",
                                         {
-                                            PaddingTop = UDim.new(0, 0), -- Remove top padding to center content vertically
+                                            PaddingTop = UDim.new(0, as.UIPadding),
                                             PaddingLeft = UDim.new(
                                                 0,
                                                 as.Topbar.ButtonsType == "Default" and as.UIPadding or as.UIPadding - 2
                                             ),
-                                            PaddingRight = UDim.new(0, 16),
-                                            PaddingBottom = UDim.new(0, 0)
+                                            PaddingRight = UDim.new(0, 8),
+                                            PaddingBottom = UDim.new(0, as.UIPadding)
                                         }
                                     )
                                 }
                             )
-                            -- MODIFIED TOPBAR END
                         }
                     )
                 }
