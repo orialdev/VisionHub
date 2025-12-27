@@ -1,0 +1,567 @@
+local Seraph = {
+    Themes = {
+        Pure = {
+            Main = Color3.fromRGB(10, 10, 12),
+            Sub = Color3.fromRGB(18, 18, 22),
+            Section = Color3.fromRGB(15, 15, 18),
+            Component = Color3.fromRGB(22, 22, 26),
+            Stroke = Color3.fromRGB(35, 35, 40),
+            Accent = Color3.fromRGB(120, 110, 255),
+            Text = Color3.fromRGB(240, 240, 240),
+            SecondaryText = Color3.fromRGB(150, 150, 160),
+            Hover = Color3.fromRGB(40, 40, 48)
+        }
+    }
+}
+
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local CoreGui = game:GetService("CoreGui")
+local Parent =
+    (gethui and gethui()) or
+    (game:GetService("RunService"):IsStudio() and game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")) or
+    CoreGui
+
+local function Create(class, props, children)
+    local obj = Instance.new(class)
+    for i, v in pairs(props) do
+        if i ~= "Parent" then
+            obj[i] = v
+        end
+    end
+    if children then
+        for _, child in ipairs(children) do
+            child.Parent = obj
+        end
+    end
+    obj.Parent = props.Parent
+    return obj
+end
+
+function Seraph:CreateWindow(cfg)
+    cfg = cfg or {}
+    local Title = cfg.Title or "SERAPH ADVANCED"
+
+    local GUI = Create("ScreenGui", {Name = "SeraphV4", Parent = Parent, IgnoreGuiInset = true, ResetOnSpawn = false})
+
+    local Main =
+        Create(
+        "Frame",
+        {
+            Name = "Main",
+            Size = UDim2.new(0, 560, 0, 420),
+            Position = UDim2.new(0.5, -280, 0.5, -210),
+            BackgroundColor3 = Seraph.Themes.Pure.Main,
+            Parent = GUI,
+            Active = true,
+            BorderSizePixel = 0
+        },
+        {
+            Create("UICorner", {CornerRadius = UDim.new(0, 4)}),
+            Create("UIStroke", {Color = Seraph.Themes.Pure.Stroke, Thickness = 1})
+        }
+    )
+
+    local dragging, dragInput, dragStart, startPos
+    local function update(input)
+        local delta = input.Position - dragStart
+        Main.Position =
+            UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+
+    local TopBar =
+        Create(
+        "Frame",
+        {
+            Name = "TopBar",
+            Size = UDim2.new(1, 0, 0, 35),
+            BackgroundColor3 = Seraph.Themes.Pure.Sub,
+            BorderSizePixel = 0,
+            Parent = Main,
+            Active = true
+        },
+        {
+            Create("UICorner", {CornerRadius = UDim.new(0, 4)}),
+            Create(
+                "Frame",
+                {
+                    Size = UDim2.new(1, 0, 0, 5),
+                    Position = UDim2.new(0, 0, 1, -5),
+                    BackgroundColor3 = Seraph.Themes.Pure.Sub,
+                    BorderSizePixel = 0
+                }
+            ),
+            Create(
+                "Frame",
+                {
+                    Size = UDim2.new(1, 0, 0, 1),
+                    Position = UDim2.new(0, 0, 1, 0),
+                    BackgroundColor3 = Seraph.Themes.Pure.Stroke,
+                    BorderSizePixel = 0
+                }
+            ),
+            Create(
+                "TextLabel",
+                {
+                    Text = Title,
+                    Size = UDim2.new(1, -40, 1, 0),
+                    Position = UDim2.new(0, 12, 0, 0),
+                    TextColor3 = Seraph.Themes.Pure.Text,
+                    TextSize = 13,
+                    Font = Enum.Font.GothamBold,
+                    BackgroundTransparency = 1,
+                    TextXAlignment = Enum.TextXAlignment.Left
+                }
+            )
+        }
+    )
+
+    TopBar.InputBegan:Connect(
+        function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                dragging = true
+                dragStart = input.Position
+                startPos = Main.Position
+                input.Changed:Connect(
+                    function()
+                        if input.UserInputState == Enum.UserInputState.End then
+                            dragging = false
+                        end
+                    end
+                )
+            end
+        end
+    )
+    TopBar.InputChanged:Connect(
+        function(input)
+            if
+                input.UserInputType == Enum.UserInputType.MouseMovement or
+                    input.UserInputType == Enum.UserInputType.Touch
+             then
+                dragInput = input
+            end
+        end
+    )
+    UserInputService.InputChanged:Connect(
+        function(input)
+            if input == dragInput and dragging then
+                update(input)
+            end
+        end
+    )
+
+    local CloseBtn =
+        Create(
+        "TextButton",
+        {
+            Text = "×",
+            Size = UDim2.new(0, 35, 1, 0),
+            Position = UDim2.new(1, 0, 0, 0),
+            AnchorPoint = Vector2.new(1, 0),
+            BackgroundTransparency = 1,
+            TextColor3 = Seraph.Themes.Pure.SecondaryText,
+            TextSize = 20,
+            Font = Enum.Font.GothamMedium,
+            Parent = TopBar
+        }
+    )
+
+    CloseBtn.MouseButton1Click:Connect(
+        function()
+            GUI:Destroy()
+        end
+    )
+
+    local ContentFrame =
+        Create(
+        "Frame",
+        {
+            Size = UDim2.new(1, 0, 1, -35),
+            Position = UDim2.new(0, 0, 0, 35),
+            BackgroundTransparency = 1,
+            Parent = Main
+        }
+    )
+
+    local Sidebar =
+        Create(
+        "Frame",
+        {
+            Size = UDim2.new(0, 160, 1, 0),
+            BackgroundColor3 = Seraph.Themes.Pure.Sub,
+            Parent = ContentFrame,
+            BorderSizePixel = 0
+        },
+        {
+            Create(
+                "Frame",
+                {
+                    Size = UDim2.new(0, 1, 1, 0),
+                    Position = UDim2.new(1, 0, 0, 0),
+                    BackgroundColor3 = Seraph.Themes.Pure.Stroke,
+                    BorderSizePixel = 0
+                }
+            )
+        }
+    )
+
+    local TabHolder =
+        Create(
+        "ScrollingFrame",
+        {
+            Size = UDim2.new(1, 0, 1, -10),
+            Position = UDim2.new(0, 0, 0, 5),
+            BackgroundTransparency = 1,
+            ScrollBarThickness = 0,
+            CanvasSize = UDim2.new(0, 0, 0, 0),
+            AutomaticCanvasSize = Enum.AutomaticSize.Y,
+            Parent = Sidebar
+        },
+        {
+            Create("UIListLayout", {Padding = UDim.new(0, 2), HorizontalAlignment = Enum.HorizontalAlignment.Center})
+        }
+    )
+
+    local Container =
+        Create(
+        "Frame",
+        {
+            Size = UDim2.new(1, -170, 1, -10),
+            Position = UDim2.new(0, 165, 0, 5),
+            BackgroundTransparency = 1,
+            Parent = ContentFrame
+        }
+    )
+
+    local Window = {Tabs = {}, ActiveTab = nil}
+
+    local function ApplyBaseUX(object, target)
+        function object:AddButton(text, callback)
+            local Btn =
+                Create(
+                "TextButton",
+                {
+                    Text = text,
+                    Size = UDim2.new(1, -10, 0, 32),
+                    BackgroundColor3 = Seraph.Themes.Pure.Component,
+                    TextColor3 = Seraph.Themes.Pure.Text,
+                    Font = Enum.Font.Gotham,
+                    TextSize = 12,
+                    AutoButtonColor = false,
+                    Parent = target
+                },
+                {
+                    Create("UICorner", {CornerRadius = UDim.new(0, 3)}),
+                    Create("UIStroke", {Color = Seraph.Themes.Pure.Stroke})
+                }
+            )
+
+            Btn.MouseEnter:Connect(
+                function()
+                    TweenService:Create(Btn, TweenInfo.new(0.2), {BackgroundColor3 = Seraph.Themes.Pure.Hover}):Play()
+                end
+            )
+            Btn.MouseLeave:Connect(
+                function()
+                    TweenService:Create(Btn, TweenInfo.new(0.2), {BackgroundColor3 = Seraph.Themes.Pure.Component}):Play(
+
+                    )
+                end
+            )
+            Btn.MouseButton1Click:Connect(
+                function()
+                    task.spawn(callback)
+                end
+            )
+            return Btn
+        end
+
+        function object:AddToggle(text, default, callback)
+            local state = default or false
+            local Togg =
+                Create(
+                "TextButton",
+                {
+                    Text = "",
+                    Size = UDim2.new(1, -10, 0, 32),
+                    BackgroundColor3 = Seraph.Themes.Pure.Component,
+                    AutoButtonColor = false,
+                    Parent = target
+                },
+                {
+                    Create("UICorner", {CornerRadius = UDim.new(0, 3)}),
+                    Create("UIStroke", {Color = Seraph.Themes.Pure.Stroke}),
+                    Create(
+                        "TextLabel",
+                        {
+                            Text = text,
+                            Size = UDim2.new(1, -40, 1, 0),
+                            Position = UDim2.new(0, 10, 0, 0),
+                            BackgroundTransparency = 1,
+                            TextColor3 = Seraph.Themes.Pure.Text,
+                            TextXAlignment = Enum.TextXAlignment.Left,
+                            Font = Enum.Font.Gotham,
+                            TextSize = 12
+                        }
+                    ),
+                    Create(
+                        "Frame",
+                        {
+                            Name = "Status",
+                            Size = UDim2.new(0, 14, 0, 14),
+                            Position = UDim2.new(1, -24, 0.5, -7),
+                            BackgroundColor3 = state and Seraph.Themes.Pure.Accent or Seraph.Themes.Pure.Main,
+                            BorderSizePixel = 0
+                        },
+                        {Create("UIStroke", {Color = Seraph.Themes.Pure.Stroke})}
+                    )
+                }
+            )
+
+            Togg.MouseButton1Click:Connect(
+                function()
+                    state = not state
+                    TweenService:Create(
+                        Togg.Status,
+                        TweenInfo.new(0.2),
+                        {BackgroundColor3 = state and Seraph.Themes.Pure.Accent or Seraph.Themes.Pure.Main}
+                    ):Play()
+                    callback(state)
+                end
+            )
+        end
+
+        function object:AddDropdown(text, list, callback)
+            local open = false
+            local Drop =
+                Create(
+                "Frame",
+                {
+                    Size = UDim2.new(1, -10, 0, 32),
+                    BackgroundColor3 = Seraph.Themes.Pure.Component,
+                    Parent = target,
+                    ClipsDescendants = true,
+                    ZIndex = 5
+                },
+                {
+                    Create("UICorner", {CornerRadius = UDim.new(0, 3)}),
+                    Create("UIStroke", {Color = Seraph.Themes.Pure.Stroke}),
+                    Create(
+                        "TextButton",
+                        {
+                            Name = "Trigger",
+                            Text = text,
+                            Size = UDim2.new(1, 0, 0, 32),
+                            BackgroundTransparency = 1,
+                            TextColor3 = Seraph.Themes.Pure.Text,
+                            Font = Enum.Font.Gotham,
+                            TextSize = 12,
+                            TextXAlignment = Enum.TextXAlignment.Left
+                        },
+                        {Create("UIPadding", {PaddingLeft = UDim.new(0, 10)})}
+                    )
+                }
+            )
+
+            local ItemHold =
+                Create(
+                "Frame",
+                {
+                    Size = UDim2.new(1, -8, 0, 0),
+                    Position = UDim2.new(0, 4, 0, 35),
+                    BackgroundTransparency = 1,
+                    Parent = Drop,
+                    AutomaticSize = Enum.AutomaticSize.Y
+                },
+                {Create("UIListLayout", {Padding = UDim.new(0, 2)})}
+            )
+
+            local function UpdateDropdown()
+                local targetHeight = open and (40 + ItemHold.UIListLayout.AbsoluteContentSize.Y) or 32
+                TweenService:Create(
+                    Drop,
+                    TweenInfo.new(0.3, Enum.EasingStyle.Quart),
+                    {Size = UDim2.new(1, -10, 0, targetHeight)}
+                ):Play()
+            end
+
+            for _, v in pairs(list) do
+                local Item =
+                    Create(
+                    "TextButton",
+                    {
+                        Text = tostring(v),
+                        Size = UDim2.new(1, 0, 0, 25),
+                        BackgroundColor3 = Seraph.Themes.Pure.Main,
+                        TextColor3 = Seraph.Themes.Pure.SecondaryText,
+                        Font = Enum.Font.Gotham,
+                        TextSize = 11,
+                        Parent = ItemHold,
+                        BorderSizePixel = 0,
+                        AutoButtonColor = false
+                    },
+                    {Create("UICorner", {CornerRadius = UDim.new(0, 3)})}
+                )
+
+                Item.MouseEnter:Connect(
+                    function()
+                        Item.TextColor3 = Seraph.Themes.Pure.Text
+                    end
+                )
+                Item.MouseLeave:Connect(
+                    function()
+                        Item.TextColor3 = Seraph.Themes.Pure.SecondaryText
+                    end
+                )
+
+                Item.MouseButton1Click:Connect(
+                    function()
+                        Drop.Trigger.Text = text .. " : " .. tostring(v)
+                        open = false
+                        UpdateDropdown()
+                        callback(v)
+                    end
+                )
+            end
+
+            Drop.Trigger.MouseButton1Click:Connect(
+                function()
+                    open = not open
+                    UpdateDropdown()
+                end
+            )
+        end
+    end
+
+    function Window:AddTab(name)
+        local Tab = {Page = nil, TabBtn = nil}
+        local TabBtn =
+            Create(
+            "TextButton",
+            {
+                Text = "",
+                Size = UDim2.new(1, -10, 0, 30),
+                BackgroundTransparency = 1,
+                Parent = TabHolder
+            },
+            {
+                Create(
+                    "TextLabel",
+                    {
+                        Name = "L",
+                        Text = name,
+                        Size = UDim2.new(1, -10, 1, 0),
+                        Position = UDim2.new(0, 10, 0, 0),
+                        BackgroundTransparency = 1,
+                        TextColor3 = Seraph.Themes.Pure.SecondaryText,
+                        TextSize = 12,
+                        Font = Enum.Font.GothamMedium,
+                        TextXAlignment = Enum.TextXAlignment.Left
+                    }
+                )
+            }
+        )
+
+        local Page =
+            Create(
+            "ScrollingFrame",
+            {
+                Size = UDim2.new(1, 0, 1, 0),
+                BackgroundTransparency = 1,
+                Visible = false,
+                ScrollBarThickness = 2,
+                ScrollBarImageColor3 = Seraph.Themes.Pure.Stroke,
+                CanvasSize = UDim2.new(0, 0, 0, 0),
+                AutomaticCanvasSize = Enum.AutomaticSize.Y,
+                Parent = Container
+            },
+            {
+                Create(
+                    "UIListLayout",
+                    {Padding = UDim.new(0, 6), HorizontalAlignment = Enum.HorizontalAlignment.Center}
+                ),
+                Create("UIPadding", {PaddingTop = UDim.new(0, 2)})
+            }
+        )
+
+        function Tab:Select()
+            if Window.ActiveTab then
+                Window.ActiveTab.Page.Visible = false
+                Window.ActiveTab.TabBtn.L.TextColor3 = Seraph.Themes.Pure.SecondaryText
+            end
+            Window.ActiveTab = Tab
+            Page.Visible = true
+            TabBtn.L.TextColor3 = Seraph.Themes.Pure.Accent
+        end
+
+        TabBtn.MouseButton1Click:Connect(
+            function()
+                Tab:Select()
+            end
+        )
+
+        function Tab:AddSection(title)
+            local Sect = {}
+            local SectCont =
+                Create(
+                "Frame",
+                {
+                    Size = UDim2.new(1, -5, 0, 0),
+                    BackgroundColor3 = Seraph.Themes.Pure.Section,
+                    AutomaticSize = Enum.AutomaticSize.Y,
+                    Parent = Page
+                },
+                {
+                    Create("UICorner", {CornerRadius = UDim.new(0, 4)}),
+                    Create("UIStroke", {Color = Seraph.Themes.Pure.Stroke}),
+                    Create(
+                        "TextLabel",
+                        {
+                            Text = title:upper(),
+                            Size = UDim2.new(1, -12, 0, 25),
+                            Position = UDim2.new(0, 10, 0, 2),
+                            BackgroundTransparency = 1,
+                            TextColor3 = Seraph.Themes.Pure.Accent,
+                            Font = Enum.Font.GothamBold,
+                            TextSize = 10,
+                            TextXAlignment = Enum.TextXAlignment.Left
+                        }
+                    ),
+                    Create(
+                        "Frame",
+                        {
+                            Name = "C",
+                            Size = UDim2.new(1, 0, 0, 0),
+                            Position = UDim2.new(0, 0, 0, 28),
+                            BackgroundTransparency = 1,
+                            AutomaticSize = Enum.AutomaticSize.Y
+                        },
+                        {
+                            Create(
+                                "UIListLayout",
+                                {Padding = UDim.new(0, 5), HorizontalAlignment = Enum.HorizontalAlignment.Center}
+                            ),
+                            Create("UIPadding", {PaddingBottom = UDim.new(0, 8)})
+                        }
+                    )
+                }
+            )
+            ApplyBaseUX(Sect, SectCont.C)
+            return Sect
+        end
+
+        ApplyBaseUX(Tab, Page)
+        Tab.TabBtn = TabBtn
+        Tab.Page = Page
+        table.insert(Window.Tabs, Tab)
+
+        if #Window.Tabs == 1 then
+            Tab:Select()
+        end
+        return Tab
+    end
+
+    return Window
+end
+
+return Seraph
