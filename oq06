@@ -23,6 +23,7 @@ local Players = game:GetService("Players")
 local Parent =
     (RunService:IsStudio() and Players.LocalPlayer:WaitForChild("PlayerGui")) or (gethui and gethui()) or CoreGui
 
+-- Utility: Improved Instance Creator
 local function Create(class, props, children)
     local obj = Instance.new(class)
     for i, v in pairs(props) do
@@ -44,6 +45,7 @@ function Seraph:CreateWindow(cfg)
     local Theme = Seraph.Themes.Pure
     local TitleText = cfg.Title or "SERAPH"
     local SubTitle = cfg.SubTitle or "ADVANCED V4"
+    local ToggleKey = cfg.ToggleKey or Enum.KeyCode.RightControl
 
     local GUI = Create("ScreenGui", {Name = "SeraphV4", Parent = Parent, IgnoreGuiInset = true, ResetOnSpawn = false})
 
@@ -67,8 +69,8 @@ function Seraph:CreateWindow(cfg)
         }
     )
 
-    -- Improved Dragging logic
-    local dragStart, startPos, dragging
+    -- Improved Dragging Logic (Supports Mouse & Touch)
+    local dragging, dragStart, startPos
     Main.InputBegan:Connect(
         function(input)
             if
@@ -81,6 +83,7 @@ function Seraph:CreateWindow(cfg)
             end
         end
     )
+
     UserInputService.InputChanged:Connect(
         function(input)
             if
@@ -99,15 +102,24 @@ function Seraph:CreateWindow(cfg)
             end
         end
     )
+
     UserInputService.InputEnded:Connect(
         function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                 dragging = false
             end
         end
     )
 
-    -- ADVANCED TOPBAR
+    -- Toggle visibility with key
+    UserInputService.InputBegan:Connect(
+        function(input, gpe)
+            if not gpe and input.KeyCode == ToggleKey then
+                GUI.Enabled = not GUI.Enabled
+            end
+        end
+    )
+
     local TopBar =
         Create(
         "Frame",
@@ -123,7 +135,7 @@ function Seraph:CreateWindow(cfg)
             Create(
                 "Frame",
                 {
-                    -- Gap cover
+                    -- Fix rounded corner overlapping bottom
                     Size = UDim2.new(1, 0, 0, 10),
                     Position = UDim2.new(0, 0, 1, -10),
                     BackgroundColor3 = Theme.Sub,
@@ -133,29 +145,16 @@ function Seraph:CreateWindow(cfg)
             Create(
                 "Frame",
                 {
-                    -- Bottom Divider Line
+                    -- Separator Line
                     Size = UDim2.new(1, 0, 0, 1),
                     Position = UDim2.new(0, 0, 1, 0),
                     BackgroundColor3 = Theme.Stroke,
                     BorderSizePixel = 0
                 }
-            ),
-            Create(
-                "UIGradient",
-                {
-                    Color = ColorSequence.new(
-                        {
-                            ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)),
-                            ColorSequenceKeypoint.new(1, Color3.fromRGB(200, 200, 200))
-                        }
-                    ),
-                    Rotation = 90
-                }
             )
         }
     )
 
-    -- Logo and Title Group
     local TitleGroup =
         Create(
         "Frame",
@@ -177,20 +176,17 @@ function Seraph:CreateWindow(cfg)
         }
     )
 
-    -- Advanced Icon
     Create(
         "ImageLabel",
         {
             Name = "Icon",
             Size = UDim2.new(0, 20, 0, 20),
-            Image = "rbxassetid://6031068420", -- Example sparkle/seraph icon
+            Image = "rbxassetid://6031068420",
             ImageColor3 = Theme.Accent,
             BackgroundTransparency = 1,
             Parent = TitleGroup
         }
     )
-
-    -- Main Title
     Create(
         "TextLabel",
         {
@@ -204,19 +200,10 @@ function Seraph:CreateWindow(cfg)
             Parent = TitleGroup
         }
     )
-
-    -- Separator
     Create(
         "Frame",
-        {
-            Size = UDim2.new(0, 1, 0, 14),
-            BackgroundColor3 = Theme.Stroke,
-            BorderSizePixel = 0,
-            Parent = TitleGroup
-        }
+        {Size = UDim2.new(0, 1, 0, 14), BackgroundColor3 = Theme.Stroke, BorderSizePixel = 0, Parent = TitleGroup}
     )
-
-    -- Sub-title Tag
     Create(
         "TextLabel",
         {
@@ -231,7 +218,6 @@ function Seraph:CreateWindow(cfg)
         }
     )
 
-    -- Control Buttons Holder
     local Controls =
         Create(
         "Frame",
@@ -290,7 +276,6 @@ function Seraph:CreateWindow(cfg)
     local MinBtn = CreateTopBtn("-")
     local CloseBtn = CreateTopBtn("×", Color3.fromRGB(255, 100, 100))
 
-    -- MINIMIZE LOGIC
     local IsMinimized = false
     MinBtn.MouseButton1Click:Connect(
         function()
@@ -312,7 +297,6 @@ function Seraph:CreateWindow(cfg)
         end
     )
 
-    -- UI NAVIGATION AREA
     local Sidebar =
         Create(
         "Frame",
@@ -327,7 +311,6 @@ function Seraph:CreateWindow(cfg)
             Create(
                 "Frame",
                 {
-                    -- Vertical Line
                     Size = UDim2.new(0, 1, 1, 0),
                     Position = UDim2.new(1, 0, 0, 0),
                     BackgroundColor3 = Theme.Stroke,
@@ -367,7 +350,6 @@ function Seraph:CreateWindow(cfg)
 
     local Window = {Tabs = {}, ActiveTab = nil}
 
-    -- Reuse original ApplyBaseUX logic with minor styling improvements...
     local function ApplyBaseUX(object, target)
         function object:AddButton(text, callback)
             local Btn =
@@ -442,12 +424,11 @@ function Seraph:CreateWindow(cfg)
                             Position = UDim2.new(1, -28, 0.5, -5),
                             BackgroundColor3 = state and Theme.Accent or Theme.Main
                         },
-                        {
-                            Create("UICorner", {CornerRadius = UDim.new(1, 0)})
-                        }
+                        {Create("UICorner", {CornerRadius = UDim.new(1, 0)})}
                     )
                 }
             )
+
             Togg.MouseButton1Click:Connect(
                 function()
                     state = not state
@@ -527,34 +508,46 @@ function Seraph:CreateWindow(cfg)
                 {Create("UICorner", {CornerRadius = UDim.new(0, 2)})}
             )
 
+            local sliding = false
             local function UpdateSlider(input)
-                local sizeX = SliderBack.AbsoluteSize.X
-                local delta = math.clamp((input.Position.X - SliderBack.AbsolutePosition.X) / sizeX, 0, 1)
-                local newValue = math.floor(min + (max - min) * delta)
-                SliderFill.Size = UDim2.new(delta, 0, 1, 0)
+                local pos =
+                    math.clamp((input.Position.X - SliderBack.AbsolutePosition.X) / SliderBack.AbsoluteSize.X, 0, 1)
+                local newValue = math.round(min + (max - min) * pos)
+                SliderFill.Size = UDim2.new(pos, 0, 1, 0)
                 SliderFrame.Val.Text = tostring(newValue)
                 task.spawn(callback, newValue)
             end
 
-            local sliding = false
             SliderFrame.InputBegan:Connect(
                 function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    if
+                        input.UserInputType == Enum.UserInputType.MouseButton1 or
+                            input.UserInputType == Enum.UserInputType.Touch
+                     then
                         sliding = true
                         UpdateSlider(input)
                     end
                 end
             )
+
             UserInputService.InputChanged:Connect(
                 function(input)
-                    if sliding and input.UserInputType == Enum.UserInputType.MouseMovement then
+                    if
+                        sliding and
+                            (input.UserInputType == Enum.UserInputType.MouseMovement or
+                                input.UserInputType == Enum.UserInputType.Touch)
+                     then
                         UpdateSlider(input)
                     end
                 end
             )
+
             UserInputService.InputEnded:Connect(
                 function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    if
+                        input.UserInputType == Enum.UserInputType.MouseButton1 or
+                            input.UserInputType == Enum.UserInputType.Touch
+                     then
                         sliding = false
                     end
                 end
@@ -567,12 +560,7 @@ function Seraph:CreateWindow(cfg)
         local TabBtn =
             Create(
             "TextButton",
-            {
-                Text = "",
-                Size = UDim2.new(1, -12, 0, 34),
-                BackgroundTransparency = 1,
-                Parent = TabHolder
-            },
+            {Text = "", Size = UDim2.new(1, -12, 0, 34), BackgroundTransparency = 1, Parent = TabHolder},
             {
                 Create(
                     "TextLabel",
