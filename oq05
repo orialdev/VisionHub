@@ -42,29 +42,32 @@ end
 function Seraph:CreateWindow(cfg)
     cfg = cfg or {}
     local Theme = Seraph.Themes.Pure
-    local TitleText = cfg.Title or "SERAPH ADVANCED"
+    local TitleText = cfg.Title or "SERAPH"
+    local SubTitle = cfg.SubTitle or "ADVANCED V4"
 
     local GUI = Create("ScreenGui", {Name = "SeraphV4", Parent = Parent, IgnoreGuiInset = true, ResetOnSpawn = false})
 
+    local MainSize = Vector2.new(580, 440)
     local Main =
         Create(
         "Frame",
         {
             Name = "Main",
-            Size = UDim2.new(0, 560, 0, 420),
-            Position = UDim2.new(0.5, -280, 0.5, -210),
+            Size = UDim2.new(0, MainSize.X, 0, MainSize.Y),
+            Position = UDim2.new(0.5, -MainSize.X / 2, 0.5, -MainSize.Y / 2),
             BackgroundColor3 = Theme.Main,
             Parent = GUI,
             Active = true,
-            BorderSizePixel = 0
+            BorderSizePixel = 0,
+            ClipsDescendants = true
         },
         {
-            Create("UICorner", {CornerRadius = UDim.new(0, 4)}),
+            Create("UICorner", {CornerRadius = UDim.new(0, 6)}),
             Create("UIStroke", {Color = Theme.Stroke, Thickness = 1})
         }
     )
 
-    -- Dragging Fix
+    -- Improved Dragging logic
     local dragStart, startPos, dragging
     Main.InputBegan:Connect(
         function(input)
@@ -78,7 +81,6 @@ function Seraph:CreateWindow(cfg)
             end
         end
     )
-
     UserInputService.InputChanged:Connect(
         function(input)
             if
@@ -97,80 +99,226 @@ function Seraph:CreateWindow(cfg)
             end
         end
     )
-
     UserInputService.InputEnded:Connect(
         function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 dragging = false
             end
         end
     )
 
+    -- ADVANCED TOPBAR
     local TopBar =
         Create(
         "Frame",
         {
             Name = "TopBar",
-            Size = UDim2.new(1, 0, 0, 35),
+            Size = UDim2.new(1, 0, 0, 40),
             BackgroundColor3 = Theme.Sub,
-            Parent = Main,
-            BorderSizePixel = 0
+            BorderSizePixel = 0,
+            Parent = Main
         },
         {
-            Create("UICorner", {CornerRadius = UDim.new(0, 4)}),
+            Create("UICorner", {CornerRadius = UDim.new(0, 6)}),
             Create(
                 "Frame",
                 {
-                    -- Fix corner rounding gap
-                    Size = UDim2.new(1, 0, 0, 5),
-                    Position = UDim2.new(0, 0, 1, -5),
+                    -- Gap cover
+                    Size = UDim2.new(1, 0, 0, 10),
+                    Position = UDim2.new(0, 0, 1, -10),
                     BackgroundColor3 = Theme.Sub,
                     BorderSizePixel = 0
                 }
             ),
             Create(
-                "TextLabel",
+                "Frame",
                 {
-                    Text = TitleText,
-                    Size = UDim2.new(1, -40, 1, 0),
-                    Position = UDim2.new(0, 12, 0, 0),
-                    TextColor3 = Theme.Text,
-                    TextSize = 13,
-                    Font = Enum.Font.GothamBold,
-                    BackgroundTransparency = 1,
-                    TextXAlignment = Enum.TextXAlignment.Left
+                    -- Bottom Divider Line
+                    Size = UDim2.new(1, 0, 0, 1),
+                    Position = UDim2.new(0, 0, 1, 0),
+                    BackgroundColor3 = Theme.Stroke,
+                    BorderSizePixel = 0
+                }
+            ),
+            Create(
+                "UIGradient",
+                {
+                    Color = ColorSequence.new(
+                        {
+                            ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)),
+                            ColorSequenceKeypoint.new(1, Color3.fromRGB(200, 200, 200))
+                        }
+                    ),
+                    Rotation = 90
                 }
             )
         }
     )
 
-    local CloseBtn =
+    -- Logo and Title Group
+    local TitleGroup =
         Create(
-        "TextButton",
+        "Frame",
         {
-            Text = "×",
-            Size = UDim2.new(0, 35, 1, 0),
-            Position = UDim2.new(1, 0, 0, 0),
-            AnchorPoint = Vector2.new(1, 0),
+            Size = UDim2.new(0.6, 0, 1, 0),
             BackgroundTransparency = 1,
-            TextColor3 = Theme.SecondaryText,
-            TextSize = 22,
-            Font = Enum.Font.GothamMedium,
             Parent = TopBar
+        },
+        {
+            Create(
+                "UIListLayout",
+                {
+                    FillDirection = Enum.FillDirection.Horizontal,
+                    VerticalAlignment = Enum.VerticalAlignment.Center,
+                    Padding = UDim.new(0, 10)
+                }
+            ),
+            Create("UIPadding", {PaddingLeft = UDim.new(0, 12)})
         }
     )
+
+    -- Advanced Icon
+    Create(
+        "ImageLabel",
+        {
+            Name = "Icon",
+            Size = UDim2.new(0, 20, 0, 20),
+            Image = "rbxassetid://6031068420", -- Example sparkle/seraph icon
+            ImageColor3 = Theme.Accent,
+            BackgroundTransparency = 1,
+            Parent = TitleGroup
+        }
+    )
+
+    -- Main Title
+    Create(
+        "TextLabel",
+        {
+            Text = TitleText,
+            AutomaticSize = Enum.AutomaticSize.X,
+            Size = UDim2.new(0, 0, 1, 0),
+            TextColor3 = Theme.Text,
+            TextSize = 14,
+            Font = Enum.Font.GothamBold,
+            BackgroundTransparency = 1,
+            Parent = TitleGroup
+        }
+    )
+
+    -- Separator
+    Create(
+        "Frame",
+        {
+            Size = UDim2.new(0, 1, 0, 14),
+            BackgroundColor3 = Theme.Stroke,
+            BorderSizePixel = 0,
+            Parent = TitleGroup
+        }
+    )
+
+    -- Sub-title Tag
+    Create(
+        "TextLabel",
+        {
+            Text = SubTitle,
+            AutomaticSize = Enum.AutomaticSize.X,
+            Size = UDim2.new(0, 0, 1, 0),
+            TextColor3 = Theme.SecondaryText,
+            TextSize = 11,
+            Font = Enum.Font.GothamMedium,
+            BackgroundTransparency = 1,
+            Parent = TitleGroup
+        }
+    )
+
+    -- Control Buttons Holder
+    local Controls =
+        Create(
+        "Frame",
+        {
+            Size = UDim2.new(0.4, 0, 1, 0),
+            Position = UDim2.new(0.6, 0, 0, 0),
+            BackgroundTransparency = 1,
+            Parent = TopBar
+        },
+        {
+            Create(
+                "UIListLayout",
+                {
+                    FillDirection = Enum.FillDirection.Horizontal,
+                    HorizontalAlignment = Enum.HorizontalAlignment.Right,
+                    VerticalAlignment = Enum.VerticalAlignment.Center,
+                    Padding = UDim.new(0, 5)
+                }
+            ),
+            Create("UIPadding", {PaddingRight = UDim.new(0, 10)})
+        }
+    )
+
+    local function CreateTopBtn(icon, color)
+        local btn =
+            Create(
+            "TextButton",
+            {
+                Text = icon,
+                Size = UDim2.new(0, 28, 0, 28),
+                BackgroundColor3 = Theme.Component,
+                TextColor3 = color or Theme.SecondaryText,
+                Font = Enum.Font.GothamMedium,
+                TextSize = 18,
+                AutoButtonColor = false,
+                Parent = Controls
+            },
+            {
+                Create("UICorner", {CornerRadius = UDim.new(0, 4)}),
+                Create("UIStroke", {Color = Theme.Stroke})
+            }
+        )
+        btn.MouseEnter:Connect(
+            function()
+                TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Theme.Hover}):Play()
+            end
+        )
+        btn.MouseLeave:Connect(
+            function()
+                TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Theme.Component}):Play()
+            end
+        )
+        return btn
+    end
+
+    local MinBtn = CreateTopBtn("-")
+    local CloseBtn = CreateTopBtn("×", Color3.fromRGB(255, 100, 100))
+
+    -- MINIMIZE LOGIC
+    local IsMinimized = false
+    MinBtn.MouseButton1Click:Connect(
+        function()
+            IsMinimized = not IsMinimized
+            local targetSize =
+                IsMinimized and UDim2.new(0, MainSize.X, 0, 40) or UDim2.new(0, MainSize.X, 0, MainSize.Y)
+            TweenService:Create(
+                Main,
+                TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+                {Size = targetSize}
+            ):Play()
+            MinBtn.Text = IsMinimized and "+" or "-"
+        end
+    )
+
     CloseBtn.MouseButton1Click:Connect(
         function()
             GUI:Destroy()
         end
     )
 
+    -- UI NAVIGATION AREA
     local Sidebar =
         Create(
         "Frame",
         {
-            Size = UDim2.new(0, 160, 1, -35),
-            Position = UDim2.new(0, 0, 0, 35),
+            Size = UDim2.new(0, 160, 1, -40),
+            Position = UDim2.new(0, 0, 0, 40),
             BackgroundColor3 = Theme.Sub,
             BorderSizePixel = 0,
             Parent = Main
@@ -179,6 +327,7 @@ function Seraph:CreateWindow(cfg)
             Create(
                 "Frame",
                 {
+                    -- Vertical Line
                     Size = UDim2.new(0, 1, 1, 0),
                     Position = UDim2.new(1, 0, 0, 0),
                     BackgroundColor3 = Theme.Stroke,
@@ -209,8 +358,8 @@ function Seraph:CreateWindow(cfg)
         Create(
         "Frame",
         {
-            Size = UDim2.new(1, -170, 1, -45),
-            Position = UDim2.new(0, 165, 0, 40),
+            Size = UDim2.new(1, -170, 1, -50),
+            Position = UDim2.new(0, 165, 0, 45),
             BackgroundTransparency = 1,
             Parent = Main
         }
@@ -218,6 +367,7 @@ function Seraph:CreateWindow(cfg)
 
     local Window = {Tabs = {}, ActiveTab = nil}
 
+    -- Reuse original ApplyBaseUX logic with minor styling improvements...
     local function ApplyBaseUX(object, target)
         function object:AddButton(text, callback)
             local Btn =
@@ -234,11 +384,10 @@ function Seraph:CreateWindow(cfg)
                     Parent = target
                 },
                 {
-                    Create("UICorner", {CornerRadius = UDim.new(0, 3)}),
+                    Create("UICorner", {CornerRadius = UDim.new(0, 4)}),
                     Create("UIStroke", {Color = Theme.Stroke})
                 }
             )
-
             Btn.MouseEnter:Connect(
                 function()
                     TweenService:Create(Btn, TweenInfo.new(0.2), {BackgroundColor3 = Theme.Hover}):Play()
@@ -270,7 +419,7 @@ function Seraph:CreateWindow(cfg)
                     AutoButtonColor = false
                 },
                 {
-                    Create("UICorner", {CornerRadius = UDim.new(0, 3)}),
+                    Create("UICorner", {CornerRadius = UDim.new(0, 4)}),
                     Create("UIStroke", {Color = Theme.Stroke}),
                     Create(
                         "TextLabel",
@@ -289,18 +438,16 @@ function Seraph:CreateWindow(cfg)
                         "Frame",
                         {
                             Name = "Status",
-                            Size = UDim2.new(0, 16, 0, 16),
-                            Position = UDim2.new(1, -26, 0.5, -8),
+                            Size = UDim2.new(0, 18, 0, 10),
+                            Position = UDim2.new(1, -28, 0.5, -5),
                             BackgroundColor3 = state and Theme.Accent or Theme.Main
                         },
                         {
-                            Create("UIStroke", {Color = Theme.Stroke}),
-                            Create("UICorner", {CornerRadius = UDim.new(0, 4)})
+                            Create("UICorner", {CornerRadius = UDim.new(1, 0)})
                         }
                     )
                 }
             )
-
             Togg.MouseButton1Click:Connect(
                 function()
                     state = not state
@@ -325,7 +472,7 @@ function Seraph:CreateWindow(cfg)
                     Parent = target
                 },
                 {
-                    Create("UICorner", {CornerRadius = UDim.new(0, 3)}),
+                    Create("UICorner", {CornerRadius = UDim.new(0, 4)}),
                     Create("UIStroke", {Color = Theme.Stroke}),
                     Create(
                         "TextLabel",
@@ -350,7 +497,7 @@ function Seraph:CreateWindow(cfg)
                             BackgroundTransparency = 1,
                             TextColor3 = Theme.SecondaryText,
                             Font = Enum.Font.GothamBold,
-                            TextSize = 12,
+                            TextSize = 11,
                             TextXAlignment = Enum.TextXAlignment.Right
                         }
                     )
@@ -384,7 +531,6 @@ function Seraph:CreateWindow(cfg)
                 local sizeX = SliderBack.AbsoluteSize.X
                 local delta = math.clamp((input.Position.X - SliderBack.AbsolutePosition.X) / sizeX, 0, 1)
                 local newValue = math.floor(min + (max - min) * delta)
-
                 SliderFill.Size = UDim2.new(delta, 0, 1, 0)
                 SliderFrame.Val.Text = tostring(newValue)
                 task.spawn(callback, newValue)
@@ -399,7 +545,6 @@ function Seraph:CreateWindow(cfg)
                     end
                 end
             )
-
             UserInputService.InputChanged:Connect(
                 function(input)
                     if sliding and input.UserInputType == Enum.UserInputType.MouseMovement then
@@ -407,7 +552,6 @@ function Seraph:CreateWindow(cfg)
                     end
                 end
             )
-
             UserInputService.InputEnded:Connect(
                 function(input)
                     if input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -415,121 +559,6 @@ function Seraph:CreateWindow(cfg)
                     end
                 end
             )
-        end
-
-        function object:AddDropdown(text, list, callback)
-            local open = false
-            local Drop =
-                Create(
-                "Frame",
-                {
-                    Size = UDim2.new(1, -10, 0, 32),
-                    BackgroundColor3 = Theme.Component,
-                    Parent = target,
-                    ClipsDescendants = true
-                },
-                {
-                    Create("UICorner", {CornerRadius = UDim.new(0, 3)}),
-                    Create("UIStroke", {Color = Theme.Stroke})
-                }
-            )
-
-            local Trigger =
-                Create(
-                "TextButton",
-                {
-                    Text = text,
-                    Size = UDim2.new(1, 0, 0, 32),
-                    BackgroundTransparency = 1,
-                    Parent = Drop,
-                    TextColor3 = Theme.Text,
-                    Font = Enum.Font.Gotham,
-                    TextSize = 12,
-                    TextXAlignment = Enum.TextXAlignment.Left
-                },
-                {
-                    Create("UIPadding", {PaddingLeft = UDim.new(0, 10)}),
-                    Create(
-                        "TextLabel",
-                        {
-                            Name = "SelectedText",
-                            Text = "...",
-                            Size = UDim2.new(1, -45, 1, 0),
-                            Position = UDim2.new(0, 0, 0, 0),
-                            BackgroundTransparency = 1,
-                            TextColor3 = Theme.SecondaryText,
-                            TextSize = 11,
-                            Font = Enum.Font.Gotham,
-                            TextXAlignment = Enum.TextXAlignment.Right
-                        }
-                    ),
-                    Create(
-                        "TextLabel",
-                        {
-                            Name = "Arrow",
-                            Text = "▼",
-                            Size = UDim2.new(0, 20, 1, 0),
-                            Position = UDim2.new(1, -25, 0, 0),
-                            BackgroundTransparency = 1,
-                            TextColor3 = Theme.Accent,
-                            TextSize = 10,
-                            Font = Enum.Font.GothamBold
-                        }
-                    )
-                }
-            )
-
-            local ItemHold =
-                Create(
-                "Frame",
-                {
-                    Size = UDim2.new(1, -16, 0, 0),
-                    Position = UDim2.new(0, 8, 0, 35),
-                    BackgroundTransparency = 1,
-                    Parent = Drop,
-                    AutomaticSize = Enum.AutomaticSize.Y
-                },
-                {Create("UIListLayout", {Padding = UDim.new(0, 3)})}
-            )
-
-            local function ToggleDrop()
-                open = not open
-                local targetH = open and (ItemHold.UIListLayout.AbsoluteContentSize.Y + 42) or 32
-                TweenService:Create(
-                    Drop,
-                    TweenInfo.new(0.3, Enum.EasingStyle.Quart),
-                    {Size = UDim2.new(1, -10, 0, targetH)}
-                ):Play()
-                TweenService:Create(Trigger.Arrow, TweenInfo.new(0.3), {Rotation = open and 180 or 0}):Play()
-            end
-
-            for _, v in pairs(list) do
-                local Item =
-                    Create(
-                    "TextButton",
-                    {
-                        Text = tostring(v),
-                        Size = UDim2.new(1, 0, 0, 26),
-                        BackgroundColor3 = Theme.Sub,
-                        Parent = ItemHold,
-                        TextColor3 = Theme.SecondaryText,
-                        Font = Enum.Font.Gotham,
-                        TextSize = 11,
-                        AutoButtonColor = false
-                    },
-                    {Create("UICorner", {CornerRadius = UDim.new(0, 3)})}
-                )
-
-                Item.MouseButton1Click:Connect(
-                    function()
-                        Trigger.SelectedText.Text = tostring(v)
-                        ToggleDrop()
-                        task.spawn(callback, v)
-                    end
-                )
-            end
-
-            Trigger.MouseButton1Click:Connect(ToggleDrop)
         end
     end
 
@@ -540,7 +569,7 @@ function Seraph:CreateWindow(cfg)
             "TextButton",
             {
                 Text = "",
-                Size = UDim2.new(1, -10, 0, 32),
+                Size = UDim2.new(1, -12, 0, 34),
                 BackgroundTransparency = 1,
                 Parent = TabHolder
             },
@@ -612,13 +641,13 @@ function Seraph:CreateWindow(cfg)
                     Parent = Page
                 },
                 {
-                    Create("UICorner", {CornerRadius = UDim.new(0, 4)}),
+                    Create("UICorner", {CornerRadius = UDim.new(0, 5)}),
                     Create("UIStroke", {Color = Theme.Stroke}),
                     Create(
                         "TextLabel",
                         {
                             Text = title:upper(),
-                            Size = UDim2.new(1, -12, 0, 25),
+                            Size = UDim2.new(1, -12, 0, 28),
                             Position = UDim2.new(0, 10, 0, 2),
                             BackgroundTransparency = 1,
                             TextColor3 = Theme.Accent,
