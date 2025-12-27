@@ -1,0 +1,377 @@
+local Seraph = {
+    Themes = {
+        Pure = {
+            Main = Color3.fromRGB(11, 11, 14),
+            Sub = Color3.fromRGB(16, 16, 20),
+            Stroke = Color3.fromRGB(35, 35, 40),
+            Accent = Color3.fromRGB(255, 255, 255),
+            Text = Color3.fromRGB(230, 230, 230),
+            SecondaryText = Color3.fromRGB(130, 130, 140),
+            Placeholder = Color3.fromRGB(60, 60, 65)
+        }
+    }
+}
+
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local CoreGui = game:GetService("CoreGui")
+
+local Parent = (gethui and gethui()) or CoreGui
+
+local function QuickTween(obj, props, duration, style)
+    local tween = TweenService:Create(obj, TweenInfo.new(duration or 0.25, style or Enum.EasingStyle.Quart, Enum.EasingDirection.Out), props)
+    tween:Play()
+    return tween
+end
+
+local function Create(class, props, children)
+    local obj = Instance.new(class)
+    for i, v in pairs(props) do obj[i] = v end
+    if children then
+        for _, child in pairs(children) do child.Parent = obj end
+    end
+    return obj
+end
+
+function Seraph:CreateWindow(cfg)
+    cfg = cfg or {}
+    local Title = cfg.Title or "SERAPH"
+    
+    local GUI = Create("ScreenGui", { Name = "SeraphV3", Parent = Parent, IgnoreGuiInset = true, ResetOnSpawn = false })
+    
+    local Main = Create("Frame", {
+        Name = "Main",
+        Size = UDim2.new(0, 580, 0, 440),
+        Position = UDim2.new(0.5, -290, 0.5, -220),
+        BackgroundColor3 = Seraph.Themes.Pure.Main,
+        BorderSizePixel = 0,
+        ClipsDescendants = true,
+        Parent = GUI
+    }, {
+        Create("UICorner", { CornerRadius = UDim.new(0, 12) }),
+        Create("UIStroke", { Color = Seraph.Themes.Pure.Stroke, Thickness = 1.2 })
+    })
+
+    -- Premium Dragging logic
+    local dragStart, startPos, dragging
+    Main.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = Main.Position
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart
+            Main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
+    end)
+
+    local Sidebar = Create("Frame", {
+        Name = "Sidebar",
+        Size = UDim2.new(0, 160, 1, 0),
+        BackgroundColor3 = Seraph.Themes.Pure.Sub,
+        BorderSizePixel = 0,
+        Parent = Main
+    }, {
+        Create("UICorner", { CornerRadius = UDim.new(0, 12) }),
+        Create("Frame", { -- Side line
+            Size = UDim2.new(0, 1, 1, 0),
+            Position = UDim2.new(1, 0, 0, 0),
+            BackgroundColor3 = Seraph.Themes.Pure.Stroke,
+            BorderSizePixel = 0
+        })
+    })
+
+    local LogoLabel = Create("TextLabel", {
+        Text = Title:upper(),
+        Size = UDim2.new(1, 0, 0, 60),
+        Position = UDim2.new(0, 0, 0, 0),
+        TextColor3 = Seraph.Themes.Pure.Accent,
+        TextSize = 16,
+        Font = Enum.Font.RobotoMono,
+        BackgroundTransparency = 1,
+        Parent = Sidebar
+    })
+
+    local TabContainer = Create("ScrollingFrame", {
+        Size = UDim2.new(1, 0, 1, -70),
+        Position = UDim2.new(0, 0, 0, 60),
+        BackgroundTransparency = 1,
+        ScrollBarThickness = 0,
+        CanvasSize = UDim2.new(0, 0, 0, 0),
+        AutomaticCanvasSize = Enum.AutomaticSize.Y,
+        Parent = Sidebar
+    }, { Create("UIListLayout", { Padding = UDim.new(0, 5), HorizontalAlignment = Enum.HorizontalAlignment.Center }) })
+
+    -- This bar moves to follow the active tab
+    local NavHighlight = Create("Frame", {
+        Name = "NavHighlight",
+        Size = UDim2.new(0, 3, 0, 18),
+        Position = UDim2.new(0, 0, 0, 0),
+        BackgroundColor3 = Seraph.Themes.Pure.Accent,
+        BorderSizePixel = 0,
+        Visible = false,
+        Parent = TabContainer
+    }, {
+        Create("UICorner", { CornerRadius = UDim.new(1, 0) })
+    })
+
+    local PageContainer = Create("Frame", {
+        Name = "Pages",
+        Size = UDim2.new(1, -170, 1, -20),
+        Position = UDim2.new(0, 170, 0, 10),
+        BackgroundTransparency = 1,
+        Parent = Main
+    })
+
+    local Window = { Tabs = {}, ActiveTab = nil }
+
+    function Window:AddTab(name)
+        local Tab = { Active = false }
+        
+        local Btn = Create("TextButton", {
+            Text = "",
+            Size = UDim2.new(1, -20, 0, 32),
+            BackgroundTransparency = 1,
+            Parent = TabContainer
+        })
+
+        local Label = Create("TextLabel", {
+            Text = name,
+            Size = UDim2.new(1, -15, 1, 0),
+            Position = UDim2.new(0, 15, 0, 0),
+            BackgroundTransparency = 1,
+            TextColor3 = Seraph.Themes.Pure.SecondaryText,
+            Font = Enum.Font.GothamMedium,
+            TextSize = 13,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            Parent = Btn
+        })
+
+        local Page = Create("ScrollingFrame", {
+            Size = UDim2.new(1, 0, 1, 0),
+            BackgroundTransparency = 1,
+            Visible = false,
+            ScrollBarThickness = 2,
+            ScrollBarImageColor3 = Seraph.Themes.Pure.Stroke,
+            CanvasSize = UDim2.new(0,0,0,0),
+            AutomaticCanvasSize = Enum.AutomaticSize.Y,
+            Parent = PageContainer
+        }, {
+            Create("UIListLayout", { Padding = UDim.new(0, 8), HorizontalAlignment = Enum.HorizontalAlignment.Center }),
+            Create("UIPadding", { PaddingTop = UDim.new(0, 5) })
+        })
+
+        function Tab:Select()
+            if Window.ActiveTab == Tab then return end
+            if Window.ActiveTab then
+                Window.ActiveTab.Page.Visible = false
+                QuickTween(Window.ActiveTab.Label, { TextColor3 = Seraph.Themes.Pure.SecondaryText })
+            end
+            
+            Window.ActiveTab = Tab
+            NavHighlight.Visible = true
+            Page.Visible = true
+            
+            QuickTween(Label, { TextColor3 = Seraph.Themes.Pure.Accent })
+            QuickTween(NavHighlight, { 
+                Position = UDim2.new(0, 0, 0, Btn.AbsolutePosition.Y - TabContainer.AbsolutePosition.Y + 7),
+                Size = UDim2.new(0, 3, 0, 18)
+            }, 0.3)
+        end
+
+        Btn.MouseButton1Click:Connect(function() Tab:Select() end)
+        Btn.MouseEnter:Connect(function() 
+            if Window.ActiveTab ~= Tab then QuickTween(Label, { TextColor3 = Color3.fromRGB(200, 200, 200) }, 0.2) end
+        end)
+        Btn.MouseLeave:Connect(function() 
+            if Window.ActiveTab ~= Tab then QuickTween(Label, { TextColor3 = Seraph.Themes.Pure.SecondaryText }, 0.2) end
+        end)
+
+        Tab.Label = Label
+        Tab.Page = Page
+        table.insert(Window.Tabs, Tab)
+        if #Window.Tabs == 1 then task.defer(function() Tab:Select() end) end
+
+        -- Components
+        function Tab:AddButton(text, callback)
+            local callback = callback or function() end
+            local Container = Create("TextButton", {
+                Text = "",
+                Size = UDim2.new(1, -10, 0, 38),
+                BackgroundColor3 = Seraph.Themes.Pure.Sub,
+                AutoButtonColor = false,
+                Parent = Page
+            }, {
+                Create("UICorner", { CornerRadius = UDim.new(0, 6) }),
+                Create("UIStroke", { Color = Seraph.Themes.Pure.Stroke }),
+                Create("TextLabel", {
+                    Text = text,
+                    Size = UDim2.new(1, 0, 1, 0),
+                    BackgroundTransparency = 1,
+                    TextColor3 = Seraph.Themes.Pure.Text,
+                    Font = Enum.Font.Gotham,
+                    TextSize = 13
+                })
+            })
+
+            Container.MouseEnter:Connect(function() QuickTween(Container, { BackgroundColor3 = Color3.fromRGB(22, 22, 28) }) end)
+            Container.MouseLeave:Connect(function() QuickTween(Container, { BackgroundColor3 = Seraph.Themes.Pure.Sub }) end)
+            Container.MouseButton1Down:Connect(function() 
+                QuickTween(Container, { Size = UDim2.new(1, -15, 0, 36) }, 0.1) 
+                task.spawn(callback)
+            end)
+            Container.MouseButton1Up:Connect(function() QuickTween(Container, { Size = UDim2.new(1, -10, 0, 38) }, 0.1) end)
+        end
+
+        function Tab:AddToggle(text, default, callback)
+            local state = default or false
+            local callback = callback or function() end
+            
+            local Container = Create("TextButton", {
+                Text = "",
+                Size = UDim2.new(1, -10, 0, 42),
+                BackgroundColor3 = Seraph.Themes.Pure.Sub,
+                AutoButtonColor = false,
+                Parent = Page
+            }, {
+                Create("UICorner", { CornerRadius = UDim.new(0, 6) }),
+                Create("UIStroke", { Color = Seraph.Themes.Pure.Stroke }),
+                Create("TextLabel", {
+                    Text = text,
+                    Size = UDim2.new(1, -60, 1, 0),
+                    Position = UDim2.new(0, 15, 0, 0),
+                    BackgroundTransparency = 1,
+                    TextColor3 = Seraph.Themes.Pure.Text,
+                    TextXAlignment = "Left",
+                    Font = Enum.Font.Gotham,
+                    TextSize = 13
+                })
+            })
+
+            local Bg = Create("Frame", {
+                Size = UDim2.new(0, 34, 0, 18),
+                Position = UDim2.new(1, -50, 0.5, -9),
+                BackgroundColor3 = state and Seraph.Themes.Pure.Accent or Seraph.Themes.Pure.Main,
+                Parent = Container
+            }, {
+                Create("UICorner", { CornerRadius = UDim.new(1, 0) }),
+                Create("UIStroke", { Color = Seraph.Themes.Pure.Stroke })
+            })
+
+            local Circle = Create("Frame", {
+                Size = UDim2.new(0, 12, 0, 12),
+                Position = state and UDim2.new(1, -15, 0.5, -6) or UDim2.new(0, 3, 0.5, -6),
+                BackgroundColor3 = state and Seraph.Themes.Pure.Sub or Seraph.Themes.Pure.SecondaryText,
+                Parent = Bg
+            }, { Create("UICorner", { CornerRadius = UDim.new(1, 0) }) })
+
+            Container.MouseButton1Click:Connect(function()
+                state = not state
+                QuickTween(Bg, { BackgroundColor3 = state and Seraph.Themes.Pure.Accent or Seraph.Themes.Pure.Main })
+                QuickTween(Circle, { 
+                    Position = state and UDim2.new(1, -15, 0.5, -6) or UDim2.new(0, 3, 0.5, -6),
+                    BackgroundColor3 = state and Seraph.Themes.Pure.Sub or Seraph.Themes.Pure.SecondaryText
+                })
+                task.spawn(callback, state)
+            end)
+        end
+
+        function Tab:AddSlider(text, min, max, default, callback)
+            local val = default or min
+            local callback = callback or function() end
+            
+            local Container = Create("Frame", {
+                Size = UDim2.new(1, -10, 0, 55),
+                BackgroundColor3 = Seraph.Themes.Pure.Sub,
+                Parent = Page
+            }, {
+                Create("UICorner", { CornerRadius = UDim.new(0, 6) }),
+                Create("UIStroke", { Color = Seraph.Themes.Pure.Stroke }),
+                Create("TextLabel", {
+                    Text = text,
+                    Size = UDim2.new(1, -20, 0, 30),
+                    Position = UDim2.new(0, 15, 0, 5),
+                    BackgroundTransparency = 1,
+                    TextColor3 = Seraph.Themes.Pure.SecondaryText,
+                    TextXAlignment = "Left",
+                    Font = Enum.Font.Gotham,
+                    TextSize = 12
+                })
+            })
+
+            local ValueText = Create("TextLabel", {
+                Text = tostring(val),
+                Size = UDim2.new(0, 40, 0, 30),
+                Position = UDim2.new(1, -50, 0, 5),
+                BackgroundTransparency = 1,
+                TextColor3 = Seraph.Themes.Pure.Accent,
+                Font = Enum.Font.RobotoMono,
+                TextSize = 13,
+                Parent = Container
+            })
+
+            local BarBg = Create("TextButton", {
+                Text = "",
+                Size = UDim2.new(1, -30, 0, 4),
+                Position = UDim2.new(0, 15, 0, 40),
+                BackgroundColor3 = Color3.fromRGB(30, 30, 35),
+                AutoButtonColor = false,
+                Parent = Container
+            }, { Create("UICorner", { CornerRadius = UDim.new(1, 0) }) })
+
+            local Fill = Create("Frame", {
+                Size = UDim2.new((val - min) / (max - min), 0, 1, 0),
+                BackgroundColor3 = Seraph.Themes.Pure.Accent,
+                BorderSizePixel = 0,
+                Parent = BarBg
+            }, { 
+                Create("UICorner", { CornerRadius = UDim.new(1, 0) }),
+                Create("Frame", { -- Knob
+                    Size = UDim2.new(0, 10, 0, 10),
+                    Position = UDim2.new(1, -5, 0.5, -5),
+                    BackgroundColor3 = Seraph.Themes.Pure.Accent,
+                    Parent = nil -- Optionally add a knob here
+                })
+            })
+
+            local function Update(input)
+                local ratio = math.clamp((input.Position.X - BarBg.AbsolutePosition.X) / BarBg.AbsoluteSize.X, 0, 1)
+                local new_val = math.floor(min + (max - min) * ratio)
+                ValueText.Text = tostring(new_val)
+                QuickTween(Fill, { Size = UDim2.new(ratio, 0, 1, 0) }, 0.1)
+                if new_val ~= val then
+                    val = new_val
+                    task.spawn(callback, val)
+                end
+            end
+
+            local sliding = false
+            BarBg.InputBegan:Connect(function(i)
+                if i.UserInputType == Enum.UserInputType.MouseButton1 then sliding = true; Update(i) end
+            end)
+            UserInputService.InputChanged:Connect(function(i)
+                if sliding and i.UserInputType == Enum.UserInputType.MouseMovement then Update(i) end
+            end)
+            UserInputService.InputEnded:Connect(function(i)
+                if i.UserInputType == Enum.UserInputType.MouseButton1 then sliding = false end
+            end)
+        end
+
+        return Tab
+    end
+
+    return Window
+end
+
+return Seraph
