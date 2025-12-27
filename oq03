@@ -17,10 +17,11 @@ local Seraph = {
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local CoreGui = game:GetService("CoreGui")
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+
 local Parent =
-    (gethui and gethui()) or
-    (game:GetService("RunService"):IsStudio() and game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")) or
-    CoreGui
+    (gethui and gethui()) or (RunService:IsStudio() and Players.LocalPlayer:WaitForChild("PlayerGui")) or CoreGui
 
 local function Create(class, props, children)
     local obj = Instance.new(class)
@@ -41,7 +42,6 @@ end
 function Seraph:CreateWindow(cfg)
     cfg = cfg or {}
     local Title = cfg.Title or "SERAPH ADVANCED"
-
     local GUI = Create("ScreenGui", {Name = "SeraphV4", Parent = Parent, IgnoreGuiInset = true, ResetOnSpawn = false})
 
     local Main =
@@ -62,12 +62,48 @@ function Seraph:CreateWindow(cfg)
         }
     )
 
+    -- Simple Dragging logic
     local dragging, dragInput, dragStart, startPos
-    local function update(input)
-        local delta = input.Position - dragStart
-        Main.Position =
-            UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-    end
+    Main.InputBegan:Connect(
+        function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                dragging = true
+                dragStart = input.Position
+                startPos = Main.Position
+                input.Changed:Connect(
+                    function()
+                        if input.UserInputState == Enum.UserInputState.End then
+                            dragging = false
+                        end
+                    end
+                )
+            end
+        end
+    )
+    Main.InputChanged:Connect(
+        function(input)
+            if
+                input.UserInputType == Enum.UserInputType.MouseMovement or
+                    input.UserInputType == Enum.UserInputType.Touch
+             then
+                dragInput = input
+            end
+        end
+    )
+    UserInputService.InputChanged:Connect(
+        function(input)
+            if input == dragInput and dragging then
+                local delta = input.Position - dragStart
+                Main.Position =
+                    UDim2.new(
+                    startPos.X.Scale,
+                    startPos.X.Offset + delta.X,
+                    startPos.Y.Scale,
+                    startPos.Y.Offset + delta.Y
+                )
+            end
+        end
+    )
 
     local TopBar =
         Create(
@@ -76,9 +112,7 @@ function Seraph:CreateWindow(cfg)
             Name = "TopBar",
             Size = UDim2.new(1, 0, 0, 35),
             BackgroundColor3 = Seraph.Themes.Pure.Sub,
-            BorderSizePixel = 0,
-            Parent = Main,
-            Active = true
+            Parent = Main
         },
         {
             Create("UICorner", {CornerRadius = UDim.new(0, 4)}),
@@ -88,15 +122,6 @@ function Seraph:CreateWindow(cfg)
                     Size = UDim2.new(1, 0, 0, 5),
                     Position = UDim2.new(0, 0, 1, -5),
                     BackgroundColor3 = Seraph.Themes.Pure.Sub,
-                    BorderSizePixel = 0
-                }
-            ),
-            Create(
-                "Frame",
-                {
-                    Size = UDim2.new(1, 0, 0, 1),
-                    Position = UDim2.new(0, 0, 1, 0),
-                    BackgroundColor3 = Seraph.Themes.Pure.Stroke,
                     BorderSizePixel = 0
                 }
             ),
@@ -116,40 +141,6 @@ function Seraph:CreateWindow(cfg)
         }
     )
 
-    TopBar.InputBegan:Connect(
-        function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                dragging = true
-                dragStart = input.Position
-                startPos = Main.Position
-                input.Changed:Connect(
-                    function()
-                        if input.UserInputState == Enum.UserInputState.End then
-                            dragging = false
-                        end
-                    end
-                )
-            end
-        end
-    )
-    TopBar.InputChanged:Connect(
-        function(input)
-            if
-                input.UserInputType == Enum.UserInputType.MouseMovement or
-                    input.UserInputType == Enum.UserInputType.Touch
-             then
-                dragInput = input
-            end
-        end
-    )
-    UserInputService.InputChanged:Connect(
-        function(input)
-            if input == dragInput and dragging then
-                update(input)
-            end
-        end
-    )
-
     local CloseBtn =
         Create(
         "TextButton",
@@ -165,32 +156,20 @@ function Seraph:CreateWindow(cfg)
             Parent = TopBar
         }
     )
-
     CloseBtn.MouseButton1Click:Connect(
         function()
             GUI:Destroy()
         end
     )
 
-    local ContentFrame =
-        Create(
-        "Frame",
-        {
-            Size = UDim2.new(1, 0, 1, -35),
-            Position = UDim2.new(0, 0, 0, 35),
-            BackgroundTransparency = 1,
-            Parent = Main
-        }
-    )
-
     local Sidebar =
         Create(
         "Frame",
         {
-            Size = UDim2.new(0, 160, 1, 0),
+            Size = UDim2.new(0, 160, 1, -35),
+            Position = UDim2.new(0, 0, 0, 35),
             BackgroundColor3 = Seraph.Themes.Pure.Sub,
-            Parent = ContentFrame,
-            BorderSizePixel = 0
+            Parent = Main
         },
         {
             Create(
@@ -213,7 +192,6 @@ function Seraph:CreateWindow(cfg)
             Position = UDim2.new(0, 0, 0, 5),
             BackgroundTransparency = 1,
             ScrollBarThickness = 0,
-            CanvasSize = UDim2.new(0, 0, 0, 0),
             AutomaticCanvasSize = Enum.AutomaticSize.Y,
             Parent = Sidebar
         },
@@ -226,10 +204,10 @@ function Seraph:CreateWindow(cfg)
         Create(
         "Frame",
         {
-            Size = UDim2.new(1, -170, 1, -10),
-            Position = UDim2.new(0, 165, 0, 5),
+            Size = UDim2.new(1, -170, 1, -45),
+            Position = UDim2.new(0, 165, 0, 40),
             BackgroundTransparency = 1,
-            Parent = ContentFrame
+            Parent = Main
         }
     )
 
@@ -255,7 +233,6 @@ function Seraph:CreateWindow(cfg)
                     Create("UIStroke", {Color = Seraph.Themes.Pure.Stroke})
                 }
             )
-
             Btn.MouseEnter:Connect(
                 function()
                     TweenService:Create(Btn, TweenInfo.new(0.2), {BackgroundColor3 = Seraph.Themes.Pure.Hover}):Play()
@@ -285,8 +262,8 @@ function Seraph:CreateWindow(cfg)
                     Text = "",
                     Size = UDim2.new(1, -10, 0, 32),
                     BackgroundColor3 = Seraph.Themes.Pure.Component,
-                    AutoButtonColor = false,
-                    Parent = target
+                    Parent = target,
+                    AutoButtonColor = false
                 },
                 {
                     Create("UICorner", {CornerRadius = UDim.new(0, 3)}),
@@ -310,14 +287,15 @@ function Seraph:CreateWindow(cfg)
                             Name = "Status",
                             Size = UDim2.new(0, 14, 0, 14),
                             Position = UDim2.new(1, -24, 0.5, -7),
-                            BackgroundColor3 = state and Seraph.Themes.Pure.Accent or Seraph.Themes.Pure.Main,
-                            BorderSizePixel = 0
+                            BackgroundColor3 = state and Seraph.Themes.Pure.Accent or Seraph.Themes.Pure.Main
                         },
-                        {Create("UIStroke", {Color = Seraph.Themes.Pure.Stroke})}
+                        {
+                            Create("UIStroke", {Color = Seraph.Themes.Pure.Stroke}),
+                            Create("UICorner", {CornerRadius = UDim.new(0, 2)})
+                        }
                     )
                 }
             )
-
             Togg.MouseButton1Click:Connect(
                 function()
                     state = not state
@@ -326,7 +304,111 @@ function Seraph:CreateWindow(cfg)
                         TweenInfo.new(0.2),
                         {BackgroundColor3 = state and Seraph.Themes.Pure.Accent or Seraph.Themes.Pure.Main}
                     ):Play()
-                    callback(state)
+                    task.spawn(callback, state)
+                end
+            )
+        end
+
+        function object:AddSlider(text, min, max, default, callback)
+            local val = default or min
+            local SliderFrame =
+                Create(
+                "Frame",
+                {
+                    Size = UDim2.new(1, -10, 0, 45),
+                    BackgroundColor3 = Seraph.Themes.Pure.Component,
+                    Parent = target
+                },
+                {
+                    Create("UICorner", {CornerRadius = UDim.new(0, 3)}),
+                    Create("UIStroke", {Color = Seraph.Themes.Pure.Stroke}),
+                    Create(
+                        "TextLabel",
+                        {
+                            Text = text,
+                            Size = UDim2.new(1, -20, 0, 25),
+                            Position = UDim2.new(0, 10, 0, 2),
+                            BackgroundTransparency = 1,
+                            TextColor3 = Seraph.Themes.Pure.Text,
+                            Font = Enum.Font.Gotham,
+                            TextSize = 12,
+                            TextXAlignment = Enum.TextXAlignment.Left
+                        }
+                    ),
+                    Create(
+                        "TextLabel",
+                        {
+                            Name = "Val",
+                            Text = tostring(val),
+                            Size = UDim2.new(0, 40, 0, 25),
+                            Position = UDim2.new(1, -50, 0, 2),
+                            BackgroundTransparency = 1,
+                            TextColor3 = Seraph.Themes.Pure.SecondaryText,
+                            Font = Enum.Font.GothamBold,
+                            TextSize = 12,
+                            TextXAlignment = Enum.TextXAlignment.Right
+                        }
+                    )
+                }
+            )
+
+            local SliderBack =
+                Create(
+                "Frame",
+                {
+                    Size = UDim2.new(1, -20, 0, 4),
+                    Position = UDim2.new(0, 10, 1, -12),
+                    BackgroundColor3 = Seraph.Themes.Pure.Main,
+                    Parent = SliderFrame
+                },
+                {Create("UICorner", {CornerRadius = UDim.new(0, 2)})}
+            )
+
+            local SliderFill =
+                Create(
+                "Frame",
+                {
+                    Size = UDim2.new((val - min) / (max - min), 0, 1, 0),
+                    BackgroundColor3 = Seraph.Themes.Pure.Accent,
+                    Parent = SliderBack
+                },
+                {Create("UICorner", {CornerRadius = UDim.new(0, 2)})}
+            )
+
+            local function UpdateSlider()
+                local percent =
+                    math.clamp(
+                    (UserInputService:GetMouseLocation().X - SliderBack.AbsolutePosition.X) / SliderBack.AbsoluteSize.X,
+                    0,
+                    1
+                )
+                val = math.floor(min + (max - min) * percent)
+                SliderFill.Size = UDim2.new(percent, 0, 1, 0)
+                SliderFrame.Val.Text = tostring(val)
+                task.spawn(callback, val)
+            end
+
+            SliderFrame.InputBegan:Connect(
+                function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        local move
+                        move =
+                            UserInputService.InputChanged:Connect(
+                            function(input)
+                                if input.UserInputType == Enum.UserInputType.MouseMovement then
+                                    UpdateSlider()
+                                end
+                            end
+                        )
+                        UserInputService.InputEnded:Connect(
+                            function(input)
+                                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                                    move:Disconnect()
+                                end
+                            end
+                        )
+                        UpdateSlider()
+                    end
                 end
             )
         end
@@ -340,25 +422,41 @@ function Seraph:CreateWindow(cfg)
                     Size = UDim2.new(1, -10, 0, 32),
                     BackgroundColor3 = Seraph.Themes.Pure.Component,
                     Parent = target,
-                    ClipsDescendants = true,
-                    ZIndex = 5
+                    ClipsDescendants = true
                 },
                 {
                     Create("UICorner", {CornerRadius = UDim.new(0, 3)}),
-                    Create("UIStroke", {Color = Seraph.Themes.Pure.Stroke}),
+                    Create("UIStroke", {Color = Seraph.Themes.Pure.Stroke})
+                }
+            )
+
+            local Trigger =
+                Create(
+                "TextButton",
+                {
+                    Text = text,
+                    Size = UDim2.new(1, 0, 0, 32),
+                    BackgroundTransparency = 1,
+                    Parent = Drop,
+                    TextColor3 = Seraph.Themes.Pure.Text,
+                    Font = Enum.Font.Gotham,
+                    TextSize = 12,
+                    TextXAlignment = Enum.TextXAlignment.Left
+                },
+                {
+                    Create("UIPadding", {PaddingLeft = UDim.new(0, 10)}),
                     Create(
-                        "TextButton",
+                        "TextLabel",
                         {
-                            Name = "Trigger",
-                            Text = text,
-                            Size = UDim2.new(1, 0, 0, 32),
+                            Name = "Arrow",
+                            Text = "▼",
+                            Size = UDim2.new(0, 20, 1, 0),
+                            Position = UDim2.new(1, -30, 0, 0),
                             BackgroundTransparency = 1,
-                            TextColor3 = Seraph.Themes.Pure.Text,
-                            Font = Enum.Font.Gotham,
-                            TextSize = 12,
-                            TextXAlignment = Enum.TextXAlignment.Left
-                        },
-                        {Create("UIPadding", {PaddingLeft = UDim.new(0, 10)})}
+                            TextColor3 = Seraph.Themes.Pure.Accent,
+                            TextSize = 10,
+                            Font = Enum.Font.GothamBold
+                        }
                     )
                 }
             )
@@ -367,22 +465,24 @@ function Seraph:CreateWindow(cfg)
                 Create(
                 "Frame",
                 {
-                    Size = UDim2.new(1, -8, 0, 0),
-                    Position = UDim2.new(0, 4, 0, 35),
+                    Size = UDim2.new(1, -16, 0, 0),
+                    Position = UDim2.new(0, 8, 0, 35),
                     BackgroundTransparency = 1,
                     Parent = Drop,
                     AutomaticSize = Enum.AutomaticSize.Y
                 },
-                {Create("UIListLayout", {Padding = UDim.new(0, 2)})}
+                {Create("UIListLayout", {Padding = UDim.new(0, 3)})}
             )
 
-            local function UpdateDropdown()
-                local targetHeight = open and (40 + ItemHold.UIListLayout.AbsoluteContentSize.Y) or 32
+            local function ToggleDrop()
+                open = not open
+                local targetH = open and (ItemHold.UIListLayout.AbsoluteContentSize.Y + 42) or 32
                 TweenService:Create(
                     Drop,
                     TweenInfo.new(0.3, Enum.EasingStyle.Quart),
-                    {Size = UDim2.new(1, -10, 0, targetHeight)}
+                    {Size = UDim2.new(1, -10, 0, targetH)}
                 ):Play()
+                TweenService:Create(Trigger.Arrow, TweenInfo.new(0.3), {Rotation = open and 180 or 0}):Play()
             end
 
             for _, v in pairs(list) do
@@ -391,45 +491,26 @@ function Seraph:CreateWindow(cfg)
                     "TextButton",
                     {
                         Text = tostring(v),
-                        Size = UDim2.new(1, 0, 0, 25),
-                        BackgroundColor3 = Seraph.Themes.Pure.Main,
+                        Size = UDim2.new(1, 0, 0, 26),
+                        BackgroundColor3 = Seraph.Themes.Pure.Sub,
+                        Parent = ItemHold,
                         TextColor3 = Seraph.Themes.Pure.SecondaryText,
                         Font = Enum.Font.Gotham,
                         TextSize = 11,
-                        Parent = ItemHold,
-                        BorderSizePixel = 0,
                         AutoButtonColor = false
                     },
                     {Create("UICorner", {CornerRadius = UDim.new(0, 3)})}
                 )
-
-                Item.MouseEnter:Connect(
-                    function()
-                        Item.TextColor3 = Seraph.Themes.Pure.Text
-                    end
-                )
-                Item.MouseLeave:Connect(
-                    function()
-                        Item.TextColor3 = Seraph.Themes.Pure.SecondaryText
-                    end
-                )
-
                 Item.MouseButton1Click:Connect(
                     function()
-                        Drop.Trigger.Text = text .. " : " .. tostring(v)
-                        open = false
-                        UpdateDropdown()
-                        callback(v)
+                        Trigger.Text = text .. " : " .. tostring(v)
+                        ToggleDrop()
+                        task.spawn(callback, v)
                     end
                 )
             end
 
-            Drop.Trigger.MouseButton1Click:Connect(
-                function()
-                    open = not open
-                    UpdateDropdown()
-                end
-            )
+            Trigger.MouseButton1Click:Connect(ToggleDrop)
         end
     end
 
@@ -554,7 +635,6 @@ function Seraph:CreateWindow(cfg)
         Tab.TabBtn = TabBtn
         Tab.Page = Page
         table.insert(Window.Tabs, Tab)
-
         if #Window.Tabs == 1 then
             Tab:Select()
         end
