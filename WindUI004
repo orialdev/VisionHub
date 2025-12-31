@@ -1,3 +1,0 @@
-local WindUI = loadstring(game:HttpGet(
-    "https://raw.githubusercontent.com/orialdev/WindUI-Forked-by-orialdev/refs/heads/main/WindUI%20Forked"
-))()
