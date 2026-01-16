@@ -58,6 +58,11 @@ local Players = MacLib.GetService("Players")
 local isStudio = RunService:IsStudio()
 local LocalPlayer = Players.LocalPlayer
 
+-- Platform detection for cross-platform support
+local platform = UserInputService:GetPlatform()
+local isMobile = platform == Enum.Platform.IOS or platform == Enum.Platform.Android or UserInputService.TouchEnabled
+local isDesktop = not isMobile
+
 local windowState
 local acrylicBlur
 local hasGlobalSetting
@@ -148,7 +153,7 @@ function MacLib:Window(Settings)
 	base.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	base.BorderSizePixel = 0
 	base.Position = UDim2.fromScale(0.5, 0.5)
-	base.Size = Settings.Size or UDim2.fromOffset(868, 650)
+	base.Size = Settings.Size or (isMobile and UDim2.fromScale(0.9, 0.8) or UDim2.fromOffset(868, 650))
 
 	local baseUIScale = Instance.new("UIScale")
 	baseUIScale.Name = "BaseUIScale"
@@ -432,7 +437,7 @@ function MacLib:Window(Settings)
 	title.Text = Settings.Title
 	title.TextColor3 = Color3.fromRGB(255, 255, 255)
 	title.RichText = true
-	title.TextSize = 18
+	title.TextSize = isMobile and 22 or 18
 	title.TextTransparency = 0.1
 	title.TextTruncate = Enum.TextTruncate.SplitWord
 	title.TextXAlignment = Enum.TextXAlignment.Left
@@ -569,7 +574,7 @@ function MacLib:Window(Settings)
 	)
 	displayName.Text = LocalPlayer.DisplayName
 	displayName.TextColor3 = Color3.fromRGB(255, 255, 255)
-	displayName.TextSize = 13
+	displayName.TextSize = isMobile and 15 or 13
 	displayName.TextTransparency = 0.1
 	displayName.TextTruncate = Enum.TextTruncate.SplitWord
 	displayName.TextXAlignment = Enum.TextXAlignment.Left
@@ -603,7 +608,7 @@ function MacLib:Window(Settings)
 	)
 	username.Text = "@" .. LocalPlayer.Name
 	username.TextColor3 = Color3.fromRGB(255, 255, 255)
-	username.TextSize = 12
+	username.TextSize = isMobile and 14 or 12
 	username.TextTransparency = 0.7
 	username.TextTruncate = Enum.TextTruncate.SplitWord
 	username.TextXAlignment = Enum.TextXAlignment.Left
@@ -1643,7 +1648,7 @@ function MacLib:Window(Settings)
 					button.BackgroundTransparency = 1
 					button.BorderColor3 = Color3.fromRGB(0, 0, 0)
 					button.BorderSizePixel = 0
-					button.Size = UDim2.new(1, 0, 0, 38)
+					button.Size = UDim2.new(1, 0, 0, isMobile and 48 or 38)
 					button.Parent = section
 
 					local buttonInteract = Instance.new("TextButton")
@@ -1737,7 +1742,7 @@ function MacLib:Window(Settings)
 					toggle.BackgroundTransparency = 1
 					toggle.BorderColor3 = Color3.fromRGB(0, 0, 0)
 					toggle.BorderSizePixel = 0
-					toggle.Size = UDim2.new(1, 0, 0, 38)
+					toggle.Size = UDim2.new(1, 0, 0, isMobile and 48 or 38)
 					toggle.Parent = section
 
 					local toggleName = Instance.new("TextLabel")
@@ -1876,7 +1881,7 @@ function MacLib:Window(Settings)
 					slider.BackgroundTransparency = 1
 					slider.BorderColor3 = Color3.fromRGB(0, 0, 0)
 					slider.BorderSizePixel = 0
-					slider.Size = UDim2.new(1, 0, 0, 38)
+					slider.Size = UDim2.new(1, 0, 0, isMobile and 48 or 38)
 					slider.Parent = section
 
 					local sliderName = Instance.new("TextLabel")
@@ -2136,7 +2141,7 @@ function MacLib:Window(Settings)
 					input.BackgroundTransparency = 1
 					input.BorderColor3 = Color3.fromRGB(0, 0, 0)
 					input.BorderSizePixel = 0
-					input.Size = UDim2.new(1, 0, 0, 38)
+					input.Size = UDim2.new(1, 0, 0, isMobile and 48 or 38)
 					input.Parent = section
 
 					local inputName = Instance.new("TextLabel")
@@ -2312,7 +2317,7 @@ function MacLib:Window(Settings)
 					keybind.BackgroundTransparency = 1
 					keybind.BorderColor3 = Color3.fromRGB(0, 0, 0)
 					keybind.BorderSizePixel = 0
-					keybind.Size = UDim2.new(1, 0, 0, 38)
+					keybind.Size = UDim2.new(1, 0, 0, isMobile and 48 or 38)
 					keybind.Parent = section
 
 					local keybindName = Instance.new("TextLabel")
@@ -2494,7 +2499,7 @@ function MacLib:Window(Settings)
 					dropdown.BackgroundTransparency = 0.985
 					dropdown.BorderColor3 = Color3.fromRGB(0, 0, 0)
 					dropdown.BorderSizePixel = 0
-					dropdown.Size = UDim2.new(1, 0, 0, 38)
+					dropdown.Size = UDim2.new(1, 0, 0, isMobile and 48 or 38)
 					dropdown.Parent = section
 					dropdown.ClipsDescendants = true
 
@@ -2514,7 +2519,7 @@ function MacLib:Window(Settings)
 					interact.BackgroundTransparency = 1
 					interact.BorderColor3 = Color3.fromRGB(0, 0, 0)
 					interact.BorderSizePixel = 0
-					interact.Size = UDim2.new(1, 0, 0, 38)
+					interact.Size = UDim2.new(1, 0, 0, isMobile and 48 or 38)
 					interact.Parent = dropdown
 
 					local dropdownName = Instance.new("TextLabel")
@@ -3069,7 +3074,7 @@ function MacLib:Window(Settings)
 					colorpicker.BackgroundTransparency = 1
 					colorpicker.BorderColor3 = Color3.fromRGB(0, 0, 0)
 					colorpicker.BorderSizePixel = 0
-					colorpicker.Size = UDim2.new(1, 0, 0, 38)
+					colorpicker.Size = UDim2.new(1, 0, 0, isMobile and 48 or 38)
 					colorpicker.Parent = section
 
 					local colorpickerName = Instance.new("TextLabel")
@@ -4403,7 +4408,7 @@ function MacLib:Window(Settings)
 					label.BackgroundTransparency = 1
 					label.BorderColor3 = Color3.fromRGB(0, 0, 0)
 					label.BorderSizePixel = 0
-					label.Size = UDim2.new(1, 0, 0, 38)
+					label.Size = UDim2.new(1, 0, 0, isMobile and 48 or 38)
 					label.Parent = section
 
 					local labelText = Instance.new("TextLabel")
@@ -4491,7 +4496,7 @@ function MacLib:Window(Settings)
 					paragraph.BackgroundTransparency = 1
 					paragraph.BorderColor3 = Color3.fromRGB(0, 0, 0)
 					paragraph.BorderSizePixel = 0
-					paragraph.Size = UDim2.new(1, 0, 0, 38)
+					paragraph.Size = UDim2.new(1, 0, 0, isMobile and 48 or 38)
 					paragraph.Parent = section
 
 					local paragraphHeader = Instance.new("TextLabel")
@@ -5098,7 +5103,7 @@ function MacLib:Window(Settings)
 		paragraph.BackgroundTransparency = 1
 		paragraph.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		paragraph.BorderSizePixel = 0
-		paragraph.Size = UDim2.new(1, 0, 0, 38)
+		paragraph.Size = UDim2.new(1, 0, 0, isMobile and 48 or 38)
 
 		local paragraphHeader = Instance.new("TextLabel")
 		paragraphHeader.Name = "ParagraphHeader"
