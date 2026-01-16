@@ -1347,6 +1347,17 @@ function MacLib:Window(Settings)
 		tabGroup.BorderSizePixel = 0
 		tabGroup.Size = UDim2.fromScale(1, 0)
 
+		local divider3 = Instance.new("Frame")
+		divider3.Name = "Divider"
+		divider3.AnchorPoint = Vector2.new(0.5, 1)
+		divider3.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		divider3.BackgroundTransparency = 0.9
+		divider3.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		divider3.BorderSizePixel = 0
+		divider3.Position = UDim2.fromScale(0.5, 1)
+		divider3.Size = UDim2.new(1, -21, 0, 1)
+		divider3.Parent = tabGroup
+
 		local sectionTabSwitchers = Instance.new("Frame")
 		sectionTabSwitchers.Name = "SectionTabSwitchers"
 		sectionTabSwitchers.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
