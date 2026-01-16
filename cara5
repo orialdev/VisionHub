@@ -4740,12 +4740,19 @@ function MacLib:Window(Settings)
 					Name = "Set as autoload",
 					Callback = function()
 						local name = configSelection.Value
-						writefile(MacLib.Folder .. "/settings/autoload.txt", name)
-						autoloadLabel:UpdateName("Autoload config: " .. name)
-						WindowFunctions:Notify({
-							Title = "Interface",
-							Description = string.format("Set %q as autoload", name),
-						})
+						if name then
+							writefile(MacLib.Folder .. "/settings/autoload.txt", name)
+							autoloadLabel:UpdateName("Autoload config: " .. name)
+							WindowFunctions:Notify({
+								Title = "Interface",
+								Description = string.format("Set %q as autoload", name),
+							})
+						else
+							WindowFunctions:Notify({
+								Title = "Interface",
+								Description = "No config selected to set as autoload.",
+							})
+						end
 					end,
 				})
 
