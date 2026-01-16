@@ -314,17 +314,6 @@ function MacLib:Window(Settings)
 	information.Position = UDim2.fromOffset(0, 31)
 	information.Size = UDim2.new(1, 0, 0, 60)
 
-	local divider2 = Instance.new("Frame")
-	divider2.Name = "Divider"
-	divider2.AnchorPoint = Vector2.new(0, 1)
-	divider2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-	divider2.BackgroundTransparency = 0.9
-	divider2.BorderColor3 = Color3.fromRGB(0, 0, 0)
-	divider2.BorderSizePixel = 0
-	divider2.Position = UDim2.fromScale(0, 1)
-	divider2.Size = UDim2.new(1, 0, 0, 1)
-	divider2.Parent = information
-
 	local informationHolder = Instance.new("Frame")
 	informationHolder.Name = "InformationHolder"
 	informationHolder.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
