@@ -314,7 +314,16 @@ function MacLib:Window(Settings)
 	information.Position = UDim2.fromOffset(0, 31)
 	information.Size = UDim2.new(1, 0, 0, 60)
 
-
+	local divider2 = Instance.new("Frame")
+	divider2.Name = "Divider"
+	divider2.AnchorPoint = Vector2.new(0, 1)
+	divider2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	divider2.BackgroundTransparency = 0.9
+	divider2.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	divider2.BorderSizePixel = 0
+	divider2.Position = UDim2.fromScale(0, 1)
+	divider2.Size = UDim2.new(1, 0, 0, 1)
+	divider2.Parent = information
 
 	local informationHolder = Instance.new("Frame")
 	informationHolder.Name = "InformationHolder"
@@ -332,7 +341,37 @@ function MacLib:Window(Settings)
 	informationHolderUIPadding.PaddingTop = UDim.new(0, 10)
 	informationHolderUIPadding.Parent = informationHolder
 
+	local globalSettingsButton = Instance.new("ImageButton")
+	globalSettingsButton.Name = "GlobalSettingsButton"
+	globalSettingsButton.Image = assets.globe
+	globalSettingsButton.ImageTransparency = 0.5
+	globalSettingsButton.AnchorPoint = Vector2.new(1, 0.5)
+	globalSettingsButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	globalSettingsButton.BackgroundTransparency = 1
+	globalSettingsButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	globalSettingsButton.BorderSizePixel = 0
+	globalSettingsButton.Position = UDim2.fromScale(1, 0.5)
+	globalSettingsButton.Size = UDim2.fromOffset(16,16)
+	globalSettingsButton.Parent = informationHolder
 
+	local function ChangeGlobalSettingsButtonState(State)
+		if State == "Default" then
+			Tween(globalSettingsButton, TweenInfo.new(0.2, Enum.EasingStyle.Sine), {
+				ImageTransparency = 0.5
+			}):Play()
+		elseif State == "Hover" then
+			Tween(globalSettingsButton, TweenInfo.new(0.2, Enum.EasingStyle.Sine), {
+				ImageTransparency = 0.3
+			}):Play()
+		end
+	end
+
+	globalSettingsButton.MouseEnter:Connect(function()
+		ChangeGlobalSettingsButtonState("Hover")
+	end)
+	globalSettingsButton.MouseLeave:Connect(function()
+		ChangeGlobalSettingsButtonState("Default")
+	end)
 
 	local titleFrame = Instance.new("Frame")
 	titleFrame.Name = "TitleFrame"
@@ -2328,12 +2367,12 @@ function MacLib:Window(Settings)
 
 							local Event
 							Event = UserInputService.InputBegan:Connect(function(input)
-								if KeybindFunctions.Settings.Blacklist and (table.find(KeybindFunctions.KeybindFunctions.Settings.Blacklist, input.KeyCode) or table.find(KeybindFunctions.Settings.Blacklist, input.UserInputType)) then
-									binderBox:ReleaseFocus()
-									resetFocusState()
-									Event:Disconnect()
-									return
-								end
+            if KeybindFunctions.Settings.Blacklist and (table.find(KeybindFunctions.Settings.Blacklist, input.KeyCode) or table.find(KeybindFunctions.Settings.Blacklist, input.UserInputType)) then
+                binderBox:ReleaseFocus()
+                resetFocusState()
+                Event:Disconnect()
+                return
+            end
 
 								if input.UserInputType == Enum.UserInputType.Keyboard then
 									binded = input.KeyCode
@@ -5445,26 +5484,27 @@ function MacLib:Window(Settings)
 		end
 	end
 
-	function MacLib:LoadAutoLoadConfig()
-		if isStudio or not (isfile and readfile) then return "Config system unavailable." end
+function MacLib:LoadAutoLoadConfig()
+	if isStudio or not (isfile and readfile) then return "Config system unavailable." end
 
-		if isfile(MacLib.Folder .. "/settings/autoload.txt") then
-			local name = readfile(MacLib.Folder .. "/settings/autoload.txt")
+	if isfile(MacLib.Folder .. "/settings/autoload.txt") then
+		local name = readfile(MacLib.Folder .. "/settings/autoload.txt")
+		name = name:gsub("%s+$", "")
 
-			local suc, err = MacLib:LoadConfig(name)
-			if not suc then
-				WindowFunctions:Notify({
-					Title = "Interface",
-					Description = "Error loading autoload config: " .. err
-				})
-			end
-
+		local suc, err = MacLib:LoadConfig(name)
+		if not suc then
+			WindowFunctions:Notify({
+				Title = "Interface",
+				Description = "Error loading autoload config: " .. tostring(err)
+			})
+		else
 			WindowFunctions:Notify({
 				Title = "Interface",
 				Description = string.format("Autoloaded config: %q", name),
 			})
 		end
 	end
+end
 
 	function MacLib:SetFolder(Folder)
 		if isStudio then return "Config system unavailable." end
