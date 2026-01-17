@@ -6,43 +6,39 @@ local MacLib = {
 	end
 }
 
--- Theme system for customizable colors
 local Theme = {
-	-- Background colors
-	Background = Color3.fromRGB(15, 15, 15),
-	SecondaryBackground = Color3.fromRGB(25, 25, 25),
-	AccentBackground = Color3.fromRGB(119, 174, 94),
+	-- Backgrounds
+	Background = Color3.fromHex("#010409"),            -- AcrylicMain
+	SecondaryBackground = Color3.fromHex("#0d1117"),   -- Input background
+	AccentBackground = Color3.fromHex("#1f6feb"),      -- Accent / focusBorder
 
-	-- Text colors
-	Text = Color3.fromRGB(255, 255, 255),
-	TextSecondary = Color3.fromRGB(200, 200, 200),
-	TextMuted = Color3.fromRGB(150, 150, 150),
+	-- Text
+	Text = Color3.fromHex("#e6edf3"),                  -- Foreground
+	TextSecondary = Color3.fromHex("#7d8590"),         -- SubText
+	TextMuted = Color3.fromHex("#6e7681"),             -- Placeholder / muted text
 
-	-- Border colors
-	Border = Color3.fromRGB(255, 255, 255),
-	BorderSecondary = Color3.fromRGB(87, 86, 86),
+	-- Borders
+	Border = Color3.fromHex("#30363d"),                 -- AcrylicBorder
+	BorderSecondary = Color3.fromHex("#30363d"),
 
-	-- Button colors
-	ButtonPrimary = Color3.fromRGB(119, 174, 94),
-	ButtonSecondary = Color3.fromRGB(250, 93, 86),
-	ButtonTertiary = Color3.fromRGB(252, 190, 57),
+	-- Buttons
+	ButtonPrimary = Color3.fromHex("#1f6feb"),          -- Accent
+	ButtonSecondary = Color3.fromHex("#da3633"),        -- Destructive-style red (GitHub dark)
+	ButtonTertiary = Color3.fromHex("#f2cc60"),         -- Warning / yellow accent
 
-	-- Special colors
-	Transparent = Color3.fromRGB(255, 255, 255),
+	-- Utility
+	Transparent = Color3.fromHex("#e6edf3"),
 	Black = Color3.fromRGB(0, 0, 0),
 }
 
--- Function to update theme colors
 function MacLib:SetTheme(newTheme)
 	for key, color in pairs(newTheme) do
 		if Theme[key] then
 			Theme[key] = color
 		end
 	end
-	-- Trigger theme update event (to be implemented if needed)
 end
 
--- Function to get current theme
 function MacLib:GetTheme()
 	return Theme
 end
@@ -58,7 +54,6 @@ local Players = MacLib.GetService("Players")
 local isStudio = RunService:IsStudio()
 local LocalPlayer = Players.LocalPlayer
 
--- Platform detection for cross-platform support
 local platform = UserInputService:GetPlatform()
 local isMobile = platform == Enum.Platform.IOS or platform == Enum.Platform.Android or UserInputService.TouchEnabled
 local isDesktop = not isMobile
@@ -109,20 +104,6 @@ local function Tween(instance, tweeninfo, propertytable)
 	return TweenService:Create(instance, tweeninfo, propertytable)
 end
 
-local function calculateBaseSize()
-    if isMobile then
-        return UDim2.fromScale(0.9, 0.8)
-    else
-        local minWidth = 800
-        local minHeight = 600
-        local maxWidth = 1600
-        local maxHeight = 1200
-        local scaleWidth = math.clamp(viewportSize.X * 0.8, minWidth, maxWidth) / viewportSize.X
-        local scaleHeight = math.clamp(viewportSize.Y * 0.75, minHeight, maxHeight) / viewportSize.Y
-        return UDim2.fromScale(scaleWidth, scaleHeight)
-    end
-end
-
 function MacLib:Window(Settings)
 	local WindowFunctions = {Settings = Settings}
 	if Settings.AcrylicBlur ~= nil then
@@ -167,7 +148,7 @@ function MacLib:Window(Settings)
 	base.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	base.BorderSizePixel = 0
 	base.Position = UDim2.fromScale(0.5, 0.5)
-	base.Size = Settings.Size or calculateBaseSize()
+	base.Size = Settings.Size
 
 	local baseUIScale = Instance.new("UIScale")
 	baseUIScale.Name = "BaseUIScale"
