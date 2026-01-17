@@ -7,26 +7,21 @@ local MacLib = {
 }
 
 local Theme = {
-	-- Backgrounds
-	Background = Color3.fromHex("#010409"),            -- AcrylicMain
-	SecondaryBackground = Color3.fromHex("#0d1117"),   -- Input background
-	AccentBackground = Color3.fromHex("#1f6feb"),      -- Accent / focusBorder
+	Background = Color3.fromHex("#010409"),
+	SecondaryBackground = Color3.fromHex("#0d1117"),
+	AccentBackground = Color3.fromHex("#1f6feb"),
 
-	-- Text
-	Text = Color3.fromHex("#e6edf3"),                  -- Foreground
-	TextSecondary = Color3.fromHex("#7d8590"),         -- SubText
-	TextMuted = Color3.fromHex("#6e7681"),             -- Placeholder / muted text
+	Text = Color3.fromHex("#e6edf3"),
+	TextSecondary = Color3.fromHex("#7d8590"),
+	TextMuted = Color3.fromHex("#6e7681"),
 
-	-- Borders
-	Border = Color3.fromHex("#30363d"),                 -- AcrylicBorder
+	Border = Color3.fromHex("#30363d"),
 	BorderSecondary = Color3.fromHex("#30363d"),
 
-	-- Buttons
-	ButtonPrimary = Color3.fromHex("#1f6feb"),          -- Accent
-	ButtonSecondary = Color3.fromHex("#da3633"),        -- Destructive-style red (GitHub dark)
-	ButtonTertiary = Color3.fromHex("#f2cc60"),         -- Warning / yellow accent
+	ButtonPrimary = Color3.fromHex("#1f6feb"),
+	ButtonSecondary = Color3.fromHex("#da3633"),
+	ButtonTertiary = Color3.fromHex("#f2cc60"),
 
-	-- Utility
 	Transparent = Color3.fromHex("#e6edf3"),
 	Black = Color3.fromRGB(0, 0, 0),
 }
