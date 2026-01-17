@@ -153,7 +153,7 @@ function MacLib:Window(Settings)
 	base.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	base.BorderSizePixel = 0
 	base.Position = UDim2.fromScale(0.5, 0.5)
-	base.Size = Settings.Size or (isMobile and UDim2.fromScale(0.9, 0.8) or UDim2.fromOffset(868, 650))
+	base.Size = Settings.Size or calculateBaseSize()
 
 	local baseUIScale = Instance.new("UIScale")
 	baseUIScale.Name = "BaseUIScale"
@@ -178,7 +178,7 @@ function MacLib:Window(Settings)
 	sidebar.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	sidebar.BorderSizePixel = 0
 	sidebar.Position = UDim2.fromScale(-3.52e-08, 4.69e-08)
-	sidebar.Size = UDim2.fromScale(0.325, 1)
+	sidebar.Size = UDim2.fromScale(isMobile and 0.25 or 0.325, 1)
 
 	local divider = Instance.new("Frame")
 	divider.Name = "Divider"
@@ -1013,10 +1013,25 @@ function MacLib:Window(Settings)
 	local BlurTarget = base
 
 	local HS = HttpService
-	local camera = workspace.CurrentCamera
-	local MTREL = "Glass"
-	local binds = {}
-	local wedgeguid = HS:GenerateGUID(true)
+local camera = workspace.CurrentCamera
+local viewportSize = camera.ViewportSize
+local MTREL = "Glass"
+local binds = {}
+local wedgeguid = HS:GenerateGUID(true)
+
+local function calculateBaseSize()
+    if isMobile then
+        return UDim2.fromScale(0.9, 0.8)
+    else
+        local minWidth = 800
+        local minHeight = 600
+        local maxWidth = 1600
+        local maxHeight = 1200
+        local scaleWidth = math.clamp(viewportSize.X * 0.8, minWidth, maxWidth) / viewportSize.X
+        local scaleHeight = math.clamp(viewportSize.Y * 0.75, minHeight, maxHeight) / viewportSize.Y
+        return UDim2.fromScale(scaleWidth, scaleHeight)
+    end
+end
 
 	local DepthOfField
 
