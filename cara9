@@ -109,6 +109,20 @@ local function Tween(instance, tweeninfo, propertytable)
 	return TweenService:Create(instance, tweeninfo, propertytable)
 end
 
+local function calculateBaseSize()
+    if isMobile then
+        return UDim2.fromScale(0.9, 0.8)
+    else
+        local minWidth = 800
+        local minHeight = 600
+        local maxWidth = 1600
+        local maxHeight = 1200
+        local scaleWidth = math.clamp(viewportSize.X * 0.8, minWidth, maxWidth) / viewportSize.X
+        local scaleHeight = math.clamp(viewportSize.Y * 0.75, minHeight, maxHeight) / viewportSize.Y
+        return UDim2.fromScale(scaleWidth, scaleHeight)
+    end
+end
+
 function MacLib:Window(Settings)
 	local WindowFunctions = {Settings = Settings}
 	if Settings.AcrylicBlur ~= nil then
@@ -1018,20 +1032,6 @@ local viewportSize = camera.ViewportSize
 local MTREL = "Glass"
 local binds = {}
 local wedgeguid = HS:GenerateGUID(true)
-
-local function calculateBaseSize()
-    if isMobile then
-        return UDim2.fromScale(0.9, 0.8)
-    else
-        local minWidth = 800
-        local minHeight = 600
-        local maxWidth = 1600
-        local maxHeight = 1200
-        local scaleWidth = math.clamp(viewportSize.X * 0.8, minWidth, maxWidth) / viewportSize.X
-        local scaleHeight = math.clamp(viewportSize.Y * 0.75, minHeight, maxHeight) / viewportSize.Y
-        return UDim2.fromScale(scaleWidth, scaleHeight)
-    end
-end
 
 	local DepthOfField
 
