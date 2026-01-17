@@ -109,8 +109,6 @@ function MacLib:Window(Settings)
 
 	local macLib = GetGui()
 
-	local baseSize = Settings.Size or (isMobile and UDim2.fromScale(0.85, 0.7) or UDim2.fromOffset(580, 460))
-	
 	local notifications = Instance.new("Frame")
 	notifications.Name = "Notifications"
 	notifications.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -145,15 +143,10 @@ function MacLib:Window(Settings)
 	base.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	base.BorderSizePixel = 0
 	base.Position = UDim2.fromScale(0.5, 0.5)
-	base.Size = baseSize
+	base.Size = Settings.Size
 
 	local baseUIScale = Instance.new("UIScale")
 	baseUIScale.Name = "BaseUIScale"
-	if isMobile then
-		local viewport = workspace.CurrentCamera.ViewportSize
-		local scaleFactor = math.clamp(viewport.X / 1024, 0.7, 0.95)
-		baseUIScale.Scale = scaleFactor
-	end
 	baseUIScale.Parent = base
 
 	local baseUICorner = Instance.new("UICorner")
@@ -175,7 +168,7 @@ function MacLib:Window(Settings)
 	sidebar.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	sidebar.BorderSizePixel = 0
 	sidebar.Position = UDim2.fromScale(-3.52e-08, 4.69e-08)
-	sidebar.Size = UDim2.fromScale(isMobile and 0.28 or 0.325, 1)
+	sidebar.Size = UDim2.fromScale(isMobile and 0.25 or 0.325, 1)
 
 	local divider = Instance.new("Frame")
 	divider.Name = "Divider"
@@ -197,7 +190,7 @@ function MacLib:Window(Settings)
 	dividerInteract.BorderSizePixel = 0
 	dividerInteract.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json")
 	dividerInteract.Position = UDim2.fromScale(0.5, 0)
-	dividerInteract.Size = UDim2.new(1, (isMobile and 12 or 6), 1, 0)
+	dividerInteract.Size = UDim2.new(1, 6, 1, 0)
 	dividerInteract.Text = ""
 	dividerInteract.TextColor3 = Color3.fromRGB(0, 0, 0)
 	dividerInteract.TextSize = 14
@@ -379,8 +372,8 @@ function MacLib:Window(Settings)
 	local informationHolderUIPadding = Instance.new("UIPadding")
 	informationHolderUIPadding.Name = "InformationHolderUIPadding"
 	informationHolderUIPadding.PaddingBottom = UDim.new(0, 10)
-	informationHolderUIPadding.PaddingLeft = UDim.new(0, isMobile and 15 or 23)
-	informationHolderUIPadding.PaddingRight = UDim.new(0, isMobile and 15 or 22)
+	informationHolderUIPadding.PaddingLeft = UDim.new(0, 23)
+	informationHolderUIPadding.PaddingRight = UDim.new(0, 22)
 	informationHolderUIPadding.PaddingTop = UDim.new(0, 10)
 	informationHolderUIPadding.Parent = informationHolder
 
@@ -434,7 +427,7 @@ function MacLib:Window(Settings)
 	title.Text = Settings.Title
 	title.TextColor3 = Color3.fromRGB(255, 255, 255)
 	title.RichText = true
-	title.TextSize = isMobile and 18 or 18
+	title.TextSize = isMobile and 22 or 18
 	title.TextTransparency = 0.1
 	title.TextTruncate = Enum.TextTruncate.SplitWord
 	title.TextXAlignment = Enum.TextXAlignment.Left
@@ -458,7 +451,7 @@ function MacLib:Window(Settings)
 	subtitle.Text = Settings.Subtitle
 	subtitle.RichText = true
 	subtitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-	subtitle.TextSize = isMobile and 11 or 12
+	subtitle.TextSize = 12
 	subtitle.TextTransparency = 0.7
 	subtitle.TextTruncate = Enum.TextTruncate.SplitWord
 	subtitle.TextXAlignment = Enum.TextXAlignment.Left
@@ -515,7 +508,7 @@ function MacLib:Window(Settings)
 	local informationGroupUIPadding = Instance.new("UIPadding")
 	informationGroupUIPadding.Name = "InformationGroupUIPadding"
 	informationGroupUIPadding.PaddingBottom = UDim.new(0, 17)
-	informationGroupUIPadding.PaddingLeft = UDim.new(0, isMobile and 15 or 25)
+	informationGroupUIPadding.PaddingLeft = UDim.new(0, 25)
 	informationGroupUIPadding.Parent = informationGroup
 
 	local informationGroupUIListLayout = Instance.new("UIListLayout")
@@ -571,7 +564,7 @@ function MacLib:Window(Settings)
 	)
 	displayName.Text = LocalPlayer.DisplayName
 	displayName.TextColor3 = Color3.fromRGB(255, 255, 255)
-	displayName.TextSize = isMobile and 14 or 13
+	displayName.TextSize = isMobile and 15 or 13
 	displayName.TextTransparency = 0.1
 	displayName.TextTruncate = Enum.TextTruncate.SplitWord
 	displayName.TextXAlignment = Enum.TextXAlignment.Left
@@ -605,7 +598,7 @@ function MacLib:Window(Settings)
 	)
 	username.Text = "@" .. LocalPlayer.Name
 	username.TextColor3 = Color3.fromRGB(255, 255, 255)
-	username.TextSize = isMobile and 11 or 12
+	username.TextSize = isMobile and 14 or 12
 	username.TextTransparency = 0.7
 	username.TextTruncate = Enum.TextTruncate.SplitWord
 	username.TextXAlignment = Enum.TextXAlignment.Left
@@ -687,14 +680,14 @@ function MacLib:Window(Settings)
 	content.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	content.BorderSizePixel = 0
 	content.Position = UDim2.fromScale(1, 4.69e-08)
-	content.Size = UDim2.new(1 - sidebar.Size.X.Scale, 0, 1, 0)
+	content.Size = UDim2.new(0, (base.AbsoluteSize.X - sidebar.AbsoluteSize.X), 1, 0)
 
 	local resizingContent = false
 	local defaultSidebarWidth = sidebar.AbsoluteSize.X
 	local initialMouseX, initialSidebarWidth
 	local snapRange = 20
-	local minSidebarWidth = isMobile and 80 or 107
-	local maxSidebarWidth = base.AbsoluteSize.X * (isMobile and 0.45 or 0.6)
+	local minSidebarWidth = 107
+	local maxSidebarWidth = base.AbsoluteSize.X - minSidebarWidth
 
 	local TweenSettings = {
 		DefaultTransparency = 0.9,
@@ -723,15 +716,14 @@ function MacLib:Window(Settings)
 	end)
 
 	UserInputService.InputEnded:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
 			resizingContent = false
 		end
 	end)
 
 	UserInputService.InputChanged:Connect(function(input)
-		if resizingContent and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-			local mousePos = (input.UserInputType == Enum.UserInputType.Touch and input.Position or UserInputService:GetMouseLocation())
-			local deltaX = mousePos.X - initialMouseX
+		if resizingContent and input.UserInputType == Enum.UserInputType.MouseMovement then
+			local deltaX = UserInputService:GetMouseLocation().X - initialMouseX
 			local newSidebarWidth = initialSidebarWidth + deltaX
 
 			if math.abs(newSidebarWidth - defaultSidebarWidth) < snapRange then
@@ -905,7 +897,7 @@ function MacLib:Window(Settings)
 	currentTab.Text = ""
 	currentTab.RichText = true
 	currentTab.TextColor3 = Color3.fromRGB(255, 255, 255)
-	currentTab.TextSize = isMobile and 14 or 15
+	currentTab.TextSize = 15
 	currentTab.TextTransparency = 0.5
 	currentTab.TextTruncate = Enum.TextTruncate.SplitWord
 	currentTab.TextXAlignment = Enum.TextXAlignment.Left
@@ -917,7 +909,7 @@ function MacLib:Window(Settings)
 	currentTab.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	currentTab.BorderSizePixel = 0
 	currentTab.Position = UDim2.fromScale(0, 0.5)
-	currentTab.Size = UDim2.fromScale(0.85, 0)
+	currentTab.Size = UDim2.fromScale(0.9, 0)
 	currentTab.Parent = elements
 
 	elements.Parent = topbar
@@ -925,16 +917,6 @@ function MacLib:Window(Settings)
 	topbar.Parent = content
 
 	content.Parent = base
-
-	workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(function()
-		if base and base.Visible then
-			base.Position = UDim2.fromScale(0.5, 0.5)
-			if isMobile then
-				local viewport = workspace.CurrentCamera.ViewportSize
-				baseUIScale.Scale = math.clamp(viewport.X / 1024, 0.7, 0.95)
-			end
-		end
-	end)
 
 	local globalSettings = Instance.new("Frame")
 	globalSettings.Name = "GlobalSettings"
@@ -5671,4 +5653,4 @@ local wedgeguid = HS:GenerateGUID(true)
 	return WindowFunctions
 end
 
-return MacLib
+return MacLi
