@@ -4849,7 +4849,7 @@ end
 		notification.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		notification.BorderSizePixel = 0
 		notification.Position = UDim2.fromScale(0.5, 0.5)
-		notification.Size = UDim2.fromOffset(Settings.SizeX or 250, 0)
+		notification.Size = UDim2.fromOffset(Settings.SizeX or (isMobile and 200 or 250), 0)
 
 		notification.Parent = notifications
 
@@ -5084,7 +5084,7 @@ end
 		prompt.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		prompt.BorderSizePixel = 0
 		prompt.Position = UDim2.fromScale(0.5, 0.5)
-		prompt.Size = UDim2.fromOffset(280, 0)
+		prompt.Size = UDim2.fromOffset(isMobile and 240 or 280, 0)
 
 		local promptUIScale = Instance.new("UIScale")
 		promptUIScale.Name = "BaseUIScale"
