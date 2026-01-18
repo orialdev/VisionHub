@@ -6,7 +6,6 @@ local MacLib = {
 	end
 }
 
---// Services
 local TweenService = MacLib.GetService("TweenService")
 local RunService = MacLib.GetService("RunService")
 local HttpService = MacLib.GetService("HttpService")
@@ -15,7 +14,6 @@ local UserInputService = MacLib.GetService("UserInputService")
 local Lighting = MacLib.GetService("Lighting")
 local Players = MacLib.GetService("Players")
 
---// Variables
 local isStudio = RunService:IsStudio()
 local LocalPlayer = Players.LocalPlayer
 
@@ -45,7 +43,6 @@ local assets = {
 	sliderhead = "rbxassetid://18772834246",
 }
 
---// Theme System
 local defaultTheme = {
 	Background = Color3.fromRGB(15, 15, 15),
 	Text = Color3.fromRGB(255, 255, 255),
@@ -56,11 +53,9 @@ local defaultTheme = {
 
 local currentTheme = defaultTheme
 
---// Platform Detection
 local isMobile = UserInputService.TouchEnabled
-local platformScale = isMobile and 1.2 or 1.0  -- Larger scale for mobile touch targets
+local platformScale = isMobile and 1.2 or 1.0
 
---// Functions
 local function GetGui()
 	local newGui = Instance.new("ScreenGui")
 	newGui.ScreenInsets = Enum.ScreenInsets.None
@@ -81,7 +76,6 @@ local function Tween(instance, tweeninfo, propertytable)
 	return TweenService:Create(instance, tweeninfo, propertytable)
 end
 
---// Library Functions
 function MacLib:Window(Settings)
 	local WindowFunctions = {Settings = Settings}
 	if Settings.AcrylicBlur ~= nil then
@@ -153,16 +147,17 @@ function MacLib:Window(Settings)
 	sidebar.Position = UDim2.fromScale(-3.52e-08, 4.69e-08)
 	sidebar.Size = UDim2.fromScale(0.325, 1)
 
-	local divider = Instance.new("Frame")
-	divider.Name = "Divider"
-	divider.AnchorPoint = Vector2.new(1, 0)
-	divider.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-	divider.BackgroundTransparency = 0.9
-	divider.BorderColor3 = Color3.fromRGB(0, 0, 0)
-	divider.BorderSizePixel = 0
-	divider.Position = UDim2.fromScale(1, 0)
-	divider.Size = UDim2.new(0, 1, 1, 0)
-	divider.Parent = sidebar
+local divider = Instance.new("Frame")
+divider.Name = "Divider"
+divider.AnchorPoint = Vector2.new(1, 0)
+divider.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+divider.BackgroundTransparency = 0.9
+divider.BorderColor3 = Color3.fromRGB(0, 0, 0)
+divider.BorderSizePixel = 0
+divider.Position = UDim2.fromScale(1, 0)
+divider.Size = UDim2.new(0, 1, 1, 0)
+divider.Parent = sidebar
+divider.Visible = false
 
 	local dividerInteract = Instance.new("TextButton")
 	dividerInteract.Name = "DividerInteract"
@@ -606,6 +601,7 @@ function MacLib:Window(Settings)
 	userInfoUIPadding.Parent = userInfo
 
 	userInfo.Parent = sidebarGroup
+	userInfo.Visible = false
 
 	local sidebarGroupUIPadding = Instance.new("UIPadding")
 	sidebarGroupUIPadding.Name = "SidebarGroupUIPadding"
@@ -1893,7 +1889,6 @@ function MacLib:Window(Settings)
 					sliderValue.TextColor3 = Color3.fromRGB(255, 255, 255)
 					sliderValue.TextSize = 12
 					sliderValue.TextTransparency = 0.1
-					--sliderValue.TextTruncate = Enum.TextTruncate.AtEnd
 					sliderValue.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 					sliderValue.BackgroundTransparency = 0.95
 					sliderValue.BorderColor3 = Color3.fromRGB(0, 0, 0)
@@ -1967,10 +1962,10 @@ function MacLib:Window(Settings)
 					local dragging = false
 
 					local DisplayMethods = {
-						Hundredths = function(sliderValue) -- Deprecated use Settings.Precision
+						Hundredths = function(sliderValue)
 							return string.format("%.2f", sliderValue)
 						end,
-						Tenths = function(sliderValue) -- Deprecated use Settings.Precision
+						Tenths = function(sliderValue)
 							return string.format("%.1f", sliderValue)
 						end,
 						Round = function(sliderValue, precision)
@@ -4389,7 +4384,7 @@ function MacLib:Window(Settings)
 					labelText.Name = "LabelText"
 					labelText.FontFace = Font.new(assets.interFont)
 					labelText.RichText = true
-					labelText.Text = LabelFunctions.Settings.Text or LabelFunctions.Settings.Name -- Settings.Name Deprecated use Settings.Text
+					labelText.Text = LabelFunctions.Settings.Text or LabelFunctions.Settings.Name
 					labelText.TextColor3 = Color3.fromRGB(255, 255, 255)
 					labelText.TextSize = 13
 					labelText.TextTransparency = 0.5
@@ -4433,7 +4428,7 @@ function MacLib:Window(Settings)
 					subLabelText.Name = "SubLabelText"
 					subLabelText.FontFace = Font.new(assets.interFont)
 					subLabelText.RichText = true
-					subLabelText.Text = SubLabelFunctions.Settings.Text or SubLabelFunctions.Settings.Name -- Settings.Name Deprecated use Settings.Text
+					subLabelText.Text = SubLabelFunctions.Settings.Text or SubLabelFunctions.Settings.Name
 					subLabelText.TextColor3 = Color3.fromRGB(255, 255, 255)
 					subLabelText.TextSize = 12
 					subLabelText.TextTransparency = 0.7
@@ -5617,8 +5612,6 @@ function MacLib:Window(Settings)
 
 	function MacLib:SetTheme(themeTable)
 		currentTheme = themeTable or defaultTheme
-		-- Note: Theme changes require UI reload to apply fully, as elements are created with hardcoded colors.
-		-- For live updates, individual elements would need to be updated, but that's complex.
 	end
 
 	function MacLib:GetTheme()
