@@ -19,7 +19,6 @@ local LocalPlayer = Players.LocalPlayer
 
 local windowState
 local acrylicBlur
-local hasGlobalSetting
 
 local tabs = {}
 local currentTabInstance = nil
@@ -36,7 +35,6 @@ local assets = {
 	colorWheel = "rbxassetid://2849458409",
 	colorTarget = "rbxassetid://73265255323268",
 	grid = "rbxassetid://121484455191370",
-	globe = "rbxassetid://108952102602834",
 	transform = "rbxassetid://90336395745819",
 	dropdown = "rbxassetid://18865373378",
 	sliderbar = "rbxassetid://18772615246",
@@ -312,37 +310,7 @@ function MacLib:Window(Settings)
 	informationHolderUIPadding.PaddingTop = UDim.new(0, 10)
 	informationHolderUIPadding.Parent = informationHolder
 
-	local globalSettingsButton = Instance.new("ImageButton")
-	globalSettingsButton.Name = "GlobalSettingsButton"
-	globalSettingsButton.Image = assets.globe
-	globalSettingsButton.ImageTransparency = 0.5
-	globalSettingsButton.AnchorPoint = Vector2.new(1, 0.5)
-	globalSettingsButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-	globalSettingsButton.BackgroundTransparency = 1
-	globalSettingsButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
-	globalSettingsButton.BorderSizePixel = 0
-	globalSettingsButton.Position = UDim2.fromScale(1, 0.5)
-	globalSettingsButton.Size = UDim2.fromOffset(16,16)
-	globalSettingsButton.Parent = informationHolder
 
-	local function ChangeGlobalSettingsButtonState(State)
-		if State == "Default" then
-			Tween(globalSettingsButton, TweenInfo.new(0.2, Enum.EasingStyle.Sine), {
-				ImageTransparency = 0.5
-			}):Play()
-		elseif State == "Hover" then
-			Tween(globalSettingsButton, TweenInfo.new(0.2, Enum.EasingStyle.Sine), {
-				ImageTransparency = 0.3
-			}):Play()
-		end
-	end
-
-	globalSettingsButton.MouseEnter:Connect(function()
-		ChangeGlobalSettingsButtonState("Hover")
-	end)
-	globalSettingsButton.MouseLeave:Connect(function()
-		ChangeGlobalSettingsButtonState("Default")
-	end)
 
 	local titleFrame = Instance.new("Frame")
 	titleFrame.Name = "TitleFrame"
@@ -792,44 +760,7 @@ function MacLib:Window(Settings)
 
 	content.Parent = base
 
-	local globalSettings = Instance.new("Frame")
-	globalSettings.Name = "GlobalSettings"
-	globalSettings.AutomaticSize = Enum.AutomaticSize.XY
-	globalSettings.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-	globalSettings.BorderColor3 = Color3.fromRGB(0, 0, 0)
-	globalSettings.BorderSizePixel = 0
-	globalSettings.Position = UDim2.fromScale(0.298, 0.104)
-
-	local globalSettingsUIStroke = Instance.new("UIStroke")
-	globalSettingsUIStroke.Name = "GlobalSettingsUIStroke"
-	globalSettingsUIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-	globalSettingsUIStroke.Color = Color3.fromRGB(255, 255, 255)
-	globalSettingsUIStroke.Transparency = 0.9
-	globalSettingsUIStroke.Parent = globalSettings
-
-	local globalSettingsUICorner = Instance.new("UICorner")
-	globalSettingsUICorner.Name = "GlobalSettingsUICorner"
-	globalSettingsUICorner.CornerRadius = UDim.new(0, 10)
-	globalSettingsUICorner.Parent = globalSettings
-
-	local globalSettingsUIPadding = Instance.new("UIPadding")
-	globalSettingsUIPadding.Name = "GlobalSettingsUIPadding"
-	globalSettingsUIPadding.PaddingBottom = UDim.new(0, 10)
-	globalSettingsUIPadding.PaddingTop = UDim.new(0, 10)
-	globalSettingsUIPadding.Parent = globalSettings
-
-	local globalSettingsUIListLayout = Instance.new("UIListLayout")
-	globalSettingsUIListLayout.Name = "GlobalSettingsUIListLayout"
-	globalSettingsUIListLayout.Padding = UDim.new(0, 5)
-	globalSettingsUIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-	globalSettingsUIListLayout.Parent = globalSettings
-
-	local globalSettingsUIScale = Instance.new("UIScale")
-	globalSettingsUIScale.Name = "GlobalSettingsUIScale"
-	globalSettingsUIScale.Scale = 1e-07
-	globalSettingsUIScale.Parent = globalSettings
-	globalSettings.Parent = base
-	base.Parent = macLib
+base.Parent = macLib
 
 	function WindowFunctions:UpdateTitle(NewTitle)
 		title.Text = NewTitle
