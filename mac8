@@ -175,7 +175,8 @@ function MacLib:Window(Settings)
 
 	local uIPadding = Instance.new("UIPadding")
 	uIPadding.Name = "UIPadding"
-	uIPadding.PaddingLeft = UDim.new(0, 11)
+	uIPadding.PaddingLeft = UDim.new(0, 15)
+	uIPadding.PaddingRight = UDim.new(0, 15)
 	uIPadding.Parent = controls
 
 	local windowControlSettings = {
@@ -362,7 +363,7 @@ function MacLib:Window(Settings)
 	title.Text = Settings.Title
 	title.TextColor3 = Color3.fromRGB(255, 255, 255)
 	title.RichText = true
-	title.TextSize = 18
+	title.TextSize = 20
 	title.TextTransparency = 0.1
 	title.TextTruncate = Enum.TextTruncate.SplitWord
 	title.TextXAlignment = Enum.TextXAlignment.Left
@@ -386,7 +387,7 @@ function MacLib:Window(Settings)
 	subtitle.Text = Settings.Subtitle
 	subtitle.RichText = true
 	subtitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-	subtitle.TextSize = 12
+	subtitle.TextSize = 14
 	subtitle.TextTransparency = 0.7
 	subtitle.TextTruncate = Enum.TextTruncate.SplitWord
 	subtitle.TextXAlignment = Enum.TextXAlignment.Left
@@ -499,7 +500,7 @@ function MacLib:Window(Settings)
 	)
 	displayName.Text = LocalPlayer.DisplayName
 	displayName.TextColor3 = Color3.fromRGB(255, 255, 255)
-	displayName.TextSize = 13
+	displayName.TextSize = 14
 	displayName.TextTransparency = 0.1
 	displayName.TextTruncate = Enum.TextTruncate.SplitWord
 	displayName.TextXAlignment = Enum.TextXAlignment.Left
@@ -1346,7 +1347,7 @@ function MacLib:Window(Settings)
 			tabSwitcherName.Text = Settings.Name
 			tabSwitcherName.RichText = true
 			tabSwitcherName.TextColor3 = Color3.fromRGB(255, 255, 255)
-			tabSwitcherName.TextSize = 16
+			tabSwitcherName.TextSize = 17
 			tabSwitcherName.TextTransparency = 0.5
 			tabSwitcherName.TextTruncate = Enum.TextTruncate.SplitWord
 			tabSwitcherName.TextXAlignment = Enum.TextXAlignment.Left
@@ -1537,8 +1538,8 @@ function MacLib:Window(Settings)
 					buttonImage.Parent = button
 
 					local TweenSettings = {
-						DefaultTransparency = 0.5,
-						HoverTransparency = 0.3,
+				DefaultTransparency = 0.5,
+						HoverTransparency = 0.2,
 
 						EasingStyle = Enum.EasingStyle.Sine
 					}
