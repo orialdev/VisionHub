@@ -35,6 +35,7 @@ local assets = {
 	colorWheel = "rbxassetid://2849458409",
 	colorTarget = "rbxassetid://73265255323268",
 	grid = "rbxassetid://121484455191370",
+	globe = "rbxassetid://108952102602834",
 	transform = "rbxassetid://90336395745819",
 	dropdown = "rbxassetid://18865373378",
 	sliderbar = "rbxassetid://18772615246",
@@ -309,8 +310,6 @@ function MacLib:Window(Settings)
 	informationHolderUIPadding.PaddingRight = UDim.new(0, 22)
 	informationHolderUIPadding.PaddingTop = UDim.new(0, 10)
 	informationHolderUIPadding.Parent = informationHolder
-
-
 
 	local titleFrame = Instance.new("Frame")
 	titleFrame.Name = "TitleFrame"
@@ -760,8 +759,6 @@ function MacLib:Window(Settings)
 
 	content.Parent = base
 
-base.Parent = macLib
-
 	function WindowFunctions:UpdateTitle(NewTitle)
 		title.Text = NewTitle
 	end
@@ -769,41 +766,6 @@ base.Parent = macLib
 	function WindowFunctions:UpdateSubtitle(NewSubtitle)
 		subtitle.Text = NewSubtitle
 	end
-
-	local hovering
-	local toggled = globalSettingsUIScale.Scale == 1 and true or false
-	local function toggle()
-		if not toggled then
-			local intween = Tween(globalSettingsUIScale, TweenInfo.new(0.2, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {
-				Scale = 1
-			})
-			intween:Play()
-			intween.Completed:Wait()
-			toggled = true
-		elseif toggled then
-			local outtween = Tween(globalSettingsUIScale, TweenInfo.new(0.2, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {
-				Scale = 0
-			})
-			outtween:Play()
-			outtween.Completed:Wait()
-			toggled = false
-		end
-	end
-	globalSettingsButton.MouseButton1Click:Connect(function()
-		if not hasGlobalSetting then return end
-		toggle()
-	end)
-	globalSettings.MouseEnter:Connect(function()
-		hovering = true
-	end)
-	globalSettings.MouseLeave:Connect(function()
-		hovering = false
-	end)
-	UserInputService.InputEnded:Connect(function(inp)
-		if inp.UserInputType == Enum.UserInputType.MouseButton1 and toggled and not hovering then
-			toggle()
-		end
-	end)
 
 	local BlurTarget = base
 
@@ -1029,152 +991,6 @@ base.Parent = macLib
 	UpdateOrientation(true)
 
 	RunService.RenderStepped:Connect(UpdateOrientation)
-
-	function WindowFunctions:GlobalSetting(Settings)
-		hasGlobalSetting = true
-		local GlobalSettingFunctions = {}
-		local globalSetting = Instance.new("TextButton")
-		globalSetting.Name = "GlobalSetting"
-		globalSetting.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json")
-		globalSetting.Text = ""
-		globalSetting.TextColor3 = Color3.fromRGB(0, 0, 0)
-		globalSetting.TextSize = 14
-		globalSetting.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-		globalSetting.BackgroundTransparency = 1
-		globalSetting.BorderColor3 = Color3.fromRGB(0, 0, 0)
-		globalSetting.BorderSizePixel = 0
-		globalSetting.Size = UDim2.fromOffset(200, 30)
-
-		local globalSettingToggleUIPadding = Instance.new("UIPadding")
-		globalSettingToggleUIPadding.Name = "GlobalSettingToggleUIPadding"
-		globalSettingToggleUIPadding.PaddingLeft = UDim.new(0, 15)
-		globalSettingToggleUIPadding.Parent = globalSetting
-
-		local settingName = Instance.new("TextLabel")
-		settingName.Name = "SettingName"
-		settingName.FontFace = Font.new(assets.interFont)
-		settingName.Text = Settings.Name
-		settingName.RichText = true
-		settingName.TextColor3 = Color3.fromRGB(255, 255, 255)
-		settingName.TextSize = 13
-		settingName.TextTransparency = 0.5
-		settingName.TextTruncate = Enum.TextTruncate.SplitWord
-		settingName.TextXAlignment = Enum.TextXAlignment.Left
-		settingName.TextYAlignment = Enum.TextYAlignment.Top
-		settingName.AnchorPoint = Vector2.new(0, 0.5)
-		settingName.AutomaticSize = Enum.AutomaticSize.Y
-		settingName.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-		settingName.BackgroundTransparency = 1
-		settingName.BorderColor3 = Color3.fromRGB(0, 0, 0)
-		settingName.BorderSizePixel = 0
-		settingName.Position = UDim2.fromScale(1.3e-07, 0.5)
-		settingName.Size = UDim2.new(1,-40,0,0)
-		settingName.Parent = globalSetting
-
-		local globalSettingToggleUIListLayout = Instance.new("UIListLayout")
-		globalSettingToggleUIListLayout.Name = "GlobalSettingToggleUIListLayout"
-		globalSettingToggleUIListLayout.Padding = UDim.new(0, 10)
-		globalSettingToggleUIListLayout.FillDirection = Enum.FillDirection.Horizontal
-		globalSettingToggleUIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-		globalSettingToggleUIListLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-		globalSettingToggleUIListLayout.Parent = globalSetting
-
-		local checkmark = Instance.new("TextLabel")
-		checkmark.Name = "Checkmark"
-		checkmark.FontFace = Font.new(
-			assets.interFont,
-			Enum.FontWeight.Medium,
-			Enum.FontStyle.Normal
-		)
-		checkmark.Text = "✓"
-		checkmark.TextColor3 = Color3.fromRGB(255, 255, 255)
-		checkmark.TextSize = 13
-		checkmark.TextTransparency = 1
-		checkmark.TextXAlignment = Enum.TextXAlignment.Left
-		checkmark.TextYAlignment = Enum.TextYAlignment.Top
-		checkmark.AnchorPoint = Vector2.new(0, 0.5)
-		checkmark.AutomaticSize = Enum.AutomaticSize.Y
-		checkmark.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-		checkmark.BackgroundTransparency = 1
-		checkmark.BorderColor3 = Color3.fromRGB(0, 0, 0)
-		checkmark.BorderSizePixel = 0
-		checkmark.LayoutOrder = -1
-		checkmark.Position = UDim2.fromScale(1.3e-07, 0.5)
-		checkmark.Size = UDim2.fromOffset(-10, 0)
-		checkmark.Parent = globalSetting
-
-		globalSetting.Parent = globalSettings
-
-		local tweensettings = {
-			duration = 0.2,
-			easingStyle = Enum.EasingStyle.Quint,
-			transparencyIn = 0.2,
-			transparencyOut = 0.5,
-			checkSizeIncrease = 12,
-			checkSizeDecrease = -globalSettingToggleUIListLayout.Padding.Offset,
-			waitTime = 1
-		}
-
-		local tweens = {
-			checkIn = Tween(checkmark, TweenInfo.new(tweensettings.duration, tweensettings.easingStyle), {
-				Size = UDim2.new(checkmark.Size.X.Scale, tweensettings.checkSizeIncrease, checkmark.Size.Y.Scale, checkmark.Size.Y.Offset)
-			}),
-			checkOut = Tween(checkmark, TweenInfo.new(tweensettings.duration, tweensettings.easingStyle),{
-				Size = UDim2.new(checkmark.Size.X.Scale, tweensettings.checkSizeDecrease, checkmark.Size.Y.Scale, checkmark.Size.Y.Offset)
-			}),
-			nameIn = Tween(settingName, TweenInfo.new(tweensettings.duration, tweensettings.easingStyle),{
-				TextTransparency = tweensettings.transparencyIn
-			}),
-			nameOut = Tween(settingName, TweenInfo.new(tweensettings.duration, tweensettings.easingStyle),{
-				TextTransparency = tweensettings.transparencyOut
-			})
-		}
-
-		local function Toggle(State)
-			if not State then
-				tweens.checkOut:Play()
-				tweens.nameOut:Play()
-				checkmark:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
-					if checkmark.AbsoluteSize.X <= 0 then
-						checkmark.TextTransparency = 1
-					end
-				end)
-			else
-				tweens.checkIn:Play()
-				tweens.nameIn:Play()
-				checkmark:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
-					if checkmark.AbsoluteSize.X > 0 then
-						checkmark.TextTransparency = 0
-					end
-				end)
-			end
-		end
-
-		local toggled = Settings.Default
-		Toggle(toggled)
-
-		globalSetting.MouseButton1Click:Connect(function()
-			toggled = not toggled
-			Toggle(toggled)
-
-			task.spawn(function()
-				if Settings.Callback then
-					Settings.Callback(toggled)
-				end
-			end)
-		end)
-
-		function GlobalSettingFunctions:UpdateName(NewName)
-			settingName.Text = NewName
-		end
-
-		function GlobalSettingFunctions:UpdateState(NewState)
-			Toggle(NewState)
-			toggled = NewState
-		end
-
-		return GlobalSettingFunctions
-	end
 
 	function WindowFunctions:TabGroup()
 		local SectionFunctions = {}
@@ -2961,18 +2777,6 @@ base.Parent = macLib
 					promptUIScale.Parent = prompt
 					promptUIScale.Scale = 0.95
 
-					local globalSettingsUIStroke = Instance.new("UIStroke")
-					globalSettingsUIStroke.Name = "GlobalSettingsUIStroke"
-					globalSettingsUIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-					globalSettingsUIStroke.Color = Color3.fromRGB(255, 255, 255)
-					globalSettingsUIStroke.Transparency = 0.9
-					globalSettingsUIStroke.Parent = prompt
-
-					local globalSettingsUICorner = Instance.new("UICorner")
-					globalSettingsUICorner.Name = "GlobalSettingsUICorner"
-					globalSettingsUICorner.CornerRadius = UDim.new(0, 10)
-					globalSettingsUICorner.Parent = prompt
-
 					local uIListLayout = Instance.new("UIListLayout")
 					uIListLayout.Name = "UIListLayout"
 					uIListLayout.Padding = UDim.new(0, 10)
@@ -3717,14 +3521,6 @@ base.Parent = macLib
 					uIPadding3.Parent = interactions
 
 					interactions.Parent = prompt
-
-					local globalSettingsUIPadding = Instance.new("UIPadding")
-					globalSettingsUIPadding.Name = "GlobalSettingsUIPadding"
-					globalSettingsUIPadding.PaddingBottom = UDim.new(0, 20)
-					globalSettingsUIPadding.PaddingLeft = UDim.new(0, 20)
-					globalSettingsUIPadding.PaddingRight = UDim.new(0, 20)
-					globalSettingsUIPadding.PaddingTop = UDim.new(0, 20)
-					globalSettingsUIPadding.Parent = prompt
 
 					local paragraph = Instance.new("Frame")
 					paragraph.Name = "Paragraph"
@@ -4854,26 +4650,6 @@ base.Parent = macLib
 		promptUIScale.Name = "BaseUIScale"
 		promptUIScale.Parent = prompt
 		promptUIScale.Scale = 0.95
-
-		local globalSettingsUIStroke = Instance.new("UIStroke")
-		globalSettingsUIStroke.Name = "GlobalSettingsUIStroke"
-		globalSettingsUIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-		globalSettingsUIStroke.Color = Color3.fromRGB(255, 255, 255)
-		globalSettingsUIStroke.Transparency = 0.9
-		globalSettingsUIStroke.Parent = prompt
-
-		local globalSettingsUICorner = Instance.new("UICorner")
-		globalSettingsUICorner.Name = "GlobalSettingsUICorner"
-		globalSettingsUICorner.CornerRadius = UDim.new(0, 10)
-		globalSettingsUICorner.Parent = prompt
-
-		local globalSettingsUIPadding = Instance.new("UIPadding")
-		globalSettingsUIPadding.Name = "GlobalSettingsUIPadding"
-		globalSettingsUIPadding.PaddingBottom = UDim.new(0, 20)
-		globalSettingsUIPadding.PaddingLeft = UDim.new(0, 20)
-		globalSettingsUIPadding.PaddingRight = UDim.new(0, 20)
-		globalSettingsUIPadding.PaddingTop = UDim.new(0, 20)
-		globalSettingsUIPadding.Parent = prompt
 
 		local paragraph = Instance.new("Frame")
 		paragraph.Name = "Paragraph"
