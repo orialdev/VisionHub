@@ -1,43 +1,12 @@
-local MacLib = {
-	Options = {},
-	Folder = "Maclib",
+local MacLib = { 
+	Options = {}, 
+	Folder = "Maclib", 
 	GetService = function(service)
 		return cloneref and cloneref(game:GetService(service)) or game:GetService(service)
 	end
 }
 
-local Theme = {
-	Background = Color3.fromHex("#010409"),
-	SecondaryBackground = Color3.fromHex("#0d1117"),
-	AccentBackground = Color3.fromHex("#1f6feb"),
-
-	Text = Color3.fromHex("#e6edf3"),
-	TextSecondary = Color3.fromHex("#7d8590"),
-	TextMuted = Color3.fromHex("#6e7681"),
-
-	Border = Color3.fromHex("#30363d"),
-	BorderSecondary = Color3.fromHex("#30363d"),
-
-	ButtonPrimary = Color3.fromHex("#1f6feb"),
-	ButtonSecondary = Color3.fromHex("#da3633"),
-	ButtonTertiary = Color3.fromHex("#f2cc60"),
-
-	Transparent = Color3.fromHex("#e6edf3"),
-	Black = Color3.fromRGB(0, 0, 0),
-}
-
-function MacLib:SetTheme(newTheme)
-	for key, color in pairs(newTheme) do
-		if Theme[key] then
-			Theme[key] = color
-		end
-	end
-end
-
-function MacLib:GetTheme()
-	return Theme
-end
-
+--// Services
 local TweenService = MacLib.GetService("TweenService")
 local RunService = MacLib.GetService("RunService")
 local HttpService = MacLib.GetService("HttpService")
@@ -46,12 +15,9 @@ local UserInputService = MacLib.GetService("UserInputService")
 local Lighting = MacLib.GetService("Lighting")
 local Players = MacLib.GetService("Players")
 
+--// Variables
 local isStudio = RunService:IsStudio()
 local LocalPlayer = Players.LocalPlayer
-
-local platform = UserInputService:GetPlatform()
-local isMobile = platform == Enum.Platform.IOS or platform == Enum.Platform.Android or UserInputService.TouchEnabled
-local isDesktop = not isMobile
 
 local windowState
 local acrylicBlur
@@ -79,6 +45,22 @@ local assets = {
 	sliderhead = "rbxassetid://18772834246",
 }
 
+--// Theme System
+local defaultTheme = {
+	Background = Color3.fromRGB(15, 15, 15),
+	Text = Color3.fromRGB(255, 255, 255),
+	Accent = Color3.fromRGB(119, 174, 94),
+	Secondary = Color3.fromRGB(87, 86, 86),
+	Stroke = Color3.fromRGB(255, 255, 255),
+}
+
+local currentTheme = defaultTheme
+
+--// Platform Detection
+local isMobile = UserInputService.TouchEnabled
+local platformScale = isMobile and 1.2 or 1.0  -- Larger scale for mobile touch targets
+
+--// Functions
 local function GetGui()
 	local newGui = Instance.new("ScreenGui")
 	newGui.ScreenInsets = Enum.ScreenInsets.None
@@ -99,6 +81,7 @@ local function Tween(instance, tweeninfo, propertytable)
 	return TweenService:Create(instance, tweeninfo, propertytable)
 end
 
+--// Library Functions
 function MacLib:Window(Settings)
 	local WindowFunctions = {Settings = Settings}
 	if Settings.AcrylicBlur ~= nil then
@@ -138,12 +121,12 @@ function MacLib:Window(Settings)
 	local base = Instance.new("Frame")
 	base.Name = "Base"
 	base.AnchorPoint = Vector2.new(0.5, 0.5)
-	base.BackgroundColor3 = Theme.Background
+	base.BackgroundColor3 = currentTheme.Background
 	base.BackgroundTransparency = Settings.AcrylicBlur and 0.05 or 0
 	base.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	base.BorderSizePixel = 0
 	base.Position = UDim2.fromScale(0.5, 0.5)
-	base.Size = Settings.Size
+	base.Size = Settings.Size or UDim2.fromOffset(868, 650)
 
 	local baseUIScale = Instance.new("UIScale")
 	baseUIScale.Name = "BaseUIScale"
@@ -168,7 +151,7 @@ function MacLib:Window(Settings)
 	sidebar.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	sidebar.BorderSizePixel = 0
 	sidebar.Position = UDim2.fromScale(-3.52e-08, 4.69e-08)
-	sidebar.Size = UDim2.fromScale(isMobile and 0.25 or 0.325, 1)
+	sidebar.Size = UDim2.fromScale(0.325, 1)
 
 	local divider = Instance.new("Frame")
 	divider.Name = "Divider"
@@ -427,7 +410,7 @@ function MacLib:Window(Settings)
 	title.Text = Settings.Title
 	title.TextColor3 = Color3.fromRGB(255, 255, 255)
 	title.RichText = true
-	title.TextSize = isMobile and 22 or 18
+	title.TextSize = 18
 	title.TextTransparency = 0.1
 	title.TextTruncate = Enum.TextTruncate.SplitWord
 	title.TextXAlignment = Enum.TextXAlignment.Left
@@ -564,7 +547,7 @@ function MacLib:Window(Settings)
 	)
 	displayName.Text = LocalPlayer.DisplayName
 	displayName.TextColor3 = Color3.fromRGB(255, 255, 255)
-	displayName.TextSize = isMobile and 15 or 13
+	displayName.TextSize = 13
 	displayName.TextTransparency = 0.1
 	displayName.TextTruncate = Enum.TextTruncate.SplitWord
 	displayName.TextXAlignment = Enum.TextXAlignment.Left
@@ -598,7 +581,7 @@ function MacLib:Window(Settings)
 	)
 	username.Text = "@" .. LocalPlayer.Name
 	username.TextColor3 = Color3.fromRGB(255, 255, 255)
-	username.TextSize = isMobile and 14 or 12
+	username.TextSize = 12
 	username.TextTransparency = 0.7
 	username.TextTruncate = Enum.TextTruncate.SplitWord
 	username.TextXAlignment = Enum.TextXAlignment.Left
@@ -1003,11 +986,10 @@ function MacLib:Window(Settings)
 	local BlurTarget = base
 
 	local HS = HttpService
-local camera = workspace.CurrentCamera
-local viewportSize = camera.ViewportSize
-local MTREL = "Glass"
-local binds = {}
-local wedgeguid = HS:GenerateGUID(true)
+	local camera = workspace.CurrentCamera
+	local MTREL = "Glass"
+	local binds = {}
+	local wedgeguid = HS:GenerateGUID(true)
 
 	local DepthOfField
 
@@ -1639,7 +1621,7 @@ local wedgeguid = HS:GenerateGUID(true)
 					button.BackgroundTransparency = 1
 					button.BorderColor3 = Color3.fromRGB(0, 0, 0)
 					button.BorderSizePixel = 0
-					button.Size = UDim2.new(1, 0, 0, isMobile and 48 or 38)
+					button.Size = UDim2.new(1, 0, 0, 38)
 					button.Parent = section
 
 					local buttonInteract = Instance.new("TextButton")
@@ -1733,7 +1715,7 @@ local wedgeguid = HS:GenerateGUID(true)
 					toggle.BackgroundTransparency = 1
 					toggle.BorderColor3 = Color3.fromRGB(0, 0, 0)
 					toggle.BorderSizePixel = 0
-					toggle.Size = UDim2.new(1, 0, 0, isMobile and 48 or 38)
+					toggle.Size = UDim2.new(1, 0, 0, 38)
 					toggle.Parent = section
 
 					local toggleName = Instance.new("TextLabel")
@@ -1872,7 +1854,7 @@ local wedgeguid = HS:GenerateGUID(true)
 					slider.BackgroundTransparency = 1
 					slider.BorderColor3 = Color3.fromRGB(0, 0, 0)
 					slider.BorderSizePixel = 0
-					slider.Size = UDim2.new(1, 0, 0, isMobile and 48 or 38)
+					slider.Size = UDim2.new(1, 0, 0, 38)
 					slider.Parent = section
 
 					local sliderName = Instance.new("TextLabel")
@@ -1911,6 +1893,7 @@ local wedgeguid = HS:GenerateGUID(true)
 					sliderValue.TextColor3 = Color3.fromRGB(255, 255, 255)
 					sliderValue.TextSize = 12
 					sliderValue.TextTransparency = 0.1
+					--sliderValue.TextTruncate = Enum.TextTruncate.AtEnd
 					sliderValue.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 					sliderValue.BackgroundTransparency = 0.95
 					sliderValue.BorderColor3 = Color3.fromRGB(0, 0, 0)
@@ -1984,10 +1967,10 @@ local wedgeguid = HS:GenerateGUID(true)
 					local dragging = false
 
 					local DisplayMethods = {
-						Hundredths = function(sliderValue)
+						Hundredths = function(sliderValue) -- Deprecated use Settings.Precision
 							return string.format("%.2f", sliderValue)
 						end,
-						Tenths = function(sliderValue)
+						Tenths = function(sliderValue) -- Deprecated use Settings.Precision
 							return string.format("%.1f", sliderValue)
 						end,
 						Round = function(sliderValue, precision)
@@ -2132,7 +2115,7 @@ local wedgeguid = HS:GenerateGUID(true)
 					input.BackgroundTransparency = 1
 					input.BorderColor3 = Color3.fromRGB(0, 0, 0)
 					input.BorderSizePixel = 0
-					input.Size = UDim2.new(1, 0, 0, isMobile and 48 or 38)
+					input.Size = UDim2.new(1, 0, 0, 38)
 					input.Parent = section
 
 					local inputName = Instance.new("TextLabel")
@@ -2308,7 +2291,7 @@ local wedgeguid = HS:GenerateGUID(true)
 					keybind.BackgroundTransparency = 1
 					keybind.BorderColor3 = Color3.fromRGB(0, 0, 0)
 					keybind.BorderSizePixel = 0
-					keybind.Size = UDim2.new(1, 0, 0, isMobile and 48 or 38)
+					keybind.Size = UDim2.new(1, 0, 0, 38)
 					keybind.Parent = section
 
 					local keybindName = Instance.new("TextLabel")
@@ -2404,12 +2387,12 @@ local wedgeguid = HS:GenerateGUID(true)
 
 							local Event
 							Event = UserInputService.InputBegan:Connect(function(input)
-            if KeybindFunctions.Settings.Blacklist and (table.find(KeybindFunctions.Settings.Blacklist, input.KeyCode) or table.find(KeybindFunctions.Settings.Blacklist, input.UserInputType)) then
-                binderBox:ReleaseFocus()
-                resetFocusState()
-                Event:Disconnect()
-                return
-            end
+								if KeybindFunctions.Settings.Blacklist and (table.find(KeybindFunctions.KeybindFunctions.Settings.Blacklist, input.KeyCode) or table.find(KeybindFunctions.Settings.Blacklist, input.UserInputType)) then
+									binderBox:ReleaseFocus()
+									resetFocusState()
+									Event:Disconnect()
+									return
+								end
 
 								if input.UserInputType == Enum.UserInputType.Keyboard then
 									binded = input.KeyCode
@@ -2490,7 +2473,7 @@ local wedgeguid = HS:GenerateGUID(true)
 					dropdown.BackgroundTransparency = 0.985
 					dropdown.BorderColor3 = Color3.fromRGB(0, 0, 0)
 					dropdown.BorderSizePixel = 0
-					dropdown.Size = UDim2.new(1, 0, 0, isMobile and 48 or 38)
+					dropdown.Size = UDim2.new(1, 0, 0, 38)
 					dropdown.Parent = section
 					dropdown.ClipsDescendants = true
 
@@ -2510,7 +2493,7 @@ local wedgeguid = HS:GenerateGUID(true)
 					interact.BackgroundTransparency = 1
 					interact.BorderColor3 = Color3.fromRGB(0, 0, 0)
 					interact.BorderSizePixel = 0
-					interact.Size = UDim2.new(1, 0, 0, isMobile and 48 or 38)
+					interact.Size = UDim2.new(1, 0, 0, 38)
 					interact.Parent = dropdown
 
 					local dropdownName = Instance.new("TextLabel")
@@ -3065,7 +3048,7 @@ local wedgeguid = HS:GenerateGUID(true)
 					colorpicker.BackgroundTransparency = 1
 					colorpicker.BorderColor3 = Color3.fromRGB(0, 0, 0)
 					colorpicker.BorderSizePixel = 0
-					colorpicker.Size = UDim2.new(1, 0, 0, isMobile and 48 or 38)
+					colorpicker.Size = UDim2.new(1, 0, 0, 38)
 					colorpicker.Parent = section
 
 					local colorpickerName = Instance.new("TextLabel")
@@ -4399,14 +4382,14 @@ local wedgeguid = HS:GenerateGUID(true)
 					label.BackgroundTransparency = 1
 					label.BorderColor3 = Color3.fromRGB(0, 0, 0)
 					label.BorderSizePixel = 0
-					label.Size = UDim2.new(1, 0, 0, isMobile and 48 or 38)
+					label.Size = UDim2.new(1, 0, 0, 38)
 					label.Parent = section
 
 					local labelText = Instance.new("TextLabel")
 					labelText.Name = "LabelText"
 					labelText.FontFace = Font.new(assets.interFont)
 					labelText.RichText = true
-					labelText.Text = LabelFunctions.Settings.Text or LabelFunctions.Settings.Name
+					labelText.Text = LabelFunctions.Settings.Text or LabelFunctions.Settings.Name -- Settings.Name Deprecated use Settings.Text
 					labelText.TextColor3 = Color3.fromRGB(255, 255, 255)
 					labelText.TextSize = 13
 					labelText.TextTransparency = 0.5
@@ -4450,7 +4433,7 @@ local wedgeguid = HS:GenerateGUID(true)
 					subLabelText.Name = "SubLabelText"
 					subLabelText.FontFace = Font.new(assets.interFont)
 					subLabelText.RichText = true
-					subLabelText.Text = SubLabelFunctions.Settings.Text or SubLabelFunctions.Settings.Name
+					subLabelText.Text = SubLabelFunctions.Settings.Text or SubLabelFunctions.Settings.Name -- Settings.Name Deprecated use Settings.Text
 					subLabelText.TextColor3 = Color3.fromRGB(255, 255, 255)
 					subLabelText.TextSize = 12
 					subLabelText.TextTransparency = 0.7
@@ -4487,7 +4470,7 @@ local wedgeguid = HS:GenerateGUID(true)
 					paragraph.BackgroundTransparency = 1
 					paragraph.BorderColor3 = Color3.fromRGB(0, 0, 0)
 					paragraph.BorderSizePixel = 0
-					paragraph.Size = UDim2.new(1, 0, 0, isMobile and 48 or 38)
+					paragraph.Size = UDim2.new(1, 0, 0, 38)
 					paragraph.Parent = section
 
 					local paragraphHeader = Instance.new("TextLabel")
@@ -4777,19 +4760,12 @@ local wedgeguid = HS:GenerateGUID(true)
 					Name = "Set as autoload",
 					Callback = function()
 						local name = configSelection.Value
-						if name then
-							writefile(MacLib.Folder .. "/settings/autoload.txt", name)
-							autoloadLabel:UpdateName("Autoload config: " .. name)
-							WindowFunctions:Notify({
-								Title = "Interface",
-								Description = string.format("Set %q as autoload", name),
-							})
-						else
-							WindowFunctions:Notify({
-								Title = "Interface",
-								Description = "No config selected to set as autoload.",
-							})
-						end
+						writefile(MacLib.Folder .. "/settings/autoload.txt", name)
+						autoloadLabel:UpdateName("Autoload config: " .. name)
+						WindowFunctions:Notify({
+							Title = "Interface",
+							Description = string.format("Set %q as autoload", name),
+						})
 					end,
 				})
 
@@ -4825,7 +4801,7 @@ local wedgeguid = HS:GenerateGUID(true)
 		notification.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		notification.BorderSizePixel = 0
 		notification.Position = UDim2.fromScale(0.5, 0.5)
-		notification.Size = UDim2.fromOffset(Settings.SizeX or (isMobile and 200 or 250), 0)
+		notification.Size = UDim2.fromOffset(Settings.SizeX or 250, 0)
 
 		notification.Parent = notifications
 
@@ -5060,7 +5036,7 @@ local wedgeguid = HS:GenerateGUID(true)
 		prompt.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		prompt.BorderSizePixel = 0
 		prompt.Position = UDim2.fromScale(0.5, 0.5)
-		prompt.Size = UDim2.fromOffset(isMobile and 240 or 280, 0)
+		prompt.Size = UDim2.fromOffset(280, 0)
 
 		local promptUIScale = Instance.new("UIScale")
 		promptUIScale.Name = "BaseUIScale"
@@ -5094,7 +5070,7 @@ local wedgeguid = HS:GenerateGUID(true)
 		paragraph.BackgroundTransparency = 1
 		paragraph.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		paragraph.BorderSizePixel = 0
-		paragraph.Size = UDim2.new(1, 0, 0, isMobile and 48 or 38)
+		paragraph.Size = UDim2.new(1, 0, 0, 38)
 
 		local paragraphHeader = Instance.new("TextLabel")
 		paragraphHeader.Name = "ParagraphHeader"
@@ -5639,6 +5615,16 @@ local wedgeguid = HS:GenerateGUID(true)
 		return out
 	end
 
+	function MacLib:SetTheme(themeTable)
+		currentTheme = themeTable or defaultTheme
+		-- Note: Theme changes require UI reload to apply fully, as elements are created with hardcoded colors.
+		-- For live updates, individual elements would need to be updated, but that's complex.
+	end
+
+	function MacLib:GetTheme()
+		return currentTheme
+	end
+
 	macLib.Enabled = false
 
 	local assetList = {}
@@ -5653,4 +5639,4 @@ local wedgeguid = HS:GenerateGUID(true)
 	return WindowFunctions
 end
 
-return MacLi
+return MacLib
